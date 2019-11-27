@@ -1,5 +1,7 @@
 package setup
 
+import "time"
+
 //Setup общая структура для настройки всей системы
 type Setup struct {
 	DataBase   DataBase
@@ -11,12 +13,19 @@ type Setup struct {
 
 //CommServer настройки для сервера коммуникации
 type CommServer struct {
-	Port int `json:"port"` //Стартовый номер порта на прием
+	Port         int           `json:"port"`            //Стартовый номер порта на прием
+	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
+	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
+	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
+	LenID        int           `json:"lenid"`           //Длина ID устройства в байтах
 }
 
 //Server настройки для сервера армов
 type Server struct {
-	Port int `json:"port"` //Стартовый номер порта на прием
+	Port         int           `json:"port"`            //Стартовый номер порта на прием
+	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
+	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
+	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
 
 }
 

@@ -27,7 +27,11 @@ func main() {
 	}
 	logger.Info.Println("Start work...")
 	fmt.Println("Start work...")
-	setup.LoadSetUp(path + "/setup/setup_ag.json")
+	err = setup.LoadSetUp(path + "/setup/setup_ag.json")
+	if err != nil {
+		fmt.Printf("Ошибки в настройке %s", err.Error())
+		return
+	}
 	stop := make(chan int)
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("pudge")
@@ -35,6 +39,7 @@ func main() {
 
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit working...")
+
 	setup.WriteSetUp()
 	fmt.Println("\nExit working...")
 }

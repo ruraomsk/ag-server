@@ -35,7 +35,7 @@ func WriteSetUp() error {
 	if len(Setuppath) == 0 {
 		return fmt.Errorf("настройки не загружались")
 	}
-	result, err := json.Marshal(&Set)
+	result, err := json.MarshalIndent(&Set, "", "\t")
 	if err != nil {
 		return fmt.Errorf("error creating json %s", err.Error())
 	}

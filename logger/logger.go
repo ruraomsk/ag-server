@@ -4,14 +4,16 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
 //LogFile функция
 type LogFile struct {
-	flog *os.File
-	path string
-	date string
+	flog  *os.File
+	mutex sync.Mutex
+	path  string
+	date  string
 }
 
 //var level int
@@ -73,6 +75,8 @@ func (l *LogFile) Read(p []byte) (n int, err error) {
 }
 
 func (l *LogFile) Write(p []byte) (n int, err error) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
 	date := time.Now().Format(time.RFC3339)[0:10]
 	n = 0
 	if strings.Compare(l.date, date) != 0 {
