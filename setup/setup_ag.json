@@ -1,0 +1,1 @@
+{"DataBase":{"host":"localhost","port":5432,"user":"postgres","password":"162747","dbname":"agserv"},"Server":{"port":0},"Pudge":{"step":10,"log":"log","save":"devices"},"CommServer":{"port":0},"Controller":{"step":0}}
