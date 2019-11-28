@@ -17,3 +17,9 @@ ALTER TABLE public.devices
     OWNER to postgres;
 COMMENT ON TABLE public.devices
     IS 'Сохранение состояния контроллеров';
+
+COMMENT ON COLUMN public.devices.id
+    IS 'Идентификатор устройства';
+
+COMMENT ON COLUMN public.devices.device
+    IS 'Все об устройстве';

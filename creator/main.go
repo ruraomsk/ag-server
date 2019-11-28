@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"rura/ag-server/creator/create"
 	"rura/ag-server/logger"
 	"rura/ag-server/setup"
-	"rura/creator/create"
 )
 
 //Создает все таблицы в постгресс

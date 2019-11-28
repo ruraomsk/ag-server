@@ -27,13 +27,20 @@ type CommandARM struct {
 type Controllers struct {
 	Contrs []Controller
 }
+type StatusConnection int
+
+const (
+	Connected StatusConnection = iota
+	NotConnected
+	Undefine
+)
 
 //Controller внутренне представление контроллера
 type Controller struct {
-	ID               int       `json:"id"`     // Уникальный номер контроллера
-	StatusConnection int       `json:"scon"`   // Статус соединения
-	StatusDevice     int       `json:"status"` // Статус устройства
-	LastOperation    time.Time `json:"ltime"`  // Время последней операции обмена с устройством
-	Pin              int       `json:"pin"`    // Номер пин на котором производится обмен
-	WriteToDB        bool      //Если истина то еще не записана в БД
+	ID               int              `json:"id"`     // Уникальный номер контроллера
+	StatusConnection StatusConnection `json:"scon"`   // Статус соединения
+	StatusDevice     int              `json:"status"` // Статус устройства
+	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
+	WriteToDB        bool             //Если истина то еще не записана в БД
+	Comment          string           `json:"comment"`
 }

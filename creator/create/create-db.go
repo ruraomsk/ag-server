@@ -1,16 +1,21 @@
 package create
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"io/ioutil"
 	"rura/ag-server/logger"
 	"rura/ag-server/setup"
 	"strings"
+	"unicode/utf16"
+	"unicode/utf8"
+
+	_ "github.com/lib/pq"
 )
 
-//SqlCreate просмотр каталога и исполнить все запросы с расширением create
+//SQLCreate просмотр каталога и исполнить все запросы с расширением create
 func SQLCreate(path string) error {
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
@@ -27,9 +32,10 @@ func SQLCreate(path string) error {
 	}
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
-		logger.Error.Printf("Ошибка чтения содержимого кталога %s %s", path, err.Error())
+		logger.Error.Printf("Ошибка чтения содержимого кaталога %s %s", path, err.Error())
 		return err
 	}
+	//Создаем все таблицы
 	for _, dir := range dirs {
 		if dir.IsDir() {
 			continue
@@ -52,5 +58,68 @@ func SQLCreate(path string) error {
 		}
 
 	}
+	dirs, err = ioutil.ReadDir(path)
+	//Загружаем координаты устройств
+	for _, dir := range dirs {
+		if dir.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(dir.Name(), ".mrk") {
+			// fmt.Println(dir.Name())
+			continue
+		}
+		nfile := path + "/" + dir.Name()
+		file, err := ioutil.ReadFile(nfile)
+		if err != nil {
+			logger.Error.Printf("Error reading file %s! %s\n", path, err.Error())
+			return err
+		}
+		logger.Info.Printf("Обрабатываем файл %s", nfile)
+		strFile, err := decodeUTF16(file)
+		strFile = strings.ReplaceAll(strFile, "\ufeff", "")
+		scanner := bufio.NewScanner(strings.NewReader(strFile))
+		for scanner.Scan() {
+			str := scanner.Text()
+			if len(str) == 0 {
+				continue
+			}
+
+			ss := strings.Split(str, "#")
+			if len(ss) != 3 {
+				continue
+			}
+			w := "insert into dev_gis (id,dgis,describ) values(" + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "');"
+			_, err = con.Exec(w)
+
+			if err != nil {
+				logger.Error.Printf("Error %s  %s\n", w, err.Error())
+				return err
+			}
+
+		}
+
+	}
 	return nil
+}
+func decodeUTF16(b []byte) (string, error) {
+
+	if len(b)%2 != 0 {
+		return "", fmt.Errorf("Must have even length byte slice")
+	}
+
+	u16s := make([]uint16, 1)
+
+	ret := &bytes.Buffer{}
+
+	b8buf := make([]byte, 4)
+
+	lb := len(b)
+	for i := 0; i < lb; i += 2 {
+		u16s[0] = uint16(b[i]) + (uint16(b[i+1]) << 8)
+		r := utf16.Decode(u16s)
+		n := utf8.EncodeRune(b8buf, r[0])
+		ret.Write(b8buf[:n])
+	}
+
+	return ret.String(), nil
 }

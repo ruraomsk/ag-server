@@ -1,14 +1,11 @@
 package comm
 
 import (
+	"net"
 	"rura/ag-server/extcon"
-	"sync"
 	"time"
 )
 
-var mutex sync.Mutex
-
-//Pin распредение пинов по портам
 type device struct {
 	id int
 	//Идентификатор устройства
@@ -17,4 +14,5 @@ type device struct {
 	status  int
 	lastop  time.Time          //Время последней операции обмена
 	context *extcon.ExtContext //Расширенный контекст для управления устройством
+	com     net.Conn
 }

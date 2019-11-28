@@ -26,17 +26,6 @@ var conDBLog *sql.DB
 var conDBSave *sql.DB
 var err error
 
-func (c *Controller) isChanged(cc Controller) bool {
-	if c.StatusConnection != cc.StatusConnection {
-		return true
-	}
-	if c.StatusDevice != cc.StatusDevice {
-		return true
-	}
-
-	return false
-}
-
 //GetController возвращает копию Контроллера
 func GetController(id int) (Controller, bool) {
 	var c Controller
