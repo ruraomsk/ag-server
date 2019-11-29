@@ -3,8 +3,9 @@ package gui
 import (
 	"net/http"
 	"rura/ag-server/extcon"
+	"rura/ag-server/logger"
 	"rura/ag-server/setup"
-	"rura/teprol/logger"
+	"strconv"
 	"time"
 )
 
@@ -16,20 +17,20 @@ func sending(w http.ResponseWriter, res []byte) {
 
 func list(w http.ResponseWriter, r *http.Request) {
 
-	res, err := 
-	if err != nil {
-		logger.Error.Println("Запрос ", err.Error())
-		return
-	}
-	sending(w, res)
+	// res, err :=
+	// if err != nil {
+	// 	logger.Error.Println("Запрос ", err.Error())
+	// 	return
+	// }
+	// sending(w, res)
 }
 
 //Start ответы на запросы от программы визуализации
 func Start(context *extcon.ExtContext, stop chan int) {
 	http.Handle("/", http.FileServer(http.Dir("./frontend")))
 	http.HandleFunc("/list", list)
-	logger.Info.Println("Listering on port 8080")
-	err := http.ListenAndServe(":8080", nil)
+	logger.Info.Println("Listering on port " + strconv.Itoa(setup.Set.Controller.GuiPort))
+	err := http.ListenAndServe(":"+strconv.Itoa(setup.Set.Controller.GuiPort), nil)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"rura/ag-server/controller/gui"
 	"rura/ag-server/extcon"
+	"rura/ag-server/logger"
 	"rura/ag-server/setup"
-	"rura/controller/gui"
-	"rura/teprol/logger"
 	"time"
 )
 
@@ -25,8 +25,9 @@ func main() {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return
 	}
-	setup.LoadSetUp(path + "setup/setup_ctrl.json")
+	setup.LoadSetUp(path + "setup/setup_ag.json")
 	logger.Info.Println("Start work...")
+	fmt.Println("Start work...")
 	stop := make(chan int)
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("gui")
@@ -34,5 +35,5 @@ func main() {
 
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit working...")
-	setup.WriteSetUp()
+	fmt.Println("Exit working...")
 }

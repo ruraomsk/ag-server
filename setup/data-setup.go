@@ -47,5 +47,8 @@ type DataBase struct {
 
 //Controller настройки имитатора
 type Controller struct {
-	Step int `json:"step"` //Интервал времени в секундах для расчетов
+	IP      string `json:"ip"`
+	GuiPort int    `json:"guiport"`
+	Port    int    `json:"port"`
+	Step    int    `json:"step"` //Интервал времени в секундах для расчетов
 }
