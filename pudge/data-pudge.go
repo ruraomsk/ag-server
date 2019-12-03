@@ -27,13 +27,99 @@ type CommandARM struct {
 type Controllers struct {
 	Contrs []Controller
 }
+
+//StatusConnection статус соединения
 type StatusConnection int
 
 const (
+	//Connected Ok
 	Connected StatusConnection = iota
+	//NotConnected not Ok
 	NotConnected
+	//Undefine Undefine
 	Undefine
 )
+
+//DK диагностика состояния по ДК
+type DK struct {
+	RDK   int  `json:"rdk"`   //Режим ДК
+	FDK   int  `json:"fdk"`   //Фаза ДК
+	DDK   int  `json:"ddk"`   //Устройство ДК
+	EDK   int  `json:"edk"`   //Неисправность ДК
+	PDK   bool `json:"pdk"`   //Признак переходного периода ДК
+	EEDK  int  `json:"eedk"`  //дополнительный код неисправности
+	ODK   bool `json:"odk"`   //Открыта дверь ДК
+	LDK   int  `json:"ldk"`   //Номер фазы на которой сгорели лампы
+	FTUDK int  `json:"ftudk"` //Фаза ТУ ДК на момент передачи
+	TDK   int  `json:"tdk"`   //Время отработки ТУ в секундах
+	FTSDK int  `json:"ftsdk"` //Фаза ТС ДК
+	TTCDK int  `json:"ttcdk"` //Время от начала фазы ТС в секундах
+
+}
+
+//Model Описание модели устройства
+type Model struct {
+	VPCPD int  //Версия ПО платы ПСПД
+	VPBS  int  //Версия ПО платы ПБС
+	C12   bool //Субблок С12
+	STP   bool //Разрешение накопление статистики по ТП
+	DKA   bool //Контроллер ДК-А
+	DTA   bool //Детектор транспорта
+}
+
+//ErrorDevice описание ошибок устройства
+type ErrorDevice struct {
+	V220DK1 bool //Срабатывание входа контроля 220В DK1
+	V220DK2 bool //Срабатывание входа контроля 220В DK2
+	RTC     bool // Неисправность часов RTC
+	TVP1    bool //Неисправность ТВП1
+	TVP2    bool //Неисправность ТВП2
+	FRAM    bool //Неисправность FRAM
+}
+
+//GPS описание состояния модуля GPS устройства
+type GPS struct {
+	Ok   bool //Исправно
+	E01  bool // Нет связи с приемником
+	E02  bool // Ошибка CRC
+	E03  bool // Нет валидного времени
+	E04  bool // Мало спутников
+	Seek bool // Поиск спутников после включения
+}
+
+//Input описание состояния входов устройства
+type Input struct {
+	V1 bool //Неисправность входа 1
+	V2 bool //Неисправность входа 2
+	V3 bool //Неисправность входа 3
+	V4 bool //Неисправность входа 4
+	V5 bool //Неисправность входа 5
+	V6 bool //Неисправность входа 6
+	V7 bool //Неисправность входа 7
+	V8 bool //Неисправность входа 8
+}
+
+//Statistic статистика
+type Statistic struct {
+	Period int //Номер периода устреднения от начала суток
+	Datas  []DataStat
+}
+
+//DataStat статистика по канально
+type DataStat struct {
+	Chanel   int //Номер канала
+	Status   int // Состояние 0-исправен 1-обрыв 2 - замыкание
+	Intensiv int //Интенсивность
+}
+type StatusCommandDU struct {
+	IsPK       bool //Назначен ПК
+	IsPKS      bool // назначена карта выбора по времени суток
+	IsNK       bool //Назначена недельная карта
+	IsDUDK1    bool //на 1 ДК есть команда ДУ
+	IsDUDK2    bool //на 2 ДК есть команда ДУ
+	IsReqSFDK1 bool //Есть запрос на передачу фаз по 1 ДК СФДК
+	IsReqSFDK2 bool //Есть запрос на передачу фаз по 2 ДК СФДК
+}
 
 //Controller внутренне представление контроллера
 type Controller struct {
@@ -43,4 +129,18 @@ type Controller struct {
 	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
 	WriteToDB        bool             //Если истина то еще не записана в БД
 	Comment          string           `json:"comment"`
+	TexRezim         int              `json:"rezim"` //Технологический режим
+	Base             bool             `json:"base"`  //Если истина то работает по базовой привязке
+	PK               int              `json:"pk"`    //Номер плана координации
+	CK               int              `json:"ck"`    //Номер суточной карты
+	NK               int              `json:"nk"`    //Номер недельной карты
+	StatusCommandDU  StatusCommandDU
+	DK1              DK
+	DK2              DK
+	TMax             int `json:"tmax"` //Максимальное время ожидания ответа от сервера в секундах
+	Model            Model
+	Error            ErrorDevice
+	GPS              GPS
+	Input            Input
+	Statistics       []Statistic
 }

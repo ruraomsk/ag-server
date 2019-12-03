@@ -9,6 +9,7 @@ type Setup struct {
 	Pudge      Pudge
 	CommServer CommServer
 	Controller Controller
+	Location   string `json:"location"` //Локация временной зоны
 }
 
 //CommServer настройки для сервера коммуникации
@@ -18,6 +19,7 @@ type CommServer struct {
 	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
 	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
 	LenID        int           `json:"lenid"`           //Длина ID устройства в байтах
+	IDServer     int           `json:"id"`              //ID сервера или 0xa7 или 0x8d
 }
 
 //Server настройки для сервера армов
