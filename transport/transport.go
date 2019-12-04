@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"reflect"
 	"time"
 
 	"fmt"
@@ -18,6 +19,11 @@ type HeaderDevice struct {
 	Message    []uint8   // Собственно сообщение без контрольной суммы
 }
 
+//Compare Сравнение
+func (hd *HeaderDevice) Compare(hdd *HeaderDevice) bool {
+	return reflect.DeepEqual(hd, hdd)
+}
+
 //HeaderServer Сообщение от сервера
 type HeaderServer struct {
 	IDServer uint8     //ID Сервера 0xa7 or 0x8D
@@ -25,6 +31,11 @@ type HeaderServer struct {
 	Number   uint8     // Номер сообщения
 	Code     uint8     // Код отправителя
 	Message  []uint8   // Собственно сообщение без контрольной суммы
+}
+
+//Compare Сравнение
+func (hs *HeaderServer) Compare(hss *HeaderServer) bool {
+	return reflect.DeepEqual(hs, hss)
 }
 
 //Parse разбор сообщения от устройства
@@ -45,7 +56,7 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 	d.ID = lid
 	d.Time = takeDate(buffer, 10)
 	d.Number = buffer[16]
-	d.Code = buffer[16]
+	d.Code = buffer[17]
 	d.Message = make([]uint8, buffer[18]-2)
 	for i := 0; i < len(d.Message); i++ {
 		d.Message[i] = buffer[19+i]

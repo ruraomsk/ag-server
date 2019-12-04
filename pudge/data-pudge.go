@@ -13,7 +13,10 @@ package pudge
 			копии
 */
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
 //CommandARM Команды от Сервера АРМ
 type CommandARM struct {
@@ -57,6 +60,11 @@ type DK struct {
 
 }
 
+//Compare сравнивание истина если равны
+func (d *DK) Compare(dd *DK) bool {
+	return reflect.DeepEqual(d, dd)
+}
+
 //Model Описание модели устройства
 type Model struct {
 	VPCPD int  //Версия ПО платы ПСПД
@@ -65,6 +73,11 @@ type Model struct {
 	STP   bool //Разрешение накопление статистики по ТП
 	DKA   bool //Контроллер ДК-А
 	DTA   bool //Детектор транспорта
+}
+
+//Compare сравнивание истина если равны
+func (m *Model) Compare(mm *Model) bool {
+	return reflect.DeepEqual(m, mm)
 }
 
 //ErrorDevice описание ошибок устройства
@@ -77,6 +90,11 @@ type ErrorDevice struct {
 	FRAM    bool //Неисправность FRAM
 }
 
+//Compare сравнивание истина если равны
+func (e *ErrorDevice) Compare(ee *ErrorDevice) bool {
+	return reflect.DeepEqual(e, ee)
+}
+
 //GPS описание состояния модуля GPS устройства
 type GPS struct {
 	Ok   bool //Исправно
@@ -85,6 +103,11 @@ type GPS struct {
 	E03  bool // Нет валидного времени
 	E04  bool // Мало спутников
 	Seek bool // Поиск спутников после включения
+}
+
+//Compare сравнивание истина если равны
+func (g *GPS) Compare(gg *GPS) bool {
+	return reflect.DeepEqual(g, gg)
 }
 
 //Input описание состояния входов устройства
@@ -99,10 +122,20 @@ type Input struct {
 	V8 bool //Неисправность входа 8
 }
 
+//Compare сравнивание истина если равны
+func (i *Input) Compare(ii *Input) bool {
+	return reflect.DeepEqual(i, ii)
+}
+
 //Statistic статистика
 type Statistic struct {
 	Period int //Номер периода устреднения от начала суток
 	Datas  []DataStat
+}
+
+//Compare сравнивание истина если равны
+func (s *Statistic) Compare(ss *Statistic) bool {
+	return reflect.DeepEqual(s, ss)
 }
 
 //DataStat статистика по канально
@@ -111,6 +144,8 @@ type DataStat struct {
 	Status   int // Состояние 0-исправен 1-обрыв 2 - замыкание
 	Intensiv int //Интенсивность
 }
+
+//StatusCommandDU команды ДУ
 type StatusCommandDU struct {
 	IsPK       bool //Назначен ПК
 	IsPKS      bool // назначена карта выбора по времени суток
@@ -119,6 +154,22 @@ type StatusCommandDU struct {
 	IsDUDK2    bool //на 2 ДК есть команда ДУ
 	IsReqSFDK1 bool //Есть запрос на передачу фаз по 1 ДК СФДК
 	IsReqSFDK2 bool //Есть запрос на передачу фаз по 2 ДК СФДК
+}
+
+//Compare сравнивание истина если равны
+func (s *StatusCommandDU) Compare(ss *StatusCommandDU) bool {
+	return reflect.DeepEqual(s, ss)
+}
+
+type LogLine struct {
+	Time   time.Time
+	Record int
+	Info   int
+}
+
+//Compare сравнивание истина если равны
+func (l *LogLine) Compare(ll *LogLine) bool {
+	return reflect.DeepEqual(l, ll)
 }
 
 //Controller внутренне представление контроллера
@@ -143,4 +194,9 @@ type Controller struct {
 	GPS              GPS
 	Input            Input
 	Statistics       []Statistic
+}
+
+//Compare сравнивание истина если равны
+func (c *Controller) Compare(cc *Controller) bool {
+	return reflect.DeepEqual(c, cc)
 }

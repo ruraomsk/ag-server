@@ -26,11 +26,8 @@ func Test_ParseServer(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if hs.IDServer != nhs.IDServer {
-		t.Error("Не совпали ID server", hs.IDServer, nhs.IDServer)
-	}
-	if !(hs.Time.Equal(nhs.Time)) {
-		t.Error(hs.Time.Format(time.RFC3339), "=====", nhs.Time.Format(time.RFC3339))
+	if !hs.Compare(&nhs) {
+		t.Errorf("Не совпали HeaderServer \n%v \n%v\n", hs, nhs)
 	}
 	smess := hs.ParseMessage()
 	nsmess := nhs.ParseMessage()
@@ -62,11 +59,8 @@ func Test_ParseDevice(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if hd.ID != nhd.ID {
-		t.Error("Не совпали ID ", hd.ID, nhd.ID)
-	}
-	if !(hd.Time.Equal(nhd.Time)) {
-		t.Error(hd.Time.Format(time.RFC3339), "=====", nhd.Time.Format(time.RFC3339))
+	if !hd.Compare(&nhd) {
+		t.Errorf("Не совпали \n%v\n%v\n ", hd, nhd)
 	}
 	smess := hd.ParseMessage()
 	nsmess := nhd.ParseMessage()
@@ -79,7 +73,6 @@ func Test_ParseDevice(t *testing.T) {
 }
 func Test_MakeSet(t *testing.T) {
 	var cc pudge.Controller
-	cc.ID = 2000
 	cc.TexRezim = 11
 	cc.Base = false
 	cc.PK = 3
@@ -112,17 +105,17 @@ func Test_MakeSet(t *testing.T) {
 	cc.DK2.FTSDK = 12
 	cc.DK2.TTCDK = 13
 	var ms transport.SubMessage
-	err := ms.Make0x0FDevice(&cc)
+	err := ms.Set0x0FDevice(&cc)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	var ncc pudge.Controller
-	err = ms.Set0x0FDevice(&ncc)
+	err = ms.Get0x0FDevice(&ncc)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if ncc.DK1.EEDK != 5 {
-		t.Error("Wait 5")
+	if !cc.Compare(&ncc) {
+		t.Errorf("Не совпали \n%v\n%v\n ", cc, ncc)
 	}
 
 }
