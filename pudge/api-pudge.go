@@ -24,6 +24,7 @@ var InWriteServARM chan CommandARM
 var ToServComm chan CommandARM
 var conDBLog *sql.DB
 var conDBSave *sql.DB
+var conDevGis *sql.DB
 var err error
 
 //GetController возвращает копию Контроллера
@@ -92,6 +93,15 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		stop <- 1
 		return
 	}
+	conDevGis, err = sql.Open("postgres", dbinfo)
+	if err != nil {
+		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
+		context.Cancel()
+		stop <- 1
+		return
+	}
+	defer conDevGis.Close()
+
 	conDBSave, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
@@ -113,6 +123,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		stop <- 1
 		return
 	}
+
 	context.SetTimeOut(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
 	for true {
 		select {

@@ -2,6 +2,7 @@ package transport
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -22,16 +23,8 @@ func (s *SubMessage) ToString() string {
 }
 
 //Compare сравнение сообщений
-func (s *SubMessage) Compare(ss SubMessage) bool {
-	if s.Type != ss.Type {
-		return false
-	}
-	for n, code := range s.Message {
-		if code != ss.Message[n] {
-			return false
-		}
-	}
-	return true
+func (s *SubMessage) Compare(ss *SubMessage) bool {
+	return reflect.DeepEqual(s, ss)
 }
 
 //ParseMessage разбор буфера сообщений от сервера
@@ -78,8 +71,8 @@ func (s *HeaderServer) UpackMessages(subs []SubMessage) error {
 	return nil
 }
 
-//CodeParse разбор ответов от устройства
-func (d *HeaderDevice) CodeParse(pos int) (SubMessage, int) {
+//codeParse разбор ответов от устройства
+func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	var sb SubMessage
 	sb.Type = d.Message[pos]
 	l := 0
@@ -118,6 +111,12 @@ func (d *HeaderDevice) CodeParse(pos int) (SubMessage, int) {
 		l = 23
 	case 0x13:
 		l = int(d.Message[pos+2]) + 3
+	case 0x1b:
+		l = 9
+	case 0x1d:
+		l = 13
+	case 0x1c:
+		l = 6
 	default:
 		l = 1
 	}
@@ -136,7 +135,7 @@ func (d *HeaderDevice) ParseMessage() []SubMessage {
 	sub := make([]SubMessage, 0)
 	pos := 0
 	for pos < len(d.Message) {
-		sb, pos = d.CodeParse(pos)
+		sb, pos = d.codeParse(pos)
 		sub = append(sub, sb)
 	}
 	return sub

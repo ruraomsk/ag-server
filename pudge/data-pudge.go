@@ -129,7 +129,11 @@ func (i *Input) Compare(ii *Input) bool {
 
 //Statistic статистика
 type Statistic struct {
-	Period int //Номер периода устреднения от начала суток
+	Period int //Номер периода усреднения от начала суток
+	Type   int //Тип статистики 1-интенсивность скорость
+	TLen   int //Величина времения усреднения мин
+	Hour   int //Час окончания периода
+	Min    int //Минуты окончания периода
 	Datas  []DataStat
 }
 
@@ -161,6 +165,7 @@ func (s *StatusCommandDU) Compare(ss *StatusCommandDU) bool {
 	return reflect.DeepEqual(s, ss)
 }
 
+//LogLine запись лога устройства
 type LogLine struct {
 	Time   time.Time
 	Record int
@@ -170,6 +175,17 @@ type LogLine struct {
 //Compare сравнивание истина если равны
 func (l *LogLine) Compare(ll *LogLine) bool {
 	return reflect.DeepEqual(l, ll)
+}
+
+//ArrayPriv Массим привязки
+type ArrayPriv struct {
+	Number int
+	Array  []int
+}
+
+//Compare сравнивание истина если равны
+func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
+	return reflect.DeepEqual(a, aa)
 }
 
 //Controller внутренне представление контроллера
@@ -194,9 +210,24 @@ type Controller struct {
 	GPS              GPS
 	Input            Input
 	Statistics       []Statistic
+	Arrays           []ArrayPriv
+	LogLines         []LogLine
 }
 
 //Compare сравнивание истина если равны
 func (c *Controller) Compare(cc *Controller) bool {
 	return reflect.DeepEqual(c, cc)
+}
+
+//CreateEmptyController создает экземпляр контроллера пустой
+func CreateEmptyController(id int) Controller {
+	var c Controller
+	c.ID = id
+	c.LastOperation = time.Unix(0, 0)
+	c.StatusConnection = Connected
+	c.Base = true
+	c.Statistics = make([]Statistic, 0)
+	c.Arrays = make([]ArrayPriv, 0)
+	c.LogLines = make([]LogLine, 0)
+	return c
 }

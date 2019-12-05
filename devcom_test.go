@@ -40,16 +40,30 @@ func Test_0x07D(t *testing.T) {
 	}
 }
 func Test_0x09D(t *testing.T) {
-	sb.Set0x09Device(10, 20, 30, 40, 50)
-	a1, a2, a3, a4, a5 := sb.Get0x09Device()
-	if a1 != 10 || a2 != 20 || a3 != 30 || a4 != 40 || a5 != 50 {
-		t.Errorf("Ошибка %d %d %d %d %d", a1, a2, a3, a4, a5)
-
+	var st pudge.Statistic
+	st.Period = 10
+	st.Type = 1
+	st.TLen = 60
+	st.Hour = 10
+	st.Min = 20
+	st.Datas = make([]pudge.DataStat, 0)
+	sb.Set0x09Device(&st)
+	var stt pudge.Statistic
+	stt, err := sb.Get0x09Device()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !st.Compare(&stt) {
+		t.Errorf("Не совпали \n%v\n%v\n ", st, stt)
 	}
 }
 func Test_0x0AD(t *testing.T) {
 	var st pudge.Statistic
 	st.Period = 10
+	st.Type = 1
+	st.TLen = 60
+	st.Hour = 10
+	st.Min = 20
 	st.Datas = make([]pudge.DataStat, 0)
 	var sd pudge.DataStat
 	for i := 1; i < 11; i++ {
@@ -63,7 +77,16 @@ func Test_0x0AD(t *testing.T) {
 		t.Error(err.Error())
 	}
 	var stt pudge.Statistic
+	stt.Period = 10
+	stt.Type = 1
+	stt.TLen = 60
+	stt.Hour = 10
+	stt.Min = 20
+	stt.Datas = make([]pudge.DataStat, 0)
 	err = sb.Get0x0ADevice(&stt)
+	if err != nil {
+		t.Error(err.Error())
+	}
 	if !st.Compare(&stt) {
 		t.Errorf("Не совпали \n%v\n%v\n ", st, stt)
 	}
@@ -81,5 +104,30 @@ func Test_0x0BD(t *testing.T) {
 	}
 	if !lg.Compare(&lgg) {
 		t.Errorf("Не совпали \n%v\n%v\n ", lg, lgg)
+	}
+}
+func Test_0x13D(t *testing.T) {
+	var ar pudge.ArrayPriv
+	ar.Number = 12
+	ar.Array = make([]int, 0)
+	for i := 1; i < 11; i++ {
+		ar.Array = append(ar.Array, i)
+	}
+	sb.Set0x13Device(&ar)
+	var arr pudge.ArrayPriv
+	err := sb.Get0x13Device(&arr)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !ar.Compare(&arr) {
+		t.Errorf("Не совпали \n%v\n%v\n ", ar, arr)
+	}
+}
+func Test_0x1CD(t *testing.T) {
+	sb.Set0x1CDevice(111)
+	a1 := sb.Get0x1CDevice()
+	if a1 != 111 {
+		t.Errorf("Ошибка %d ", a1)
+
 	}
 }

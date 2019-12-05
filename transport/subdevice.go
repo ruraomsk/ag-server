@@ -302,28 +302,29 @@ func (s *SubMessage) Set0x11Device(c *pudge.Controller) {
 }
 
 //Set0x09Device записывает субсообщение для команды с номером в имени
-func (s *SubMessage) Set0x09Device(tstat, period, len, hour, min int) {
+func (s *SubMessage) Set0x09Device(st *pudge.Statistic) {
 	//num номер сообщения
 	s.Type = 0x09
 	s.Message = make([]uint8, 6)
 	s.Message[0] = 0x09
-	s.Message[1] = uint8(tstat)
-	s.Message[2] = uint8(period)
-	s.Message[3] = uint8(len)
-	s.Message[4] = uint8(hour)
-	s.Message[5] = uint8(min)
+	s.Message[1] = uint8(st.Type)
+	s.Message[2] = uint8(st.Period)
+	s.Message[3] = uint8(st.TLen)
+	s.Message[4] = uint8(st.Hour)
+	s.Message[5] = uint8(st.Min)
 }
 
 //Get0x09Device записывает субсообщение для команды с номером в имени
-func (s *SubMessage) Get0x09Device() (tstat, period, len, hour, min int) {
+func (s *SubMessage) Get0x09Device() (st pudge.Statistic, err error) {
 	if s.Message[0] != 0x09 {
-		return
+		return st, fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	tstat = int(s.Message[1])
-	period = int(s.Message[2])
-	len = int(s.Message[3])
-	hour = int(s.Message[4])
-	min = int(s.Message[5])
+	st.Datas = make([]pudge.DataStat, 0)
+	st.Type = int(s.Message[1])
+	st.Period = int(s.Message[2])
+	st.TLen = int(s.Message[3])
+	st.Hour = int(s.Message[4])
+	st.Min = int(s.Message[5])
 	return
 }
 
@@ -354,8 +355,10 @@ func (s *SubMessage) Get0x0ADevice(st *pudge.Statistic) error {
 	if s.Message[0] != 0x0a {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
+	if st.Period != int(s.Message[1]) {
+		return fmt.Errorf("неверный номер периода %d", s.Message[1])
+	}
 	st.Datas = make([]pudge.DataStat, 0)
-	st.Period = int(s.Message[1])
 	count := int(s.Message[2]) / 3
 	pos := 3
 	var el pudge.DataStat
@@ -395,6 +398,56 @@ func (s *SubMessage) Get0x0BDevice(lg *pudge.LogLine) error {
 	lg.Info = int(s.Message[8])
 
 	return nil
+}
+
+//Set0x13Device сообщение массива привязки
+func (s *SubMessage) Set0x13Device(ar *pudge.ArrayPriv) {
+	s.Type = 0x13
+	s.Message = make([]uint8, len(ar.Array)+3)
+	s.Message[0] = 0x13
+	s.Message[1] = uint8(ar.Number)
+	s.Message[2] = uint8(len(ar.Array))
+	pos := 3
+	for _, al := range ar.Array {
+		s.Message[pos] = uint8(al)
+		pos++
+	}
+}
+
+//Get0x13Device сообщение массива привязки
+func (s *SubMessage) Get0x13Device(ar *pudge.ArrayPriv) error {
+	if s.Message[0] != 0x13 {
+		return fmt.Errorf("неверный номер команды %x", s.Message[0])
+	}
+	ar.Number = int(s.Message[1])
+	ar.Array = make([]int, 0)
+	count := int(s.Message[2])
+	pos := 3
+	for count > 0 {
+		ar.Array = append(ar.Array, int(s.Message[pos]))
+		pos++
+		count--
+	}
+	return nil
+}
+
+//Set0x1CDevice записывает субсообщение для команды с номером в имени
+func (s *SubMessage) Set0x1CDevice(num int) {
+	//num номер сообщения
+	s.Type = 0x1c
+	s.Message = make([]uint8, 6)
+	s.Message[0] = 0x1C
+	s.Message[1] = uint8(num)
+}
+
+//Get0x1CDevice читает субсообщение
+func (s *SubMessage) Get0x1CDevice() (num int) {
+	//num номер сообщения
+	if s.Message[0] != 0x1C {
+		return -1
+	}
+	num = int(s.Message[1])
+	return
 }
 
 func takeDateDevice(buffer []byte, pos int) time.Time {

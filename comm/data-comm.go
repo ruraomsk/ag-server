@@ -1,18 +1,21 @@
 package comm
 
 import (
-	"net"
 	"rura/ag-server/extcon"
-	"time"
 )
 
 type device struct {
 	id int
 	//Идентификатор устройства
-	inbuff  [1024]byte
-	outbuf  [1024]byte
-	status  int
-	lastop  time.Time          //Время последней операции обмена
 	context *extcon.ExtContext //Расширенный контекст для управления устройством
-	com     net.Conn
+	NumDev  uint8              //Номер сообщения для подтверждения
+	NumServ uint8              //Номер сообщения от сервера
+	WaitNum uint8              //Номер ожидаемого сообщения
+}
+
+func (d *device) addNumber() {
+	d.NumServ++
+	if d.NumServ > 250 {
+		d.NumServ = 1
+	}
 }

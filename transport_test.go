@@ -33,7 +33,7 @@ func Test_ParseServer(t *testing.T) {
 	nsmess := nhs.ParseMessage()
 	for n, mes := range smess {
 		nmes := nsmess[n]
-		if !nmes.Compare(mes) {
+		if !nmes.Compare(&mes) {
 			t.Error(nmes.ToString(), " not equal ", mes.ToString())
 		}
 	}
@@ -66,7 +66,7 @@ func Test_ParseDevice(t *testing.T) {
 	nsmess := nhd.ParseMessage()
 	for n, mes := range smess {
 		nmes := nsmess[n]
-		if !nmes.Compare(mes) {
+		if !nmes.Compare(&mes) {
 			t.Error(nmes.ToString(), " not equal ", mes.ToString())
 		}
 	}

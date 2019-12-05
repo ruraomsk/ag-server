@@ -2,6 +2,7 @@ package transport
 
 import (
 	"reflect"
+	"rura/ag-server/setup"
 	"time"
 
 	"fmt"
@@ -19,6 +20,18 @@ type HeaderDevice struct {
 	Message    []uint8   // Собственно сообщение без контрольной суммы
 }
 
+//CreateHeaderDevice создает заголовок устройства
+func CreateHeaderDevice(id, tp, number, code int) HeaderDevice {
+	var h HeaderDevice
+	h.ID = id
+	h.TypeDevice = uint8(tp)
+	h.Time = time.Now()
+	h.Number = uint8(number)
+	h.Code = uint8(code)
+	h.Message = make([]uint8, 0)
+	return h
+}
+
 //Compare Сравнение
 func (hd *HeaderDevice) Compare(hdd *HeaderDevice) bool {
 	return reflect.DeepEqual(hd, hdd)
@@ -31,6 +44,17 @@ type HeaderServer struct {
 	Number   uint8     // Номер сообщения
 	Code     uint8     // Код отправителя
 	Message  []uint8   // Собственно сообщение без контрольной суммы
+}
+
+//CreateHeaderServer создает заголовок сервера
+func CreateHeaderServer(num, code int) HeaderServer {
+	var h HeaderServer
+	h.IDServer = setup.Set.CommServer.IDServer
+	h.Time = time.Now()
+	h.Number = uint8(num)
+	h.Code = uint8(code)
+	h.Message = make([]uint8, 0)
+	return h
 }
 
 //Compare Сравнение
