@@ -14,7 +14,10 @@ type Setup struct {
 
 //CommServer настройки для сервера коммуникации
 type CommServer struct {
-	Port         int           `json:"port"`            //Стартовый номер порта на прием
+	Port        int `json:"port"`  //Стартовый номер порта на прием
+	PortCommand int `json:"portc"` //Порт приема команд от сервера АРМ
+	PortArray   int `json:"porta"` //Порт приема массивов привязки от сервера АРМ
+
 	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
 	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
 	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства

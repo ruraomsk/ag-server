@@ -19,6 +19,8 @@
 	},
 	"CommServer": {
 		"port": 2000,
+		"portc": 2001,
+		"porta": 2002,
 		"read_timeout": 1000000000,
 		"write_timeout": 1000000000,
 		"time_keep_alive": 1000000000,

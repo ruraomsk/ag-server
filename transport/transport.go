@@ -33,8 +33,8 @@ func CreateHeaderDevice(id, tp, number, code int) HeaderDevice {
 }
 
 //Compare Сравнение
-func (hd *HeaderDevice) Compare(hdd *HeaderDevice) bool {
-	return reflect.DeepEqual(hd, hdd)
+func (d *HeaderDevice) Compare(dd *HeaderDevice) bool {
+	return reflect.DeepEqual(d, dd)
 }
 
 //HeaderServer Сообщение от сервера
@@ -58,8 +58,8 @@ func CreateHeaderServer(num, code int) HeaderServer {
 }
 
 //Compare Сравнение
-func (hs *HeaderServer) Compare(hss *HeaderServer) bool {
-	return reflect.DeepEqual(hs, hss)
+func (s *HeaderServer) Compare(ss *HeaderServer) bool {
+	return reflect.DeepEqual(s, ss)
 }
 
 //Parse разбор сообщения от устройства
@@ -69,9 +69,18 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 		return fmt.Errorf("неверная контрольная сумма")
 	}
 	d.TypeDevice = buffer[0]
-	id := make([]byte, 9)
+	t := make([]byte, 2)
+	for i := 0; i < 2; i++ {
+		t[i] = buffer[i]
+	}
+	lt, err := strconv.Atoi(string(t))
+	if err != nil {
+		return fmt.Errorf("при разборе типа %s", err.Error())
+	}
+	d.TypeDevice = uint8(lt)
+	id := make([]byte, 8)
 	for i := 0; i < len(id); i++ {
-		id[i] = buffer[i+1]
+		id[i] = buffer[i+2]
 	}
 	lid, err := strconv.Atoi(string(id))
 	if err != nil {
@@ -108,9 +117,9 @@ func (s *HeaderServer) Parse(buffer []byte) error {
 func (d *HeaderDevice) MakeBuffer() []byte {
 	buffer := make([]byte, 19+len(d.Message)+4)
 	buffer[0] = d.TypeDevice
-	str := []byte(fmt.Sprintf("%09d", d.ID))
-	for i := 0; i < 9; i++ {
-		buffer[i+1] = str[i]
+	str := []byte(fmt.Sprintf("%02d%08d", d.TypeDevice, d.ID))
+	for i := 0; i < 10; i++ {
+		buffer[i] = str[i]
 	}
 	putDate(d.Time, buffer, 10)
 	d.Time = takeDate(buffer, 10)

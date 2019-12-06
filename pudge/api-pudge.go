@@ -17,11 +17,6 @@ import (
 var mutex sync.Mutex
 var mapContrs map[int]Controller
 
-//InWriteServARM тут принимаем запросы от сервера АРМ для исполнения сервером Коммуникации
-var InWriteServARM chan CommandARM
-
-//ToServComm туда отправляем запросы от сервера АРМ для исполнения после логгирования в БД
-var ToServComm chan CommandARM
 var conDBLog *sql.DB
 var conDBSave *sql.DB
 var conDevGis *sql.DB
@@ -74,8 +69,6 @@ func SetController(c Controller) {
 func Start(context *extcon.ExtContext, stop chan int) {
 	// Создаем каналы и переменные
 	mapContrs = make(map[int]Controller)
-	InWriteServARM = make(chan CommandARM)
-	ToServComm = make(chan CommandARM)
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -127,11 +120,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	context.SetTimeOut(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
 	for true {
 		select {
-		case msgARM := <-InWriteServARM:
-			//Запротоколлировать приход команды
-			//И передать для исполнения
-			toLogCommad(msgARM)
-			ToServComm <- msgARM
 		case <-context.Done():
 			if context.GetStatus() == "timeout" {
 				saveSave()
@@ -153,17 +141,6 @@ func toReturnControllers(mgs []int) {
 		ret.Contrs = append(ret.Contrs, mapContrs[i])
 	}
 	mutex.Unlock()
-}
-func toLogCommad(msg CommandARM) {
-	t := time.Now()
-	js, _ := json.Marshal(msg)
-	w := "insert into " + setup.Set.Pudge.TableLog + " (tm,flag,id,json) values('" + string(pq.FormatTimestamp(t)) +
-		"',1," + string(msg.ID) + ",'" + string(js) + "');"
-	_, err := conDBLog.Exec(w)
-	if err != nil {
-		logger.Error.Printf("For wtite log to command %s", err.Error())
-		return
-	}
 }
 func loadSave() error {
 	rows, err := conDBSave.Query("Select * from " + setup.Set.Pudge.TableSave + ";")

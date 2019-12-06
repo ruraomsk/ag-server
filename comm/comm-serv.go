@@ -10,7 +10,6 @@ import (
 	"rura/ag-server/transport"
 	"strconv"
 	"sync"
-	"time"
 )
 
 var devs map[int]*device
@@ -20,7 +19,12 @@ var mutex sync.Mutex
 //Слушает входящие сообщения и распределяет их на устройства
 
 //StartListen основной вход сервер коммуникаций
-func StartListen() {
+func StartListen(stop chan int) {
+	//Запускаем слушателя для команд от АРМ
+	go listenArmCommand()
+	//Запускаем слушателя для массивов привязки от АРМ
+	go listenArmArray()
+
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))
 
@@ -35,10 +39,10 @@ func StartListen() {
 			logger.Error.Printf("Ошибка accept %s", err.Error())
 			continue
 		}
-		go newConnect(socket)
+		go newConnect(socket, stop)
 	}
 }
-func newConnect(soc net.Conn) {
+func newConnect(soc net.Conn, stop chan int) {
 	/*
 			После установления соединения:
 		1.Клиент отправляет сообщение Состояние ПБС V2, если ID клиента есть в БД сервера,
@@ -53,7 +57,7 @@ func newConnect(soc net.Conn) {
 	var err error
 	defer soc.Close()
 
-	hDev, err = getMessageFromDevice(soc)
+	hDev, err = transport.GetMessageFromDevice(soc)
 	if err != nil {
 		logger.Error.Printf("При приеме первого соединения от устройства %s %s", soc.LocalAddr().String(), err.Error())
 	}
@@ -81,7 +85,7 @@ func newConnect(soc net.Conn) {
 	pudge.SetController(ctrl)
 	//Готовим пустое сообщение
 	hs := transport.CreateHeaderServer(0, 0)
-	err = sendMessageToDevice(soc, hs)
+	err = transport.SendMessageToDevice(soc, hs)
 	if err != nil {
 		logger.Error.Printf("При передаче %s", err.Error())
 		return
@@ -93,19 +97,22 @@ func newConnect(soc net.Conn) {
 		d.context.Cancel()
 	}
 	//Ждем сообщения о состоянии устройства
-	hDev, err = getMessageFromDevice(soc)
+	hDev, err = transport.GetMessageFromDevice(soc)
 	if err != nil {
 		logger.Error.Printf("При ожидании состояния устройства %s", err.Error())
 		return
 	}
 	dd := new(device)
 	dd.id = ctrl.ID
+	dd.CommandARM = make(chan CommandARM)
+	dd.CommandArray = make(chan CommandArray)
 	dd.addNumber()
 	dd.context, _ = extcon.NewContext("device" + strconv.Itoa(dd.id))
 	mutex.Lock()
 	devs[dd.id] = dd
 	mutex.Unlock()
-	err = updateController(&ctrl, &hDev)
+	updateController(&ctrl, &hDev)
+	pudge.SetController(ctrl)
 
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -131,7 +138,7 @@ func newConnect(soc net.Conn) {
 }
 
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
-func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) error {
+func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 	dmess := hDev.ParseMessage()
 	mutex.Lock()
 	d := devs[hDev.ID]
@@ -221,27 +228,31 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) error {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
 				continue
 			}
-
+		case 0x13:
+			//Массив приявязки
+			var ar pudge.ArrayPriv
+			err := mes.Get0x13Device(&ar)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
+				continue
+			}
+			flag := false
+			for n, a := range c.Arrays {
+				if a.Number == ar.Number {
+					//Заменим массив
+					c.Arrays[n] = ar
+					flag = true
+				}
+			}
+			if !flag {
+				c.Arrays = append(c.Arrays, ar)
+			}
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
 		}
 
 	}
-	return nil
-}
-func getMessageFromDevice(socket net.Conn) (transport.HeaderDevice, error) {
-	var h transport.HeaderDevice
-	buffer := make([]byte, 1024)
-	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
-	len, err := socket.Read(buffer)
-	if err != nil {
-		return h, err
-	}
-	if len == 0 {
-		return h, fmt.Errorf("прочитано ноль байт от устройства %s", socket.LocalAddr().String())
-	}
-	err = h.Parse(buffer)
-	return h, err
+	return
 }
 func getController(id int) (pudge.Controller, error) {
 	//Вначале проверим на pudge
@@ -255,16 +266,4 @@ func getController(id int) (pudge.Controller, error) {
 		ctrl = pudge.CreateEmptyController(id)
 	}
 	return ctrl, nil
-}
-func sendMessageToDevice(socket net.Conn, hs transport.HeaderServer) error {
-	socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
-	buffer := hs.MakeBuffer()
-	n, err := socket.Write(buffer)
-	if err != nil {
-		return err
-	}
-	if n != len(buffer) {
-		return fmt.Errorf("передано %d байт вместо %d на устройство %s", n, len(buffer), socket.LocalAddr().String())
-	}
-	return nil
 }
