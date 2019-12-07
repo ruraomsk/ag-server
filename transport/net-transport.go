@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"rura/ag-server/setup"
+	"strings"
 	"time"
 )
 
@@ -35,4 +36,26 @@ func SendMessageToDevice(socket net.Conn, hs HeaderServer) error {
 		return fmt.Errorf("передано %d байт вместо %d на устройство %s", n, len(buffer), socket.LocalAddr().String())
 	}
 	return nil
+}
+
+//GetMaybeMessageFromDevice принять сообщение от устройства если оно есть
+//Если за заднный интервал не пришло сообщение то вернет false,nil
+//Если были ошибки при приеме то вернет false,error
+//Если прием произошел то вернет true,nil и заполненный HeaderDevice
+func GetMaybeMessageFromDevice(socket net.Conn, h *HeaderDevice) (bool, error) {
+	buffer := make([]byte, 1024)
+	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
+	len, err := socket.Read(buffer)
+	if err != nil {
+		if strings.Contains(err.Error(), "i/o timeout") {
+			return false, nil
+		}
+
+		return false, err
+	}
+	if len == 0 {
+		return false, fmt.Errorf("прочитано ноль байт от устройства %s", socket.LocalAddr().String())
+	}
+	err = h.Parse(buffer)
+	return true, err
 }

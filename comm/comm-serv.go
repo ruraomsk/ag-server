@@ -9,7 +9,9 @@ import (
 	"rura/ag-server/setup"
 	"rura/ag-server/transport"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
 
 var devs map[int]*device
@@ -113,6 +115,63 @@ func newConnect(soc net.Conn, stop chan int) {
 	mutex.Unlock()
 	updateController(&ctrl, &hDev)
 	pudge.SetController(ctrl)
+	//С этого момента начинается основной цикл работы
+	for {
+		is, err = transport.GetMaybeMessageFromDevice(soc, &hDev)
+		if err != nil {
+			logger.Error.Printf("При приеме сообщения от %d %s", dd.id, err.Error())
+			ctrl.StatusConnection = pudge.NotConnected
+			pudge.SetController(ctrl)
+			return
+		}
+		if is {
+			updateController(&ctrl, &hDev)
+			pudge.SetController(ctrl)
+		}
+		dd.context.SetTimeOut(time.Duration(1 * time.Second))
+		select {
+		case <-dd.context.Done():
+			if strings.Contains(dd.context.GetStatus(), "timeout") {
+				if time.Now().Sub(ctrl.LastOperation) > time.Duration(5*time.Minute) {
+					//Уже пять минут нет связи с устройством
+					//Прощаемся с ним %-)
+					ctrl.StatusConnection = pudge.NotConnected
+					logger.Info.Printf("Устройство %d более пяти минут не выходит на связь", dd.id)
+					return
+				}
+				dd.context.SetTimeOut(time.Duration(1 * time.Second))
+				continue
+			}
+			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
+			return
+		case comARM := <-dd.CommandARM:
+			//Пришла команда арма
+			hs, err = makeCommandToDevice(dd, comARM)
+			if err != nil {
+				logger.Error.Printf("При создании команды от АРМ %d %s", dd.id, err.Error())
+				continue
+			}
+			err = transport.SendMessageToDevice(soc, hs)
+			if err != nil {
+				logger.Error.Printf("При передаче %d %s", dd.id, err.Error())
+				return
+			}
+
+		case comArray := <-dd.CommandArray:
+			//Пришла команда арма загрузки привязки
+
+			hss := makeArrayToDevice(dd, comArray)
+			for _, h := range hss {
+				err = transport.SendMessageToDevice(soc, h)
+				if err != nil {
+					logger.Error.Printf("При передаче %d %s", dd.id, err.Error())
+					return
+				}
+				time.Sleep(1 * time.Second)
+			}
+
+		}
+	}
 
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -142,6 +201,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 	dmess := hDev.ParseMessage()
 	mutex.Lock()
 	d := devs[hDev.ID]
+	c.LastOperation = time.Now()
+	c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
 	for _, mes := range dmess {
 		switch mes.Type {
@@ -266,4 +327,70 @@ func getController(id int) (pudge.Controller, error) {
 		ctrl = pudge.CreateEmptyController(id)
 	}
 	return ctrl, nil
+}
+func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {
+	dd.addNumber()
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	mss := make([]transport.SubMessage, 0)
+	var ms transport.SubMessage
+	switch comARM.Command {
+	case 0x02:
+		//Управление УСДК
+		ms.Set0x02Server(comARM.Command == 2)
+	case 0x03:
+		//Запрос состояния устройства
+		ms.Set0x03Server()
+	case 0x04:
+		//Запрос на смену фаз
+		d1 := (comARM.Params & 1) != 0
+		d2 := (comARM.Params & 2) != 0
+		ms.Set0x04Server(d1, d2)
+	case 0x05:
+		//Смена плана координации
+		ms.Set0x05Server(comARM.Params)
+	case 0x06:
+		//Смена карты выбора по времении суток
+		ms.Set0x06Server(comARM.Params)
+	case 0x07:
+		//Смена недельной карты
+		ms.Set0x07Server(comARM.Params)
+	case 0x09:
+		//Диспетчерское управление ДК1
+		ms.Set0x09Server(comARM.Params)
+	case 0x0A:
+		//Диспетчерское управление ДК2
+		ms.Set0x0AServer(comARM.Params)
+	default:
+		return hs, fmt.Errorf("Неверная команда от АРМ для %d user %d %x ", dd.id, comARM.UserID, comARM.Command)
+	}
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	return hs, nil
+}
+func makeArrayToDevice(dd *device, comArray CommandArray) []transport.HeaderServer {
+	hss := make([]transport.HeaderServer, 0)
+	var ms transport.SubMessage
+	//Сообщение об отключении управления
+	hs := transport.CreateHeaderServer(0, 0)
+	mss := make([]transport.SubMessage, 0)
+	ms.Set0x02Server(false)
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	hss = append(hss, hs)
+	//Собственно массив привязки
+	dd.addNumber()
+	hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
+	mss = make([]transport.SubMessage, 0)
+	ms.SetArray(comArray.Number, comArray.Elems)
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	hss = append(hss, hs)
+	//Сообщение о включении управления
+	hs = transport.CreateHeaderServer(0, 0)
+	mss = make([]transport.SubMessage, 0)
+	ms.Set0x02Server(true)
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	hss = append(hss, hs)
+	return hss
 }

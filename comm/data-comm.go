@@ -16,6 +16,7 @@ type CommandARM struct {
 type CommandArray struct {
 	ID     int   `json:"id"`
 	UserID int   `json:"user"`
+	Number int   `json:"number"`
 	Elems  []int `json:"elems"`
 }
 
