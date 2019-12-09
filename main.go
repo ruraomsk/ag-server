@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"rura/ag-server/comm"
 	"rura/ag-server/extcon"
 	"rura/ag-server/logger"
 	"rura/ag-server/pudge"
@@ -36,6 +37,7 @@ func main() {
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("pudge")
 	go pudge.Start(p, stop)
+	go comm.StartListen(stop)
 
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit working...")

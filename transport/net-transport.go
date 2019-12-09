@@ -11,15 +11,23 @@ import (
 //GetMessageFromDevice принять сообщение от устройства в любом случае
 func GetMessageFromDevice(socket net.Conn) (HeaderDevice, error) {
 	var h HeaderDevice
-	buffer := make([]byte, 1024)
-	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
-	len, err := socket.Read(buffer)
+	buf := make([]byte, 19)
+	n, err := socket.Read(buf)
+	if err == nil && n != len(buf) {
+		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf))
+	}
 	if err != nil {
 		return h, err
 	}
-	if len == 0 {
-		return h, fmt.Errorf("прочитано ноль байт от устройства %s", socket.LocalAddr().String())
+	buf2 := make([]byte, buf[18]+2)
+	n, err = socket.Read(buf2)
+	if err == nil && n != len(buf2) {
+		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf2))
 	}
+	if err != nil {
+		return h, err
+	}
+	buffer := append(buf, buf2...)
 	err = h.Parse(buffer)
 	return h, err
 }
@@ -43,19 +51,30 @@ func SendMessageToDevice(socket net.Conn, hs HeaderServer) error {
 //Если были ошибки при приеме то вернет false,error
 //Если прием произошел то вернет true,nil и заполненный HeaderDevice
 func GetMaybeMessageFromDevice(socket net.Conn, h *HeaderDevice) (bool, error) {
-	buffer := make([]byte, 1024)
 	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
-	len, err := socket.Read(buffer)
+	buf := make([]byte, 19)
+	n, err := socket.Read(buf)
+	if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+		return false, nil
+	}
+	if err == nil && n != len(buf) {
+		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf))
+	}
 	if err != nil {
-		if strings.Contains(err.Error(), "i/o timeout") {
-			return false, nil
-		}
-
 		return false, err
 	}
-	if len == 0 {
-		return false, fmt.Errorf("прочитано ноль байт от устройства %s", socket.LocalAddr().String())
+	buf2 := make([]byte, buf[18]+2)
+	n, err = socket.Read(buf2)
+	if err != nil && strings.Contains(err.Error(), "i/o timeout") {
+		return false, nil
 	}
+	if err == nil && n != len(buf2) {
+		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf2))
+	}
+	if err != nil {
+		return false, err
+	}
+	buffer := append(buf, buf2...)
 	err = h.Parse(buffer)
 	return true, err
 }

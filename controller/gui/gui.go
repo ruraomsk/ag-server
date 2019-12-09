@@ -3,9 +3,7 @@ package gui
 import (
 	"net/http"
 	"rura/ag-server/extcon"
-	"rura/ag-server/logger"
 	"rura/ag-server/setup"
-	"strconv"
 	"time"
 )
 
@@ -27,13 +25,13 @@ func list(w http.ResponseWriter, r *http.Request) {
 
 //Start ответы на запросы от программы визуализации
 func Start(context *extcon.ExtContext, stop chan int) {
-	http.Handle("/", http.FileServer(http.Dir("./frontend")))
-	http.HandleFunc("/list", list)
-	logger.Info.Println("Listering on port " + strconv.Itoa(setup.Set.Controller.GuiPort))
-	err := http.ListenAndServe(":"+strconv.Itoa(setup.Set.Controller.GuiPort), nil)
-	if err != nil {
-		panic(err.Error())
-	}
+	// http.Handle("/", http.FileServer(http.Dir("./frontend")))
+	// http.HandleFunc("/list", list)
+	// logger.Info.Println("Listering on port " + strconv.Itoa(setup.Set.Controller.GuiPort))
+	// err := http.ListenAndServe(":"+strconv.Itoa(setup.Set.Controller.GuiPort), nil)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
 	// Создаем каналы и переменные
 	context.SetTimeOut(time.Duration(setup.Set.Controller.Step) * time.Second)

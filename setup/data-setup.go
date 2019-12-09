@@ -51,8 +51,9 @@ type DataBase struct {
 
 //Controller настройки имитатора
 type Controller struct {
-	IP      string `json:"ip"`
-	GuiPort int    `json:"guiport"`
-	Port    int    `json:"port"`
-	Step    int    `json:"step"` //Интервал времени в секундах для расчетов
+	IP        string        `json:"ip"`
+	GuiPort   int           `json:"guiport"`
+	Port      int           `json:"port"`
+	Step      int           `json:"step"`            //Интервал времени в секундах для расчетов
+	KeepAlive time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
 }

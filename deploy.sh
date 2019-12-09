@@ -4,4 +4,6 @@ cp ./setup/*.sql ~/setup
 cp ./setup/*.json ~/setup
 cp ./setup/*.mrk ~/setup
 rm ~/log/ag-server/*.log
+rm ~/log/controller/*.log
+
 ./ag-server

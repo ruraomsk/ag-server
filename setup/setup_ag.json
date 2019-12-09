@@ -7,10 +7,10 @@
 		"dbname": "agserv"
 	},
 	"Server": {
-		"port": 0,
+		"port": 2000,
 		"read_timeout": 1000000000,
 		"write_timeout": 1000000000,
-		"time_keep_alive": 1000000000
+		"time_keep_alive": 120000000000
 	},
 	"Pudge": {
 		"step": 1,
@@ -23,14 +23,15 @@
 		"porta": 2002,
 		"read_timeout": 1000000000,
 		"write_timeout": 1000000000,
-		"time_keep_alive": 1000000000,
+		"time_keep_alive": 180000000000,
 		"lenid": 19,
 		"id": 167
 	},
 	"Controller": {
 		"ip": "192.168.1.44",
 		"port": 2000,
-		"step": 10
+		"step": 10,
+		"guiport": 8080
 	},
 	"location": "Asia/Omsk"
 }

@@ -28,7 +28,7 @@ func IsRegistred(id int) bool {
 		logger.Error.Println(err.Error())
 		return false
 	}
-	rows.Close()
+	defer rows.Close()
 	if rows.Next() {
 		return true
 	}
