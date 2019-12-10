@@ -167,7 +167,7 @@ func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
 		sumP += uint(buffer[i])
 		sumP = sumP & 0xffff
 	}
-	len := int(buffer[lenHeader-3])
+	len := int(buffer[lenHeader-1] - 2)
 	for i := 0; i < len; i++ {
 		sumP += uint(buffer[lenHeader+i])
 		sumP = sumP & 0xffff

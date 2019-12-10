@@ -43,7 +43,7 @@ func main() {
 		return
 	}
 	defer conDevGis.Close()
-	w := "select * from dev_gis ;"
+	w := "select id from dev_gis;"
 	rows, err := conDevGis.Query(w)
 	if err != nil {
 		logger.Error.Println(err.Error())

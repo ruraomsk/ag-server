@@ -78,17 +78,13 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	l := 0
 	switch sb.Type {
 	case 0x00:
-		l = 1
+		pos++
+		sb.Message = make([]uint8, 0)
+		return sb, pos
 	case 0x01:
 		l = 6
-	case 0x03:
-		l = 14
 	case 0x04:
 		l = 5
-	case 0x05:
-		l = 3
-	case 0x06:
-		l = 3
 	case 0x07:
 		l = 5
 	case 0x08:
@@ -99,8 +95,6 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 		l = int(d.Message[pos+2]) * 3
 	case 0x0b:
 		l = 16
-	case 0x0c:
-		l = 7
 	case 0x0f:
 		l = 22
 	case 0x10:
@@ -118,7 +112,9 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	case 0x1c:
 		l = 6
 	default:
-		l = 1
+		pos++
+		sb.Message = make([]uint8, 0)
+		return sb, pos
 	}
 	pos++
 	sb.Message = make([]uint8, l)

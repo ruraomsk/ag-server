@@ -15,9 +15,23 @@ func Test_ParseServer(t *testing.T) {
 	hs.Number = 1
 	var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
+	ms.Set0x01Server(10)
+	mss = append(mss, ms)
 	ms.Set0x02Server(true)
 	mss = append(mss, ms)
+	ms.Set0x03Server()
+	mss = append(mss, ms)
+	ms.Set0x04Server(true, true)
+	mss = append(mss, ms)
+	ms.Set0x05Server(11)
+	mss = append(mss, ms)
 	ms.Set0x06Server(3)
+	mss = append(mss, ms)
+	ms.Set0x07Server(12)
+	mss = append(mss, ms)
+	ms.Set0x09Server(13)
+	mss = append(mss, ms)
+	ms.Set0x0AServer(14)
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	buffer := hs.MakeBuffer()
@@ -48,10 +62,33 @@ func Test_ParseDevice(t *testing.T) {
 	hd.Number = 1
 	var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
-	ms.Set0x01Server(10)
+	ms.Set0x00Device()
+	mss = append(mss, ms)
+	ms.Set0x01Device(1, 2, 3, 4, 5)
 	mss = append(mss, ms)
 	ms.Set0x04Device(10, 11, 9, 12)
 	mss = append(mss, ms)
+	ms.Set0x07Device(7, 8, 9, 10)
+	mss = append(mss, ms)
+	var st pudge.Statistic
+	ms.Set0x09Device(&st)
+	mss = append(mss, ms)
+	ms.Set0x0ADevice(&st)
+	mss = append(mss, ms)
+	var c pudge.Controller
+	ms.Set0x0FDevice(&c)
+	mss = append(mss, ms)
+	ms.Set0x10Device(&c)
+	mss = append(mss, ms)
+	ms.Set0x11Device(&c)
+	mss = append(mss, ms)
+	ms.Set0x12Device(&c)
+	mss = append(mss, ms)
+	var ar pudge.ArrayPriv
+	ar.Array = make([]int, 0)
+	ms.Set0x13Device(&ar)
+	mss = append(mss, ms)
+
 	hd.UpackMessages(mss)
 	buffer := hd.MakeBuffer()
 	var nhd transport.HeaderDevice

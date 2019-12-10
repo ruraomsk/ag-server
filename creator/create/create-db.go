@@ -75,6 +75,10 @@ func SQLCreate(path string) error {
 			return err
 		}
 		logger.Info.Printf("Обрабатываем файл %s", nfile)
+		region := "0"
+		if strings.Contains(nfile, "Мосавтодор") {
+			region = "1"
+		}
 		strFile, err := decodeUTF16(file)
 		strFile = strings.ReplaceAll(strFile, "\ufeff", "")
 		scanner := bufio.NewScanner(strings.NewReader(strFile))
@@ -88,7 +92,7 @@ func SQLCreate(path string) error {
 			if len(ss) != 3 {
 				continue
 			}
-			w := "insert into dev_gis (id,dgis,describ) values(" + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "');"
+			w := "insert into dev_gis (region,id,dgis,describ) values(" + region + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "');"
 			_, err = con.Exec(w)
 
 			if err != nil {
