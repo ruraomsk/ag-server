@@ -12,15 +12,24 @@ import (
 func GetMessageFromDevice(socket net.Conn) (HeaderDevice, error) {
 	var h HeaderDevice
 	buf := make([]byte, 19)
-	n, err := socket.Read(buf)
-	if err == nil && n != len(buf) {
-		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf))
-	}
-	if err != nil {
-		return h, err
+	for {
+		n, err := socket.Read(buf)
+		if err == nil && n != len(buf) {
+			err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf))
+		}
+
+		if err != nil && strings.Contains(err.Error(), "EOF") && n != 0 {
+			continue
+		}
+		if err != nil {
+			return h, err
+		}
+		if err == nil {
+			break
+		}
 	}
 	buf2 := make([]byte, buf[18]+2)
-	n, err = socket.Read(buf2)
+	n, err := socket.Read(buf2)
 	if err == nil && n != len(buf2) {
 		err = fmt.Errorf("при чтении сообщения от устройства прочитано %d байт нужно %d", n, len(buf2))
 	}
@@ -75,6 +84,10 @@ func GetMaybeMessageFromDevice(socket net.Conn, h *HeaderDevice) (bool, error) {
 		return false, err
 	}
 	buffer := append(buf, buf2...)
+	if len(buffer) == 22 {
+		return false, nil
+
+	}
 	err = h.Parse(buffer)
 	return true, err
 }

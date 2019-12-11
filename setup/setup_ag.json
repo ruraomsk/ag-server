@@ -13,7 +13,7 @@
 		"time_keep_alive": 120000000000
 	},
 	"Pudge": {
-		"step": 1,
+		"step": 10,
 		"log": "log",
 		"save": "devices"
 	},
@@ -31,7 +31,8 @@
 		"ip": "192.168.1.44",
 		"port": 2000,
 		"step": 10,
-		"guiport": 8080
+		"guiport": 8080,
+		"time_keep_alive": 120000000000
 	},
 	"location": "Asia/Omsk"
 }

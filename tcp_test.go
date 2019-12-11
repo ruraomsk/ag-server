@@ -164,11 +164,7 @@ func Test_TcpDevice(t *testing.T) {
 	rDevice = make(chan transport.HeaderDevice)
 	go startDevice(t)
 	var hd transport.HeaderDevice
-	hd.ID = 25000
-	hd.TypeDevice = 30
-	hd.Time = time.Now()
-	hd.Code = 0x7f
-	hd.Number = 1
+	hd = transport.CreateHeaderDevice(128978, 30, 0, 0xAC)
 	var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x00Device()
@@ -195,8 +191,8 @@ func Test_TcpDevice(t *testing.T) {
 	mss = append(mss, ms)
 	var ar pudge.ArrayPriv
 	ar.Array = make([]int, 0)
-	ms.Set0x13Device(&ar)
-	mss = append(mss, ms)
+	// ms.Set0x13Device(&ar)
+	// mss = append(mss, ms)
 
 	hd.UpackMessages(mss)
 	buffer := hd.MakeBuffer()

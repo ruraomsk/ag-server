@@ -180,6 +180,20 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 	return reflect.DeepEqual(a, aa)
 }
 
+//Cross описание перекрестка
+type Cross struct {
+	Region     int         `json:"region"`
+	ID         int         `json:"id"`
+	IDevice    int         `json:"idevice"`
+	WriteToDB  bool        //Если истина то еще не записана в БД
+	PK         int         `json:"pk"` //Номер плана координации
+	CK         int         `json:"ck"` //Номер суточной карты
+	NK         int         `json:"nk"` //Номер недельной карты
+	Statistics []Statistic //Накопленная статистика
+	Arrays     []ArrayPriv //Файлы привязки
+
+}
+
 //Controller внутренне представление контроллера
 type Controller struct {
 	ID               int              `json:"id"`     // Уникальный номер контроллера

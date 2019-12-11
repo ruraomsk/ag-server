@@ -93,6 +93,9 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 		l = 6
 	case 0x0a:
 		l = int(d.Message[pos+2]) * 3
+		if l == 0 {
+			l = 3
+		}
 	case 0x0b:
 		l = 16
 	case 0x0f:
@@ -112,11 +115,12 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	case 0x1c:
 		l = 6
 	default:
+		fmt.Println("!!!!!!")
 		pos++
 		sb.Message = make([]uint8, 0)
 		return sb, pos
 	}
-	pos++
+	// pos++
 	sb.Message = make([]uint8, l)
 	for i := 0; i < len(sb.Message); i++ {
 		sb.Message[i] = d.Message[pos]
@@ -150,8 +154,6 @@ func (d *HeaderDevice) UpackMessages(subs []SubMessage) error {
 	d.Message = make([]uint8, l)
 	pos := 0
 	for _, sb := range subs {
-		// d.Message[pos] = sb.Type
-		// pos++
 		for i := 0; i < len(sb.Message); i++ {
 			d.Message[pos] = sb.Message[i]
 			pos++

@@ -22,14 +22,14 @@ func (c *Controller) IsConnected() bool {
 
 //IsRegistred возвращает истину если данный id зарегистрирован
 func IsRegistred(id int) bool {
-	w := "select * from dev_gis where id=" + strconv.Itoa(id) + ";"
+	w := "select idevice from public.\"cross\" where idevice=" + strconv.Itoa(id) + ";"
 	rows, err := conDevGis.Query(w)
 	if err != nil {
 		logger.Error.Println(err.Error())
 		return false
 	}
 	defer rows.Close()
-	if rows.Next() {
+	if rows.NextResultSet() {
 		return true
 	}
 	return false

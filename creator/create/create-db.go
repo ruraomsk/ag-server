@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"rura/ag-server/logger"
 	"rura/ag-server/setup"
+	"strconv"
 	"strings"
 	"unicode/utf16"
 	"unicode/utf8"
@@ -103,6 +104,24 @@ func SQLCreate(path string) error {
 		}
 
 	}
+	//Теперь создаем таблицу привязки cross
+	rows, err := con.Query("select region,id from dev_gis;")
+	var region int
+	var id int
+	for rows.Next() {
+		err = rows.Scan(&region, &id)
+		if err != nil {
+			logger.Error.Printf("Error   %s\n", err.Error())
+			return err
+		}
+		w := "insert into public.\"cross\" (region,id,idevice) values(" + strconv.Itoa(region) + "," + strconv.Itoa(id) + "," + strconv.Itoa(region*10000+id) + ");"
+		_, err = con.Exec(w)
+		if err != nil {
+			logger.Error.Printf("Error   %s\n", err.Error())
+			return err
+		}
+	}
+
 	return nil
 }
 func decodeUTF16(b []byte) (string, error) {

@@ -46,14 +46,14 @@ func NewContext(name string) (*ExtContext, error) {
 	if !work {
 		return nil, fmt.Errorf("stoped context system")
 	}
-	var ec ExtContext
+	ec := new(ExtContext)
 	ec.name = name
 	ctx, cancel := context.WithCancel(context.Background())
 	ec.cancelFunc = cancel
 	ec.ctx = ctx
 	id := newID()
-	contexts[id] = &ec
-	return &ec, nil
+	contexts[id] = ec
+	return ec, nil
 }
 
 //GetName return name context

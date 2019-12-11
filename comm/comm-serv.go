@@ -150,7 +150,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			updateController(&ctrl, &hDev)
 			pudge.SetController(ctrl)
 		}
-		dd.context.SetTimeOut(time.Duration(1 * time.Second))
+		dd.context.SetTimeOut(time.Duration(10 * time.Second))
 		select {
 		case <-dd.context.Done():
 			if strings.Contains(dd.context.GetStatus(), "timeout") {
@@ -161,7 +161,7 @@ func newConnect(soc net.Conn, stop chan int) {
 					logger.Info.Printf("Устройство %d более положенного не выходит на связь", dd.id)
 					return
 				}
-				dd.context.SetTimeOut(time.Duration(1 * time.Second))
+				dd.context.SetTimeOut(time.Duration(10 * time.Second))
 				continue
 			}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
@@ -189,7 +189,7 @@ func newConnect(soc net.Conn, stop chan int) {
 					logger.Error.Printf("При передаче %d %s", dd.id, err.Error())
 					return
 				}
-				time.Sleep(1 * time.Second)
+				time.Sleep(10 * time.Second)
 			}
 
 		}

@@ -39,7 +39,7 @@ func main() {
 	go pudge.Start(p, stop)
 	go comm.StartListen(stop)
 
-	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
+	extcon.BackgroundWork(time.Duration(10*time.Second), stop)
 	logger.Info.Println("Exit working...")
 
 	setup.WriteSetUp()

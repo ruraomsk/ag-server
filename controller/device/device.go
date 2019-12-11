@@ -1,26 +1,18 @@
 package device
 
-import "rura/ag-server/pudge"
-
-import "time"
-
-import "net"
-
-import "rura/ag-server/setup"
-
-import "strconv"
-
-import "rura/ag-server/logger"
-
-import "rura/ag-server/transport"
-
-import "fmt"
-
-import "sync"
-
-import "rura/ag-server/extcon"
-
-import "strings"
+import (
+	"fmt"
+	"net"
+	"rura/ag-server/extcon"
+	"rura/ag-server/logger"
+	"rura/ag-server/pudge"
+	"rura/ag-server/setup"
+	"rura/ag-server/transport"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
 
 //Device управляющая структура имитатора устройства
 type Device struct {
@@ -34,7 +26,7 @@ type Device struct {
 	dk2          bool //Управление по ДК2
 	flag         bool //если изменили из GUI
 	Soc          net.Conn
-	mutex        sync.Mutex
+	Mutex        sync.Mutex
 	needAns      []int
 	context      *extcon.ExtContext
 }
@@ -42,13 +34,13 @@ type Device struct {
 //Close ТИПА ЗАКРЫВАЕМ УСТРОЙСТВО
 func (d *Device) Close() {
 	d.Status = false
-	d.mutex.Unlock()
+	// d.Mutex.Unlock()
 	defer d.Soc.Close()
 }
 
 //StartDevice обслуживание одного устройства
 func (d *Device) StartDevice() {
-	logger.Info.Printf("Запускаем id %d", d.ID)
+	// logger.Info.Printf("Запускаем id %d", d.ID)
 
 	ctrl := new(pudge.Controller)
 	ctrl.ID = d.ID
@@ -61,7 +53,6 @@ func (d *Device) StartDevice() {
 		return
 	}
 	defer d.Close()
-	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
 	d.Controller = ctrl
 	d.Soc = soc
 	err = d.writeFirstMessage()
@@ -75,13 +66,20 @@ func (d *Device) StartDevice() {
 		return
 	}
 	// Начинаем основной цикл
+	d.Mutex.Lock()
+	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
+	d.Mutex.Unlock()
 	for {
+		d.Mutex.Lock()
+		d.Status = true
+		d.Mutex.Unlock()
 		is, err := d.readMaybeMessageFromServer()
 		if err != nil {
 			logger.Error.Printf("Ошибка возможного приема %s", err.Error())
 			return
 		}
 		if is {
+
 			d.updateDevice()
 			if len(d.needAns) != 0 {
 				err = d.makeAndSendAnsware()
@@ -91,7 +89,15 @@ func (d *Device) StartDevice() {
 				}
 			}
 		}
-		d.context.SetTimeOut(time.Duration(1 * time.Second))
+		d.Mutex.Lock()
+		if d.context == nil {
+			logger.Error.Printf("Пропал контекст %d ", d.ID)
+			d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
+			// d.Mutex.Unlock()
+			// return
+		}
+		d.context.SetTimeOut(time.Duration(10 * time.Second))
+		d.Mutex.Unlock()
 		select {
 		case <-d.context.Done():
 			if !strings.Contains(d.context.GetStatus(), "timeout") {
@@ -104,11 +110,15 @@ func (d *Device) StartDevice() {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())
 					return
 				}
-				d.context.SetTimeOut(time.Duration(1 * time.Second))
+				d.Mutex.Lock()
+				d.context.SetTimeOut(time.Duration(10 * time.Second))
+				d.Mutex.Unlock()
 				continue
 			}
 			// d.sendIfChange()
-			d.context.SetTimeOut(time.Duration(1 * time.Second))
+			d.Mutex.Lock()
+			d.context.SetTimeOut(time.Duration(10 * time.Second))
+			d.Mutex.Unlock()
 			continue
 		}
 	}
@@ -168,6 +178,8 @@ func setDefault(c *pudge.Controller) {
 	c.LogLines = make([]pudge.LogLine, 0)
 }
 func (d *Device) writeFirstMessage() error {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	code := 0
 	if d.Controller.Base {
 		code = 0xac
@@ -187,6 +199,8 @@ func (d *Device) writeFirstMessage() error {
 	return err
 }
 func (d *Device) readMaybeMessageFromServer() (bool, error) {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	d.Soc.SetReadDeadline(time.Now().Add(setup.Set.Server.TimeOutRead))
 	buf := make([]byte, 13)
 	n, err := d.Soc.Read(buf)
@@ -220,6 +234,8 @@ func (d *Device) readMaybeMessageFromServer() (bool, error) {
 }
 
 func (d *Device) readMessageServer() error {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	buf := make([]byte, 13)
 	n, err := d.Soc.Read(buf)
 	if err == nil && n != len(buf) {
@@ -245,6 +261,8 @@ func (d *Device) readMessageServer() error {
 	return err
 }
 func (d *Device) updateDevice() {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	d.needAns = make([]int, 0)
 	mss := d.HeadServer.ParseMessage()
 	for _, ms := range mss {
@@ -255,80 +273,58 @@ func (d *Device) updateDevice() {
 			for n, ar := range d.Controller.Arrays {
 				if ar.Number == num {
 					flag = true
-					d.mutex.Lock()
 					d.Controller.Arrays[n].Array = array
-					d.mutex.Unlock()
 				}
 			}
 			if !flag {
 				var arr pudge.ArrayPriv
 				arr.Number = num
 				arr.Array = array
-				d.mutex.Lock()
 				d.Controller.Arrays = append(d.Controller.Arrays, arr)
-				d.mutex.Unlock()
 			}
-			d.mutex.Lock()
 			d.needAns = append(d.needAns, int(d.HeadServer.Number))
-			d.mutex.Unlock()
 			continue
 		}
 		switch ms.GetCodeCommandServer() {
 		case 0x02:
 			//Управление УСДК
-			d.mutex.Lock()
 			d.StatusDevice = ms.Get0x02Server()
 			d.needAns = append(d.needAns, int(d.HeadServer.Number))
-			d.mutex.Unlock()
 		case 0x03:
 			//Запрос состояния устройства
-			d.mutex.Lock()
 			d.needAns = append(d.needAns, -1)
-			d.mutex.Unlock()
 		case 0x04:
 			//Запрос на смену фаз
-			d.mutex.Lock()
 			bb := ms.Get0x04Server()
 			d.dk1 = bb[0]
 			d.dk2 = bb[1]
-			d.mutex.Unlock()
 		case 0x05:
 			//Запрос смена плана координации
-			d.mutex.Lock()
 			d.Controller.PK = ms.Get0x05Server()
-			d.mutex.Unlock()
 		case 0x06:
 			//Смена суточной карты
-			d.mutex.Lock()
 			d.Controller.CK = ms.Get0x06Server()
-			d.mutex.Unlock()
 		case 0x07:
 			//Смена недельной карты
-			d.mutex.Lock()
 			d.Controller.NK = ms.Get0x06Server()
-			d.mutex.Unlock()
 		case 0x09:
 			//Режим работы ДК1
-			d.mutex.Lock()
 			d.Controller.DK1.RDK = ms.Get0x09Server()
-			d.mutex.Unlock()
 		case 0x0A:
 			//Режим работы ДК2
-			d.mutex.Lock()
 			d.Controller.DK2.RDK = ms.Get0x0AServer()
-			d.mutex.Unlock()
 		case 0x0B:
 			//Передача массива привязки
-			d.mutex.Lock()
 			ii := ms.Get0x0BServer()
 			d.needAns = append(d.needAns, -2)
 			d.needAns = append(d.needAns, ii[0])
 			d.needAns = append(d.needAns, ii[1])
-			d.mutex.Unlock()
 		}
 	}
 }
 func (d *Device) makeAndSendAnsware() error {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	if len(d.needAns) == 0 {
 		return nil
 	}
@@ -339,7 +335,6 @@ func (d *Device) makeAndSendAnsware() error {
 	d.HeadDevice = transport.CreateHeaderDevice(d.Controller.ID, 30, 0, code)
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
-	d.mutex.Lock()
 	for i := 0; i < len(d.needAns); {
 		if d.needAns[i] > 0 {
 			ms.Set0x01Device(d.needAns[i], time.Now().Minute(), time.Now().Second(), 0, 0)
@@ -371,7 +366,6 @@ func (d *Device) makeAndSendAnsware() error {
 		}
 
 	}
-	d.mutex.Unlock()
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
 	d.Soc.SetWriteDeadline(time.Now().Add(setup.Set.Server.TimeOutWrite))
@@ -390,7 +384,6 @@ func (d *Device) sendKeepAlive() error {
 	if d.Controller.Base {
 		code = 0xac
 	}
-	d.mutex.Lock()
 	d.HeadDevice = transport.CreateHeaderDevice(d.Controller.ID, 30, 0, code)
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
@@ -403,7 +396,6 @@ func (d *Device) sendKeepAlive() error {
 	mss = append(mss, ms)
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
-	d.mutex.Unlock()
 	d.Soc.SetWriteDeadline(time.Now().Add(setup.Set.Server.TimeOutWrite))
 	n, err := d.Soc.Write(buffer)
 	if err == nil && n != len(buffer) {

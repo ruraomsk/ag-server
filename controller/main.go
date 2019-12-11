@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"os"
 	"runtime"
 	"rura/ag-server/controller/device"
@@ -17,6 +18,17 @@ import (
 var devs map[int]*device.Device
 var mutex sync.Mutex
 
+func restartDevice() {
+	time.Sleep(60 * time.Second)
+	for _, d := range devs {
+		d.Mutex.Lock()
+		if !d.Status {
+			logger.Info.Println("Перезапускаем ", d.ID)
+			go d.StartDevice()
+		}
+		d.Mutex.Unlock()
+	}
+}
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	path, err := os.UserHomeDir()
@@ -43,13 +55,14 @@ func main() {
 		return
 	}
 	defer conDevGis.Close()
-	w := "select id from dev_gis;"
+	w := "select idevice from public.\"cross\";"
 	rows, err := conDevGis.Query(w)
 	if err != nil {
 		logger.Error.Println(err.Error())
 		return
 	}
 	defer rows.Close()
+	// count := 0
 	for rows.Next() {
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
@@ -57,13 +70,14 @@ func main() {
 		go dev.StartDevice()
 	}
 	logger.Info.Println("Запущены имитаторы...")
-
+	conDevGis.Close()
 	stop := make(chan int)
 	extcon.BackgroundInit()
+	go restartDevice()
 	// p, _ := extcon.NewContext("gui")
 	// go gui.Start(p, stop)
 
-	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
+	extcon.BackgroundWork(time.Duration(10*time.Second), stop)
 	logger.Info.Println("Exit working...")
 	fmt.Println("Controller exit working...")
 }

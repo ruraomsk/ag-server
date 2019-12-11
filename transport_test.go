@@ -53,6 +53,27 @@ func Test_ParseServer(t *testing.T) {
 	}
 
 }
+func Test_EmptyDevice(t *testing.T) {
+	var hd transport.HeaderDevice
+	hd.ID = 25000
+	hd.TypeDevice = 30
+	hd.Time = time.Now()
+	hd.Code = 0x7f
+	hd.Number = 1
+	// var ms transport.SubMessage
+	mss := make([]transport.SubMessage, 0)
+	hd.UpackMessages(mss)
+	buffer := hd.MakeBuffer()
+	var nhd transport.HeaderDevice
+	err := nhd.Parse(buffer)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if !hd.Compare(&nhd) {
+		t.Errorf("Не совпали \n%v\n%v\n ", hd, nhd)
+	}
+
+}
 func Test_ParseDevice(t *testing.T) {
 	var hd transport.HeaderDevice
 	hd.ID = 25000

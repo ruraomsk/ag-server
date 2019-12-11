@@ -4,14 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/lib/pq"
 	"rura/ag-server/extcon"
 	"rura/ag-server/logger"
 	"rura/ag-server/setup"
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 var mutex sync.Mutex
@@ -37,29 +36,26 @@ func GetController(id int) (Controller, bool) {
 //SetController Записывает новое состояние контроллера и если есть изменения то записывает его в лог
 func SetController(c Controller) {
 	mutex.Lock()
-	write := false
-	cc, is := mapContrs[c.ID]
+	defer mutex.Unlock()
+	insert := false
+	_, is := mapContrs[c.ID]
 	if !is {
-		write = true
-	} else {
-		write = cc.isChanged(c)
+		insert = true
 	}
 	mapContrs[c.ID] = c
-	mutex.Unlock()
-	if write {
-		t := time.Now()
-		js, _ := json.Marshal(c)
-		w := "insert into " + setup.Set.Pudge.TableLog + " (tm,flag,id,txt) values('" + string(pq.FormatTimestamp(t)) +
-			"',2," + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
-		_, err := conDBLog.Exec(w)
+	c.WriteToDB = false
+	js, _ := json.Marshal(c)
+	if insert {
+		w := "insert into " + setup.Set.Pudge.TableSave + " (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
+		_, err := conDBSave.Exec(w)
 		if err != nil {
-			logger.Error.Printf("For wtite log to controller %s", err.Error())
+			logger.Error.Printf("For insert to controller %s", err.Error())
 			return
 		}
-		_, err = conDBSave.Exec("insert into " + setup.Set.Pudge.TableSave + "(id,device) values(" + strconv.Itoa(c.ID) + ",'" +
-			string(js) + "');")
+	} else {
+		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
 		if err != nil {
-			logger.Error.Printf("For wtite log to controller %s", err.Error())
+			logger.Error.Printf("For update to controller %s", err.Error())
 			return
 		}
 	}
@@ -123,6 +119,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		case <-context.Done():
 			if context.GetStatus() == "timeout" {
 				saveSave()
+				logger.Info.Println("Save DB")
 				context.SetTimeOut(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
 			} else {
 				saveSave()
@@ -143,6 +140,7 @@ func toReturnControllers(mgs []int) {
 	mutex.Unlock()
 }
 func loadSave() error {
+
 	rows, err := conDBSave.Query("Select * from " + setup.Set.Pudge.TableSave + ";")
 	if err != nil {
 		return err
@@ -169,22 +167,18 @@ func loadSave() error {
 }
 func saveSave() error {
 	mutex.Lock()
-	copyMap := make(map[int]Controller)
+	defer mutex.Unlock()
 	for _, c := range mapContrs {
-		copyMap[c.ID] = c
-	}
-	mutex.Unlock()
-	for _, c := range copyMap {
-		if c.WriteToDB {
-			js, _ := json.Marshal(c)
-			_, err = conDBSave.Exec("update into " + setup.Set.Pudge.TableSave + "(id,device) values(" + strconv.Itoa(c.ID) + ",'" +
-				string(js) + "');")
-			mutex.Lock()
-			cc := mapContrs[c.ID]
-			cc.WriteToDB = false
-			mapContrs[c.ID] = cc
-			mutex.Unlock()
+		if !c.WriteToDB {
+			continue
 		}
+		js, _ := json.Marshal(c)
+		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
+		if err != nil {
+			logger.Error.Printf("For update save to controller %s", err.Error())
+			break
+		}
+		c.WriteToDB = false
 	}
 	return nil
 }

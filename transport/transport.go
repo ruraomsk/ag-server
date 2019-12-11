@@ -68,7 +68,6 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 	if !checkCRC(buffer, 19) {
 		return fmt.Errorf("неверная контрольная сумма")
 	}
-	d.TypeDevice = buffer[0]
 	t := make([]byte, 2)
 	for i := 0; i < 2; i++ {
 		t[i] = buffer[i]
