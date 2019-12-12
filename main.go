@@ -5,10 +5,13 @@ import (
 	"os"
 	"runtime"
 	"rura/ag-server/comm"
+	"rura/ag-server/controller"
+	"rura/ag-server/creator"
 	"rura/ag-server/extcon"
 	"rura/ag-server/logger"
 	"rura/ag-server/pudge"
 	"rura/ag-server/setup"
+	"strings"
 	"time"
 )
 
@@ -26,9 +29,17 @@ func main() {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return
 	}
-	logger.Info.Println("Start work...")
-	fmt.Println("Start work...")
 	err = setup.LoadSetUp(path + "/setup/setup_ag.json")
+	if len(os.Args) > 1 {
+		if strings.Contains(os.Args[1], "create") {
+			err = creator.Start(path)
+			if err != nil {
+				return
+			}
+		}
+	}
+	logger.Info.Println("Start ag-server work...")
+	fmt.Println("Start ag-server work...")
 	if err != nil {
 		fmt.Printf("Ошибки в настройке %s", err.Error())
 		return
@@ -38,10 +49,12 @@ func main() {
 	p, _ := extcon.NewContext("pudge")
 	go pudge.Start(p, stop)
 	go comm.StartListen(stop)
-
+	time.Sleep(5 * time.Second)
+	c, _ := extcon.NewContext("controller")
+	go controller.Start(c)
 	extcon.BackgroundWork(time.Duration(10*time.Second), stop)
-	logger.Info.Println("Exit working...")
+	logger.Info.Println("Exit ag-server working...")
 
 	setup.WriteSetUp()
-	fmt.Println("\nExit working...")
+	fmt.Println("\nExit ag-server working...")
 }

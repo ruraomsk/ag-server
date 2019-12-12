@@ -9,7 +9,6 @@ import (
 	"rura/ag-server/setup"
 	"rura/ag-server/transport"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -85,6 +84,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	}
 	//Обновим состояние в pudge
 	ctrl.StatusConnection = pudge.Connected
+	ctrl.LastOperation = time.Now()
 	pudge.SetController(ctrl)
 	//Готовим пустое сообщение
 	hs := transport.CreateHeaderServer(0, 0)
@@ -95,10 +95,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
-	d, is := devs[hDev.ID]
-	if is {
-		d.context.Cancel()
-	}
 	//Ждем сообщения о состоянии устройства
 	hDev, err = transport.GetMessageFromDevice(soc)
 	if err != nil {
@@ -139,7 +135,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
 	for {
-		is, err = transport.GetMaybeMessageFromDevice(soc, &hDev)
+		is, err := transport.GetMaybeMessageFromDevice(soc, &hDev)
 		if err != nil {
 			logger.Error.Printf("При приеме сообщения от %d %s", dd.id, err.Error())
 			ctrl.StatusConnection = pudge.NotConnected
@@ -150,20 +146,17 @@ func newConnect(soc net.Conn, stop chan int) {
 			updateController(&ctrl, &hDev)
 			pudge.SetController(ctrl)
 		}
-		dd.context.SetTimeOut(time.Duration(10 * time.Second))
+		timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 		select {
-		case <-dd.context.Done():
-			if strings.Contains(dd.context.GetStatus(), "timeout") {
-				if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
-					//Уже пять минут нет связи с устройством
-					//Прощаемся с ним %-)
-					ctrl.StatusConnection = pudge.NotConnected
-					logger.Info.Printf("Устройство %d более положенного не выходит на связь", dd.id)
-					return
-				}
-				dd.context.SetTimeOut(time.Duration(10 * time.Second))
-				continue
+		case <-timer:
+			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
+				//Уже пять минут нет связи с устройством
+				//Прощаемся с ним %-)
+				ctrl.StatusConnection = pudge.NotConnected
+				logger.Info.Printf("Устройство %d более положенного не выходит на связь", dd.id)
+				return
 			}
+		case <-dd.context.Done():
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 			return
 		case comARM := <-dd.CommandARM:
@@ -321,11 +314,12 @@ func getController(id int) (pudge.Controller, error) {
 	ctrl, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
-		is = pudge.IsRegistred(id)
+		is, name := pudge.IsRegistred(id)
 		if !is {
 			return ctrl, fmt.Errorf("id %d не зарегистрирован", id)
 		}
 		ctrl = pudge.CreateEmptyController(id)
+		ctrl.Name = name
 	}
 	return ctrl, nil
 }

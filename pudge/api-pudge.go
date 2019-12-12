@@ -42,22 +42,25 @@ func SetController(c Controller) {
 	if !is {
 		insert = true
 	}
-	mapContrs[c.ID] = c
-	c.WriteToDB = false
 	js, _ := json.Marshal(c)
 	if insert {
+		c.WriteToDB = false
+		mapContrs[c.ID] = c
 		w := "insert into " + setup.Set.Pudge.TableSave + " (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
 		_, err := conDBSave.Exec(w)
 		if err != nil {
-			logger.Error.Printf("For insert to controller %s", err.Error())
+			logger.Error.Printf("For insert to controller %d %s", c.ID, err.Error())
 			return
 		}
 	} else {
-		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
-		if err != nil {
-			logger.Error.Printf("For update to controller %s", err.Error())
-			return
-		}
+		// _, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
+		// if err != nil {
+		// 	logger.Error.Printf("For update to controller %s", err.Error())
+		// 	return
+		// }
+		c.WriteToDB = true
+		mapContrs[c.ID] = c
+
 	}
 }
 
@@ -71,21 +74,18 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	conDBLog, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
 	defer conDBLog.Close()
 	if err = conDBLog.Ping(); err != nil {
 		logger.Error.Printf("Ping %s", err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
 	conDevGis, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
@@ -94,38 +94,30 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	conDBSave, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
 	defer conDBSave.Close()
 	if err = conDBSave.Ping(); err != nil {
 		logger.Error.Printf("Ping %s", err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
 	err = loadSave()
 	if err != nil {
 		logger.Error.Printf("save %s", err.Error())
-		context.Cancel()
 		stop <- 1
 		return
 	}
 
-	context.SetTimeOut(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
+	timer := extcon.SetTimerClock(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
 	for true {
 		select {
+		case <-timer:
+			saveSave()
 		case <-context.Done():
-			if context.GetStatus() == "timeout" {
-				saveSave()
-				logger.Info.Println("Save DB")
-				context.SetTimeOut(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
-			} else {
-				saveSave()
-				context.Cancel()
-				return
-			}
+			saveSave()
+			return
 		}
 	}
 
@@ -168,10 +160,16 @@ func loadSave() error {
 func saveSave() error {
 	mutex.Lock()
 	defer mutex.Unlock()
+	count := 0
 	for _, c := range mapContrs {
+		if c.StatusConnection == Connected && time.Now().Sub(c.LastOperation) > setup.Set.Server.KeepAlive {
+			c.StatusConnection = Undefine
+			c.WriteToDB = true
+		}
 		if !c.WriteToDB {
 			continue
 		}
+		count++
 		js, _ := json.Marshal(c)
 		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
 		if err != nil {
@@ -180,5 +178,7 @@ func saveSave() error {
 		}
 		c.WriteToDB = false
 	}
+	// logger.Info.Println("Save DB", count)
+
 	return nil
 }

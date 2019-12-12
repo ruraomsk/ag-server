@@ -11,6 +11,32 @@ import (
 var rServer chan transport.HeaderServer
 var rDevice chan transport.HeaderDevice
 
+func startListen(t *testing.T) {
+	count := 0
+	ln, err := net.Listen("tcp", ":4000")
+
+	if err != nil {
+		t.Errorf("Ошибка %d открытия порта %s", count, err.Error())
+		return
+	}
+	defer ln.Close()
+	for {
+
+		socket, err := ln.Accept()
+		if err != nil {
+			t.Errorf("Ошибка %d accept %s", count, err.Error())
+			continue
+		}
+		count++
+		go goclient(socket)
+	}
+}
+func goclient(soc net.Conn) {
+	for {
+		buffer := make([]byte, 1024)
+		soc.Read(buffer)
+	}
+}
 func startServer(t *testing.T) {
 	//Запускаем слушателя для команд от АРМ
 	ln, err := net.Listen("tcp", ":2000")
@@ -93,7 +119,19 @@ func startDevice(t *testing.T) {
 
 	}
 }
+func Test_MaxListens(t *testing.T) {
+	go startListen(t)
+	time.Sleep(1 * time.Second)
+	for i := 0; i < 4000; i++ {
+		s, err := net.Dial("tcp", ":4000")
+		if err != nil {
+			t.Errorf("Ошибка %d соединения с портом %s", i, err.Error())
+			return
+		}
+		defer s.Close()
 
+	}
+}
 func Test_TcpServer(t *testing.T) {
 	rServer = make(chan transport.HeaderServer)
 	go startServer(t)

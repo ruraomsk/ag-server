@@ -21,16 +21,31 @@ func (c *Controller) IsConnected() bool {
 }
 
 //IsRegistred возвращает истину если данный id зарегистрирован
-func IsRegistred(id int) bool {
-	w := "select idevice from public.\"cross\" where idevice=" + strconv.Itoa(id) + ";"
+func IsRegistred(id int) (bool, string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	w := "select region,id from public.\"cross\" where idevice=" + strconv.Itoa(id) + ";"
 	rows, err := conDevGis.Query(w)
 	if err != nil {
 		logger.Error.Println(err.Error())
-		return false
+		return false, ""
 	}
+	var region int
+	var idr int
 	defer rows.Close()
 	if rows.NextResultSet() {
-		return true
+		rows.Next()
+		rows.Scan(&region, &idr)
+		w := "select describ from public.dev_gis where region=" + strconv.Itoa(region) + " and id=" + strconv.Itoa(idr) + ";"
+		rs, err := conDevGis.Query(w)
+		if err != nil {
+			logger.Error.Println(err.Error())
+			return false, ""
+		}
+		var res string
+		rs.Next()
+		rs.Scan(&res)
+		return true, res
 	}
-	return false
+	return false, ""
 }

@@ -12,15 +12,8 @@ import (
 //ExtContext расширенный контекст
 type ExtContext struct {
 	name       string
-	isExpTime  bool
-	expTime    time.Time
-	isTimeout  bool
-	timeout    time.Duration
 	ctx        context.Context
 	cancelFunc context.CancelFunc
-	canceled   bool
-	executed   bool
-	status     string
 }
 
 var id uint64
@@ -30,14 +23,7 @@ var mutex sync.Mutex
 var work bool
 
 //Contexts собраны все контексты
-var contexts map[uint64]*ExtContext
-
-func newID() uint64 {
-	mutexID.Lock()
-	defer mutexID.Unlock()
-	id++
-	return id
-}
+var contexts map[string]*ExtContext
 
 //NewContext создает новый расширенный контекст только с командой завершения
 func NewContext(name string) (*ExtContext, error) {
@@ -51,8 +37,7 @@ func NewContext(name string) (*ExtContext, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ec.cancelFunc = cancel
 	ec.ctx = ctx
-	id := newID()
-	contexts[id] = ec
+	contexts[name] = ec
 	return ec, nil
 }
 
@@ -61,116 +46,38 @@ func (ec *ExtContext) GetName() string {
 	return ec.name
 }
 
-//GetStatus return string of status
-func (ec *ExtContext) GetStatus() string {
-	return ec.status
-}
-
-// Executed set status executed to true
-func (ec *ExtContext) Executed() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	ec.executed = true
-}
-
-// IsExecuted return status executed
-func (ec *ExtContext) IsExecuted() bool {
-	mutex.Lock()
-	defer mutex.Unlock()
-	return ec.executed
-}
-
-//Done rerurn chan for cancel
+//Done return chan for cancel
 func (ec *ExtContext) Done() <-chan struct{} {
 	return ec.ctx.Done()
-}
-
-//SetDeadLine устанавливает время дедлайна для контекста
-func (ec *ExtContext) SetDeadLine(dt time.Time) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	if !work {
-		return
-	}
-	ec.isExpTime = true
-	ec.expTime = dt
-}
-
-//SetTimeOut устанавливает время таймаута для контекста
-func (ec *ExtContext) SetTimeOut(dt time.Duration) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	if !work {
-		return
-	}
-	ec.isTimeout = true
-	ec.timeout = dt
-}
-
-//Cancel завершает контекст
-func (ec *ExtContext) Cancel() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	ec.status = "cancel"
-	ec.cancelF()
-}
-
-func (ec *ExtContext) cancelF() {
-	ec.canceled = true
-	ec.cancelFunc()
 }
 
 //BackgroundInit инициализируем
 func BackgroundInit() {
 	id = 0
 	work = true
-	contexts = make(map[uint64]*ExtContext)
+	contexts = make(map[string]*ExtContext, 0)
 }
 
-func allstop(status string) {
+func allstop() {
 	mutex.Lock()
 	work = false
 	for _, ec := range contexts {
-		if ec.canceled {
-			continue
-		}
-		ec.status = status
-		ec.cancelF()
+		ec.cancelFunc()
 	}
 	mutex.Unlock()
-	all := make(chan int)
-	go func() {
-		time.Sleep(10 * time.Second)
-		all <- 1
-	}()
+	time.Sleep(10 * time.Second)
+}
+
+//SetTimerClock порождает канал где приходят по времения сообщения
+func SetTimerClock(step time.Duration) chan int {
 	timer := make(chan int)
 	go func() {
 		for true {
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(step)
 			timer <- 1
 		}
 	}()
-	for true {
-		select {
-		case <-all:
-			{
-				return
-			}
-		case <-timer:
-			{
-				count := 0
-				for _, ec := range contexts {
-					if !ec.executed {
-						count++
-					}
-				}
-				if count == 0 {
-					return
-				}
-			}
-		}
-	}
-
+	return timer
 }
 
 //BackgroundWork обычно вызывается для обслуживания разного
@@ -189,38 +96,16 @@ func BackgroundWork(step time.Duration, stop chan int) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	for true {
-		start := time.Now()
 		select {
 		case <-stop:
 			{
-				allstop("stop")
+				allstop()
 				return
 			}
 		case <-c:
 			{
-				allstop("kill")
+				allstop()
 				return
-			}
-		case <-timer:
-			{
-				duration := time.Now().Sub(start)
-				mutex.Lock()
-				for _, ec := range contexts {
-					if ec.isExpTime {
-						if ec.expTime.Before(time.Now()) && !ec.canceled {
-							ec.status = "deadline"
-							ec.cancelF()
-						}
-					}
-					if ec.isTimeout {
-						ec.timeout = ec.timeout - duration
-						if ec.timeout <= 0 && !ec.canceled {
-							ec.status = "timeout"
-							ec.cancelF()
-						}
-					}
-				}
-				mutex.Unlock()
 			}
 		}
 	}

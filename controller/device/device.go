@@ -2,6 +2,7 @@ package device
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"rura/ag-server/extcon"
 	"rura/ag-server/logger"
@@ -14,9 +15,19 @@ import (
 	"time"
 )
 
+var Devs map[int]*Device
+
+//LogInt одна запись внутреннего лога обменов
+type LogInt struct {
+	Time    time.Time
+	Source  bool //true если это сообщение устройства иначе сообщение сервера
+	Message []byte
+}
+
 //Device управляющая структура имитатора устройства
 type Device struct {
 	ID           int
+	Name         string
 	Controller   *pudge.Controller
 	Status       bool
 	StatusDevice bool //true УСДК включено
@@ -29,6 +40,17 @@ type Device struct {
 	Mutex        sync.Mutex
 	needAns      []int
 	context      *extcon.ExtContext
+	LogInts      []LogInt
+}
+
+func (d *Device) addLog(source bool, buffer []byte) {
+	l := new(LogInt)
+	l.Time = time.Now()
+	l.Source = source
+	l.Message = buffer
+	d.Mutex.Lock()
+	d.LogInts = append(d.LogInts, *l)
+	d.Mutex.Unlock()
 }
 
 //Close ТИПА ЗАКРЫВАЕМ УСТРОЙСТВО
@@ -41,19 +63,17 @@ func (d *Device) Close() {
 //StartDevice обслуживание одного устройства
 func (d *Device) StartDevice() {
 	// logger.Info.Printf("Запускаем id %d", d.ID)
-
-	ctrl := new(pudge.Controller)
-	ctrl.ID = d.ID
-	d.Status = false
+	rand.Seed(int64(d.ID))
+	time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
+	d.Status = true
 	d.StatusDevice = true
-	setDefault(ctrl)
+	d.LogInts = make([]LogInt, 0)
 	soc, err := net.Dial("tcp", setup.Set.Controller.IP+":"+strconv.Itoa(setup.Set.Controller.Port))
 	if err != nil {
 		logger.Error.Printf("Ошибка соединения с портом %s", err.Error())
 		return
 	}
 	defer d.Close()
-	d.Controller = ctrl
 	d.Soc = soc
 	err = d.writeFirstMessage()
 	if err != nil {
@@ -96,35 +116,29 @@ func (d *Device) StartDevice() {
 			// d.Mutex.Unlock()
 			// return
 		}
-		d.context.SetTimeOut(time.Duration(10 * time.Second))
+		timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 		d.Mutex.Unlock()
 		select {
-		case <-d.context.Done():
-			if !strings.Contains(d.context.GetStatus(), "timeout") {
-				logger.Info.Printf("id %d завершает работу...", d.ID)
-				return
-			}
+		case <-timer:
 			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
 				err = d.sendKeepAlive()
 				if err != nil {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())
 					return
 				}
-				d.Mutex.Lock()
-				d.context.SetTimeOut(time.Duration(10 * time.Second))
-				d.Mutex.Unlock()
 				continue
 			}
 			// d.sendIfChange()
-			d.Mutex.Lock()
-			d.context.SetTimeOut(time.Duration(10 * time.Second))
-			d.Mutex.Unlock()
-			continue
+
+		case <-d.context.Done():
+			logger.Info.Printf("id %d завершает работу...", d.ID)
+			return
 		}
 	}
 }
 
-func setDefault(c *pudge.Controller) {
+//SetDefault Заполнить по умолчанию
+func SetDefault(c *pudge.Controller) {
 	c.LastOperation = time.Unix(0, 0)
 	c.TexRezim = 1
 	c.Base = true
@@ -195,6 +209,7 @@ func (d *Device) writeFirstMessage() error {
 	if err == nil && n != len(buffer) {
 		err = fmt.Errorf("id %d передано %d байт вместо %d", d.Controller.ID, n, len(buffer))
 	}
+	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
 	return err
 }
@@ -229,6 +244,7 @@ func (d *Device) readMaybeMessageFromServer() (bool, error) {
 	if err != nil {
 		return true, fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
 	}
+	d.addLog(false, buffer)
 	d.Controller.LastOperation = time.Now()
 	return true, err
 }
@@ -257,6 +273,7 @@ func (d *Device) readMessageServer() error {
 	if err != nil {
 		return fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
 	}
+	d.addLog(false, buffer)
 	d.Controller.LastOperation = time.Now()
 	return err
 }
@@ -376,10 +393,14 @@ func (d *Device) makeAndSendAnsware() error {
 	if err != nil {
 		return nil
 	}
+
+	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
 	return nil
 }
 func (d *Device) sendKeepAlive() error {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
 	code := 0
 	if d.Controller.Base {
 		code = 0xac
@@ -404,6 +425,7 @@ func (d *Device) sendKeepAlive() error {
 	if err != nil {
 		return nil
 	}
+	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
 	return nil
 }

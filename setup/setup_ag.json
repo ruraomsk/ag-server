@@ -28,7 +28,7 @@
 		"id": 167
 	},
 	"Controller": {
-		"ip": "192.168.1.44",
+		"ip": "localhost",
 		"port": 2000,
 		"step": 10,
 		"guiport": 8080,

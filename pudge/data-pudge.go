@@ -197,6 +197,7 @@ type Cross struct {
 //Controller внутренне представление контроллера
 type Controller struct {
 	ID               int              `json:"id"`     // Уникальный номер контроллера
+	Name             string           `json:"name"`   //Имя перекрестка если привязан
 	StatusConnection StatusConnection `json:"scon"`   // Статус соединения
 	StatusDevice     int              `json:"status"` // Статус устройства
 	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
