@@ -16,9 +16,16 @@ import (
 var mutex sync.Mutex
 var mapContrs map[int]Controller
 
+var ids map[int]string
+
+//Works флаг готовности pudge
+var Works bool
+
 var conDBLog *sql.DB
 var conDBSave *sql.DB
 var conDevGis *sql.DB
+var conCross *sql.DB
+var dbinfo string
 var err error
 
 //GetController возвращает копию Контроллера
@@ -65,10 +72,19 @@ func SetController(c Controller) {
 }
 
 //Start главная процедура управления состоянием котроллеров
-func Start(context *extcon.ExtContext, stop chan int) {
+func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan string) {
 	// Создаем каналы и переменные
+	defer func() {
+		if r := recover(); r != nil {
+			//Panic recover
+			fmt.Println("Panic recover Pudge")
+
+		}
+	}()
+	Works = false
+	defer mutex.Unlock()
 	mapContrs = make(map[int]Controller)
-	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
 	conDBLog, err = sql.Open("postgres", dbinfo)
@@ -100,24 +116,48 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	defer conDBSave.Close()
 	if err = conDBSave.Ping(); err != nil {
 		logger.Error.Printf("Ping %s", err.Error())
+		return
+	}
+	conCross, err = sql.Open("postgres", dbinfo)
+	if err != nil {
+		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
 		stop <- 1
 		return
 	}
-	err = loadSave()
+	defer conCross.Close()
+	loadCross()
 	if err != nil {
 		logger.Error.Printf("save %s", err.Error())
 		stop <- 1
 		return
 	}
 
+	err = loadSave()
+	if err != nil {
+		logger.Error.Printf("save %s", err.Error())
+		stop <- 1
+		return
+	}
+	Works = true
 	timer := extcon.SetTimerClock(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
+	cross := extcon.SetTimerClock(1 * time.Minute)
 	for true {
 		select {
 		case <-timer:
 			saveSave()
+		case <-cross:
+			loadCross()
+			if err != nil {
+				logger.Error.Printf("save %s", err.Error())
+				stop <- 1
+				return
+			}
 		case <-context.Done():
 			saveSave()
 			return
+		case id := <-rq:
+			ans <- isRegistred(id)
+
 		}
 	}
 
@@ -132,14 +172,13 @@ func toReturnControllers(mgs []int) {
 	mutex.Unlock()
 }
 func loadSave() error {
-
+	mutex.Lock()
+	defer mutex.Unlock()
 	rows, err := conDBSave.Query("Select * from " + setup.Set.Pudge.TableSave + ";")
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	mutex.Lock()
-	defer mutex.Unlock()
 	var id int
 	var js []byte
 	var c Controller
@@ -166,6 +205,10 @@ func saveSave() error {
 			c.StatusConnection = Undefine
 			c.WriteToDB = true
 		}
+		if len(c.Name) == 0 && len(ids[c.ID]) > 0 {
+			c.Name = ids[c.ID]
+			c.WriteToDB = true
+		}
 		if !c.WriteToDB {
 			continue
 		}
@@ -180,5 +223,25 @@ func saveSave() error {
 	}
 	// logger.Info.Println("Save DB", count)
 
+	return nil
+}
+func loadCross() error {
+	mutex.Lock()
+	defer mutex.Unlock()
+	ids = make(map[int]string)
+	w := "select idevice,describ from public.\"cross\" ;"
+	rows, err := conCross.Query(w)
+	if err != nil {
+		logger.Error.Println(err.Error())
+		return err
+	}
+	var idevice int
+	var name string
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&idevice, &name)
+		ids[idevice] = name
+	}
+	rows.Close()
 	return nil
 }

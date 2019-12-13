@@ -7,7 +7,9 @@ CREATE TABLE public.cross
     region integer NOT NULL,
     id integer NOT NULL,
     idevice int NOT NULL,
-    device jsonb NOT NULL
+    dgis point NOT NULL,
+    describ text,
+    state jsonb NOT NULL
 
 )
 WITH (

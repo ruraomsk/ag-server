@@ -23,11 +23,22 @@ func list(w http.ResponseWriter, r *http.Request) {
 	}
 	sending(w, res)
 }
+func getlog(w http.ResponseWriter, r *http.Request) {
+	ids := r.URL.Query().Get("id")
+	id, _ := strconv.Atoi(ids)
+	res, err := getLog(id)
+	if err != nil {
+		logger.Error.Println("Запрос ", err.Error())
+		return
+	}
+	sending(w, res)
+}
 
 //Start ответы на запросы от программы визуализации
 func Start(context *extcon.ExtContext) {
 	http.Handle("/", http.FileServer(http.Dir("./frontend")))
 	http.HandleFunc("/list", list)
+	http.HandleFunc("/log", getlog)
 	logger.Info.Println("Listering on port " + strconv.Itoa(setup.Set.Controller.GuiPort))
 	err := http.ListenAndServe(":"+strconv.Itoa(setup.Set.Controller.GuiPort), nil)
 	if err != nil {

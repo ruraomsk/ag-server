@@ -38,6 +38,13 @@ func restartDevice() {
 //Start Запуск имитатора контроллеров
 func Start(context *extcon.ExtContext) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	defer func() {
+		if r := recover(); r != nil {
+			//Panic recover
+			fmt.Println("Panic recover")
+
+		}
+	}()
 	logger.Info.Println("Start controller work...")
 	fmt.Println("Controller start work...")
 	device.Devs = make(map[int]*device.Device)
@@ -58,6 +65,9 @@ func Start(context *extcon.ExtContext) {
 		return
 	}
 	defer rows.Close()
+	for !pudge.Works {
+		time.Sleep(1 * time.Second)
+	}
 	// count := 0
 	for rows.Next() {
 		dev := new(device.Device)

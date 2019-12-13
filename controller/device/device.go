@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+//Devs список всех устройств
 var Devs map[int]*Device
 
 //LogInt одна запись внутреннего лога обменов
@@ -56,7 +57,8 @@ func (d *Device) addLog(source bool, buffer []byte) {
 //Close ТИПА ЗАКРЫВАЕМ УСТРОЙСТВО
 func (d *Device) Close() {
 	d.Status = false
-	// d.Mutex.Unlock()
+
+	d.Mutex.Unlock()
 	defer d.Soc.Close()
 }
 
@@ -65,7 +67,7 @@ func (d *Device) StartDevice() {
 	// logger.Info.Printf("Запускаем id %d", d.ID)
 	rand.Seed(int64(d.ID))
 	time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
-	d.Status = true
+	d.Status = false
 	d.StatusDevice = true
 	d.LogInts = make([]LogInt, 0)
 	soc, err := net.Dial("tcp", setup.Set.Controller.IP+":"+strconv.Itoa(setup.Set.Controller.Port))
@@ -75,11 +77,14 @@ func (d *Device) StartDevice() {
 	}
 	defer d.Close()
 	d.Soc = soc
+
 	err = d.writeFirstMessage()
 	if err != nil {
 		logger.Error.Printf("Ошибка  передачи %s", err.Error())
 		return
 	}
+	// logger.Info.Println("Device ", d.ID)
+	d.Status = true
 	err = d.readMessageServer()
 	if err != nil {
 		logger.Error.Printf("Ошибка  приема %s", err.Error())
@@ -89,6 +94,7 @@ func (d *Device) StartDevice() {
 	d.Mutex.Lock()
 	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
 	d.Mutex.Unlock()
+	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 	for {
 		d.Mutex.Lock()
 		d.Status = true
@@ -116,7 +122,6 @@ func (d *Device) StartDevice() {
 			// d.Mutex.Unlock()
 			// return
 		}
-		timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 		d.Mutex.Unlock()
 		select {
 		case <-timer:
@@ -192,8 +197,8 @@ func SetDefault(c *pudge.Controller) {
 	c.LogLines = make([]pudge.LogLine, 0)
 }
 func (d *Device) writeFirstMessage() error {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	code := 0
 	if d.Controller.Base {
 		code = 0xac
@@ -214,8 +219,8 @@ func (d *Device) writeFirstMessage() error {
 	return err
 }
 func (d *Device) readMaybeMessageFromServer() (bool, error) {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	d.Soc.SetReadDeadline(time.Now().Add(setup.Set.Server.TimeOutRead))
 	buf := make([]byte, 13)
 	n, err := d.Soc.Read(buf)
@@ -250,8 +255,8 @@ func (d *Device) readMaybeMessageFromServer() (bool, error) {
 }
 
 func (d *Device) readMessageServer() error {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	buf := make([]byte, 13)
 	n, err := d.Soc.Read(buf)
 	if err == nil && n != len(buf) {
@@ -269,6 +274,7 @@ func (d *Device) readMessageServer() error {
 		return err
 	}
 	buffer := append(buf, buf2...)
+
 	err = d.HeadServer.Parse(buffer)
 	if err != nil {
 		return fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
@@ -278,8 +284,8 @@ func (d *Device) readMessageServer() error {
 	return err
 }
 func (d *Device) updateDevice() {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	d.needAns = make([]int, 0)
 	mss := d.HeadServer.ParseMessage()
 	for _, ms := range mss {
@@ -340,8 +346,8 @@ func (d *Device) updateDevice() {
 	}
 }
 func (d *Device) makeAndSendAnsware() error {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	if len(d.needAns) == 0 {
 		return nil
 	}
@@ -399,8 +405,8 @@ func (d *Device) makeAndSendAnsware() error {
 	return nil
 }
 func (d *Device) sendKeepAlive() error {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
+	// d.Mutex.Lock()
+	// defer d.Mutex.Unlock()
 	code := 0
 	if d.Controller.Base {
 		code = 0xac

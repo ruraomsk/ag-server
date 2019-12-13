@@ -25,12 +25,14 @@ var err error
 //Start создание баз данных
 func Start(path string) error {
 	logger.Info.Println("Start creator...")
+	fmt.Println("Start creator...")
 	err = SQLCreate(path + "/setup")
 	if err != nil {
 		fmt.Println("Найдены ошибки проверьте log file")
 		return fmt.Errorf("Найдены ошибки проверьте log file")
 	}
 	logger.Info.Println("Exit creator...")
+	fmt.Println("Exit creator...")
 	return nil
 }
 
@@ -120,7 +122,10 @@ func SQLCreate(path string) error {
 			if len(ss) != 3 {
 				continue
 			}
-			w := "insert into dev_gis (region,id,dgis,describ) values(" + region + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "');"
+			id, _ := strconv.Atoi(ss[0])
+			reg, _ := strconv.Atoi(region)
+			w := "insert into public.\"cross\" (region,id,dgis,describ,idevice,state) values(" + region + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "'," +
+				strconv.Itoa(reg*10000+id) + ",'{}');"
 			_, err = con.Exec(w)
 
 			if err != nil {
@@ -130,23 +135,6 @@ func SQLCreate(path string) error {
 
 		}
 
-	}
-	//Теперь создаем таблицу привязки cross
-	rows, err := con.Query("select region,id from dev_gis;")
-	var region int
-	var id int
-	for rows.Next() {
-		err = rows.Scan(&region, &id)
-		if err != nil {
-			logger.Error.Printf("Error   %s\n", err.Error())
-			return err
-		}
-		w := "insert into public.\"cross\" (region,id,idevice,device) values(" + strconv.Itoa(region) + "," + strconv.Itoa(id) + "," + strconv.Itoa(region*10000+id) + ",'{}');"
-		_, err = con.Exec(w)
-		if err != nil {
-			logger.Error.Printf("Error   %s\n", err.Error())
-			return err
-		}
 	}
 
 	return nil

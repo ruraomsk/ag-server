@@ -70,6 +70,13 @@ func allstop() {
 
 //SetTimerClock порождает канал где приходят по времения сообщения
 func SetTimerClock(step time.Duration) chan int {
+	defer func() {
+		if r := recover(); r != nil {
+			//Panic recover
+			fmt.Println("Panic recover SetTimerClock")
+
+		}
+	}()
 	timer := make(chan int)
 	go func() {
 		for true {

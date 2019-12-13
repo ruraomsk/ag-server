@@ -15,12 +15,27 @@ import (
 
 var devs map[int]*device
 var mutex sync.Mutex
+var answare chan string
+var request chan int
 
 //Это сервер коммуникации
 //Слушает входящие сообщения и распределяет их на устройства
 
 //StartListen основной вход сервер коммуникаций
-func StartListen(stop chan int) {
+func StartListen(stop chan int, rq chan int, ans chan string) {
+	defer func() {
+		if r := recover(); r != nil {
+			//Panic recover
+			fmt.Println("Panic recover CommServer")
+
+		}
+	}()
+	request = rq
+	answare = ans
+	for !pudge.Works {
+		time.Sleep(1 * time.Second)
+	}
+
 	//Запускаем слушателя для команд от АРМ
 	go listenArmCommand()
 	//Запускаем слушателя для массивов привязки от АРМ
@@ -56,6 +71,13 @@ func newConnect(soc net.Conn, stop chan int) {
 	var hDev transport.HeaderDevice
 	var ctrl pudge.Controller
 	var err error
+	defer func() {
+		if r := recover(); r != nil {
+			//Panic recover
+			fmt.Println("Panic recover CommServer")
+
+		}
+	}()
 	defer soc.Close()
 
 	hDev, err = transport.GetMessageFromDevice(soc)
@@ -134,6 +156,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	   Отключить&quot;, далее массивы привязки, объединенные в сообщения, по завершению
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
+	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 	for {
 		is, err := transport.GetMaybeMessageFromDevice(soc, &hDev)
 		if err != nil {
@@ -146,7 +169,6 @@ func newConnect(soc net.Conn, stop chan int) {
 			updateController(&ctrl, &hDev)
 			pudge.SetController(ctrl)
 		}
-		timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 		select {
 		case <-timer:
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
@@ -314,8 +336,9 @@ func getController(id int) (pudge.Controller, error) {
 	ctrl, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
-		is, name := pudge.IsRegistred(id)
-		if !is {
+		request <- id
+		name := <-answare
+		if len(name) == 0 {
 			return ctrl, fmt.Errorf("id %d не зарегистрирован", id)
 		}
 		ctrl = pudge.CreateEmptyController(id)
