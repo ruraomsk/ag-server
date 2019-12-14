@@ -54,7 +54,7 @@ func main() {
 	time.Sleep(5 * time.Second)
 	c, _ := extcon.NewContext("controller")
 	go controller.Start(c)
-	extcon.BackgroundWork(time.Duration(10*time.Second), stop)
+	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 
 	setup.WriteSetUp()

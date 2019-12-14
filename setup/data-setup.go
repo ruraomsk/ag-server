@@ -35,9 +35,9 @@ type Server struct {
 
 //Pudge настройки подсистемы хранения состояние контроллеров
 type Pudge struct {
-	StepSave  int    `json:"step"` //Интервал времени в секундах для сохранения состояния контроллеров
-	TableLog  string `json:"log"`  //Имя таблицы куда пишем лог
-	TableSave string `json:"save"` //Имя таблицы где храним текущее состояние
+	StepSave   int    `json:"step"`  //Интервал времени в секундах для сохранения состояния контроллеров
+	TableCross string `json:"cross"` //Имя таблицы перекрестков
+	TableSave  string `json:"save"`  //Имя таблицы где храним текущее состояние
 }
 
 //DataBase настройки базы данных postresql

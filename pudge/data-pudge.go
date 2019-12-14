@@ -15,8 +15,19 @@ package pudge
 
 import (
 	"reflect"
+	"strconv"
 	"time"
 )
+
+//Region указатель на номер перекрестка
+type Region struct {
+	Region int //Код региона
+	ID     int //Номер перекрестка
+}
+
+func (r *Region) toKey() string {
+	return strconv.Itoa(r.Region) + ";" + strconv.Itoa(r.ID)
+}
 
 //Controllers возврат выбранных контроллеров
 type Controllers struct {
@@ -182,27 +193,27 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 
 //Cross описание перекрестка
 type Cross struct {
-	Region     int         `json:"region"`
-	ID         int         `json:"id"`
-	IDevice    int         `json:"idevice"`
-	WriteToDB  bool        //Если истина то еще не записана в БД
-	PK         int         `json:"pk"` //Номер плана координации
-	CK         int         `json:"ck"` //Номер суточной карты
-	NK         int         `json:"nk"` //Номер недельной карты
-	Statistics []Statistic //Накопленная статистика
-	Arrays     []ArrayPriv //Файлы привязки
+	Region       int         `json:"region"`
+	ID           int         `json:"id"`
+	IDevice      int         `json:"idevice"`
+	Name         string      `json:"name"`
+	StatusDevice int         `json:"status"` // Статус устройства
+	WriteToDB    bool        `json:"-"`      //Если истина то еще не записана в БД
+	PK           int         `json:"pk"`     //Номер плана координации
+	CK           int         `json:"ck"`     //Номер суточной карты
+	NK           int         `json:"nk"`     //Номер недельной карты
+	Statistics   []Statistic //Накопленная статистика
+	Arrays       []ArrayPriv //Файлы привязки
 
 }
 
 //Controller внутренне представление контроллера
 type Controller struct {
-	ID               int              `json:"id"`     // Уникальный номер контроллера
-	Name             string           `json:"name"`   //Имя перекрестка если привязан
-	StatusConnection StatusConnection `json:"scon"`   // Статус соединения
-	StatusDevice     int              `json:"status"` // Статус устройства
-	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
-	WriteToDB        bool             //Если истина то еще не записана в БД
-	Comment          string           `json:"comment"`
+	ID               int              `json:"id"`    // Уникальный номер контроллера
+	Name             string           `json:"name"`  //Имя перекрестка если привязан
+	StatusConnection StatusConnection `json:"scon"`  // Статус соединения
+	LastOperation    time.Time        `json:"ltime"` // Время последней операции обмена с устройством
+	WriteToDB        bool             `json:"-"`     //Если истина то еще не записана в БД
 	TexRezim         int              `json:"rezim"` //Технологический режим
 	Base             bool             `json:"base"`  //Если истина то работает по базовой привязке
 	PK               int              `json:"pk"`    //Номер плана координации

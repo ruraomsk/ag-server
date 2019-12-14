@@ -42,6 +42,7 @@ type Device struct {
 	needAns      []int
 	context      *extcon.ExtContext
 	LogInts      []LogInt
+	Random       bool
 }
 
 func (d *Device) addLog(source bool, buffer []byte) {
@@ -58,8 +59,8 @@ func (d *Device) addLog(source bool, buffer []byte) {
 func (d *Device) Close() {
 	d.Status = false
 
-	d.Mutex.Unlock()
-	defer d.Soc.Close()
+	// d.Mutex.Unlock()
+	d.Soc.Close()
 }
 
 //StartDevice обслуживание одного устройства
@@ -94,7 +95,7 @@ func (d *Device) StartDevice() {
 	d.Mutex.Lock()
 	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
 	d.Mutex.Unlock()
-	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
+	timer := extcon.SetTimerClock(time.Duration(setup.Set.Server.TimeOutRead * 4 * time.Second))
 	for {
 		d.Mutex.Lock()
 		d.Status = true
@@ -124,7 +125,7 @@ func (d *Device) StartDevice() {
 		}
 		d.Mutex.Unlock()
 		select {
-		case <-timer:
+		case <-timer.C:
 			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
 				err = d.sendKeepAlive()
 				if err != nil {
@@ -148,8 +149,8 @@ func SetDefault(c *pudge.Controller) {
 	c.TexRezim = 1
 	c.Base = true
 	c.PK = 1
-	c.CK = 1
-	c.NK = 1
+	c.CK = 2
+	c.NK = 3
 	var cc pudge.StatusCommandDU
 	cc.IsPK = true
 	cc.IsPKS = true
@@ -346,8 +347,6 @@ func (d *Device) updateDevice() {
 	}
 }
 func (d *Device) makeAndSendAnsware() error {
-	// d.Mutex.Lock()
-	// defer d.Mutex.Unlock()
 	if len(d.needAns) == 0 {
 		return nil
 	}
@@ -373,6 +372,7 @@ func (d *Device) makeAndSendAnsware() error {
 			mss = append(mss, ms)
 			ms.Set0x11Device(d.Controller)
 			mss = append(mss, ms)
+
 			i++
 			continue
 		}

@@ -69,22 +69,8 @@ func allstop() {
 }
 
 //SetTimerClock порождает канал где приходят по времения сообщения
-func SetTimerClock(step time.Duration) chan int {
-	defer func() {
-		if r := recover(); r != nil {
-			//Panic recover
-			fmt.Println("Panic recover SetTimerClock")
-
-		}
-	}()
-	timer := make(chan int)
-	go func() {
-		for true {
-			time.Sleep(step)
-			timer <- 1
-		}
-	}()
-	return timer
+func SetTimerClock(step time.Duration) *time.Ticker {
+	return time.NewTicker(step)
 }
 
 //BackgroundWork обычно вызывается для обслуживания разного
@@ -93,13 +79,6 @@ func BackgroundWork(step time.Duration, stop chan int) {
 	if !work {
 		BackgroundInit()
 	}
-	timer := make(chan int)
-	go func() {
-		for true {
-			time.Sleep(step)
-			timer <- 1
-		}
-	}()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	for true {

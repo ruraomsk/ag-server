@@ -23,13 +23,6 @@ var request chan int
 
 //StartListen основной вход сервер коммуникаций
 func StartListen(stop chan int, rq chan int, ans chan string) {
-	defer func() {
-		if r := recover(); r != nil {
-			//Panic recover
-			fmt.Println("Panic recover CommServer")
-
-		}
-	}()
 	request = rq
 	answare = ans
 	for !pudge.Works {
@@ -40,7 +33,7 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 	go listenArmCommand()
 	//Запускаем слушателя для массивов привязки от АРМ
 	go listenArmArray()
-
+	count := 0
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))
 
@@ -54,6 +47,10 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 		if err != nil {
 			logger.Error.Printf("Ошибка accept %s", err.Error())
 			continue
+		}
+		count++
+		if count%100 == 0 {
+			logger.Info.Println("Входящих соединений", count)
 		}
 		go newConnect(socket, stop)
 	}
@@ -71,15 +68,8 @@ func newConnect(soc net.Conn, stop chan int) {
 	var hDev transport.HeaderDevice
 	var ctrl pudge.Controller
 	var err error
-	defer func() {
-		if r := recover(); r != nil {
-			//Panic recover
-			fmt.Println("Panic recover CommServer")
-
-		}
-	}()
 	defer soc.Close()
-
+	start := time.Now()
 	hDev, err = transport.GetMessageFromDevice(soc)
 	if err != nil {
 		logger.Error.Printf("При приеме первого соединения от устройства %s %s", soc.LocalAddr().String(), err.Error())
@@ -103,6 +93,9 @@ func newConnect(soc net.Conn, stop chan int) {
 		//В сообщении соединении нет 0x10 значит рвем связь
 		logger.Error.Printf("Устройство %d неверный формат подключения", hDev.ID)
 		return
+	}
+	if time.Now().Sub(start) > time.Duration(10*time.Second) {
+		logger.Info.Println("больше 10 секунд ", ctrl.ID)
 	}
 	//Обновим состояние в pudge
 	ctrl.StatusConnection = pudge.Connected
@@ -170,7 +163,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			pudge.SetController(ctrl)
 		}
 		select {
-		case <-timer:
+		case <-timer.C:
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
@@ -231,10 +224,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 				d.WaitNum = 0
 			}
 		case 0x04:
-			c.StatusDevice = 1
 			c.Base = false
 		case 0x07:
-			c.StatusDevice = 1
 			c.Base = true
 		case 0x09:
 			//Устройство закончило сбор статистики проверим если есть такая то обновим ее заголовок

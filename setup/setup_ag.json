@@ -13,9 +13,10 @@
 		"time_keep_alive": 120000000000
 	},
 	"Pudge": {
-		"step": 10,
+		"step": 15,
 		"log": "log",
-		"save": "devices"
+		"save": "devices",
+		"cross": "public.cross"
 	},
 	"CommServer": {
 		"port": 2000,
