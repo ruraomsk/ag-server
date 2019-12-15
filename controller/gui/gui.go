@@ -38,7 +38,7 @@ func getlog(w http.ResponseWriter, r *http.Request) {
 func Start(context *extcon.ExtContext) {
 	http.Handle("/", http.FileServer(http.Dir("./frontend")))
 	http.HandleFunc("/list", list)
-	http.HandleFunc("/log", getlog)
+	http.HandleFunc("/l", getlog)
 	logger.Info.Println("Listering on port " + strconv.Itoa(setup.Set.Controller.GuiPort))
 	err := http.ListenAndServe(":"+strconv.Itoa(setup.Set.Controller.GuiPort), nil)
 	if err != nil {

@@ -24,14 +24,14 @@ type OneDevice struct {
 
 //Logs Возвращает логи устройства
 type Logs struct {
-	Logs []OneLog `json:"logs"`
+	Logs []OneLog `json:"ls"`
 }
 
 //OneLog одна строка лога
 type OneLog struct {
-	Time      time.Time `json:"time"`
-	Direction string    `json:"direct"`
-	Message   string    `json:"mes"`
+	Time      time.Time `json:"t"`
+	Direction string    `json:"d"`
+	Message   string    `json:"m"`
 }
 
 //GetList возращает json list
@@ -66,7 +66,15 @@ func getLog(id int) ([]byte, error) {
 		if ll.Source {
 			l.Direction = "from device "
 		}
-		l.Message = hex.EncodeToString(ll.Message)
+		message := hex.EncodeToString(ll.Message)
+		l.Message = ""
+		for i := 0; i < len(message); i++ {
+			l.Message += message[i : i+1]
+			if i%2 == 1 {
+				l.Message += " "
+			}
+		}
+
 		logs.Logs = append(logs.Logs, l)
 	}
 	return json.MarshalIndent(&logs, "", "   ")

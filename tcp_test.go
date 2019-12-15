@@ -121,7 +121,7 @@ func startDevice(t *testing.T) {
 }
 func Test_MaxListens(t *testing.T) {
 	go startListen(t)
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 	for i := 0; i < 4000; i++ {
 		s, err := net.Dial("tcp", ":4000")
 		if err != nil {
@@ -162,7 +162,7 @@ func Test_TcpServer(t *testing.T) {
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	buffer := hs.MakeBuffer()
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 	s, err := net.Dial("tcp", ":"+"2000")
 	if err != nil {
 		t.Errorf("Ошибка соединения с портом %s", err.Error())
@@ -234,7 +234,7 @@ func Test_TcpDevice(t *testing.T) {
 
 	hd.UpackMessages(mss)
 	buffer := hd.MakeBuffer()
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 	s, err := net.Dial("tcp", ":"+"3000")
 	if err != nil {
 		t.Errorf("Ошибка соединения с портом %s", err.Error())
