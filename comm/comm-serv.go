@@ -66,7 +66,7 @@ func newConnect(soc net.Conn, stop chan int) {
 		подтверждением с номером принятого пакета.
 	*/
 	var hDev transport.HeaderDevice
-	var ctrl pudge.Controller
+	ctrl := new(pudge.Controller)
 	var err error
 	defer soc.Close()
 	start := time.Now()
@@ -86,7 +86,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	for _, m := range dmess {
 		if m.Type == 0x10 {
 			flag = true
-			m.Get0x10Device(&ctrl)
+			m.Get0x10Device(ctrl)
 		}
 	}
 	if !flag {
@@ -125,7 +125,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	mutex.Lock()
 	devs[dd.id] = dd
 	mutex.Unlock()
-	updateController(&ctrl, &hDev)
+	updateController(ctrl, &hDev)
 	pudge.SetController(ctrl)
 	//С этого момента начинается основной цикл работы
 	/*
@@ -159,7 +159,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			return
 		}
 		if is {
-			updateController(&ctrl, &hDev)
+			updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
 		}
 		select {
@@ -322,7 +322,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 	}
 	return
 }
-func getController(id int) (pudge.Controller, error) {
+func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
 	ctrl, is := pudge.GetController(id)
 	if !is {
@@ -330,7 +330,7 @@ func getController(id int) (pudge.Controller, error) {
 		request <- id
 		name := <-answare
 		if len(name) == 0 {
-			return ctrl, fmt.Errorf("id %d не зарегистрирован", id)
+			return nil, fmt.Errorf("id %d не зарегистрирован", id)
 		}
 		ctrl = pudge.CreateEmptyController(id)
 		ctrl.Name = name

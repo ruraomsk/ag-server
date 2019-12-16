@@ -68,18 +68,22 @@ func Start(context *extcon.ExtContext) {
 	for !pudge.Works {
 		time.Sleep(1 * time.Second)
 	}
-	// count := 0
+	count := 0
 	for rows.Next() {
+		if count > 500 {
+			break
+		}
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
 		c, is := pudge.GetController(dev.ID)
 		if !is {
-			device.SetDefault(&c)
+			device.SetDefault(c)
 			c.ID = dev.ID
 		}
-		dev.Controller = &c
+		dev.Controller = c
 		device.Devs[dev.ID] = dev
 		go dev.StartDevice()
+		count++
 	}
 	logger.Info.Println("Запущены имитаторы...")
 	conDevGis.Close()

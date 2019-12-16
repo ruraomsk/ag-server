@@ -16,8 +16,8 @@ import (
 )
 
 var mutex sync.Mutex
-var controllers map[int]Controller
-var crosses map[string]Cross
+var controllers map[int]*Controller
+var crosses map[string]*Cross
 
 //Works флаг готовности pudge
 var Works bool
@@ -33,7 +33,7 @@ func GetCross(region, id int) (Cross, bool) {
 	defer mutex.Unlock()
 	reg := Region{Region: region, ID: id}
 	c, is := crosses[reg.toKey()]
-	return c, is
+	return *c, is
 }
 func getNameCross(idevice int) string {
 	for _, c := range crosses {
@@ -45,7 +45,7 @@ func getNameCross(idevice int) string {
 }
 
 //GetController возвращает копию Контроллера
-func GetController(id int) (Controller, bool) {
+func GetController(id int) (*Controller, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	c, is := controllers[id]
@@ -62,12 +62,12 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 	}
 	c.IDevice = idevice
 	c.WriteToDB = true
-	crosses[reg.toKey()] = c
+	// crosses[reg.toKey()] = c
 	return nil
 }
 
 //SetCross обновляет состояние перекрестка
-func SetCross(c Cross) {
+func SetCross(c *Cross) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	reg := Region{Region: c.Region, ID: c.ID}
@@ -77,7 +77,7 @@ func SetCross(c Cross) {
 }
 
 //SetController Записывает новое состояние контроллера и если есть изменения то записывает его в лог
-func SetController(c Controller) {
+func SetController(c *Controller) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	insert := false
@@ -105,17 +105,10 @@ func SetController(c Controller) {
 func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan string) {
 	// Создаем каналы и переменные
 	rand.Seed(int64(1234))
-	defer func() {
-		if r := recover(); r != nil {
-			//Panic recover
-			fmt.Println("Panic recover Pudge")
-
-		}
-	}()
 	Works = false
 	defer mutex.Unlock()
-	controllers = make(map[int]Controller)
-	crosses = make(map[string]Cross)
+	controllers = make(map[int]*Controller)
+	crosses = make(map[string]*Cross)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -153,7 +146,11 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 	timer := extcon.SetTimerClock(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
 	for true {
 		select {
-		case <-timer.C:
+		case tim := <-timer.C:
+			if time.Now().Sub(tim) > time.Duration(setup.Set.Pudge.StepSave)*time.Second {
+				logger.Info.Println("Добавьте время для обновления БД")
+			}
+			// logger.Info.Println("timer")
 			setStatusCross()
 			saveDBase()
 		case <-context.Done():
@@ -169,7 +166,7 @@ func toReturnControllers(mgs []int) {
 	ret.Contrs = make([]Controller, 0)
 	mutex.Lock()
 	for _, i := range mgs {
-		ret.Contrs = append(ret.Contrs, controllers[i])
+		ret.Contrs = append(ret.Contrs, *controllers[i])
 	}
 	mutex.Unlock()
 }

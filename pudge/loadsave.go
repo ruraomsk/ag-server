@@ -46,8 +46,8 @@ func loadCrosees() error {
 	var idevice int
 	var describ string
 	var state []byte
-	var c Cross
 	for rows.Next() {
+		c := new(Cross)
 		err = rows.Scan(&region, &id, &idevice, &describ, &state)
 		if err != nil {
 			return err
@@ -73,8 +73,8 @@ func loadControllers() error {
 	rows, err := conDBSave.Query("Select * from " + setup.Set.Pudge.TableSave + ";")
 	var id int
 	var js []byte
-	var c Controller
 	for rows.Next() {
+		c := new(Controller)
 		err = rows.Scan(&id, &js)
 		if err != nil {
 			return err
@@ -91,6 +91,7 @@ func loadControllers() error {
 func saveControllers() error {
 	mutex.Lock()
 	defer mutex.Unlock()
+	count := 0
 	for _, c := range controllers {
 		if c.StatusConnection == Connected && time.Now().Sub(c.LastOperation) > setup.Set.Server.KeepAlive {
 			c.StatusConnection = Undefine
@@ -103,6 +104,7 @@ func saveControllers() error {
 		if !c.WriteToDB {
 			continue
 		}
+		count++
 		js, _ := json.Marshal(c)
 		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
 		if err != nil {
@@ -112,6 +114,7 @@ func saveControllers() error {
 		c.WriteToDB = false
 		controllers[c.ID] = c
 	}
+	logger.Info.Println("controllers ", count)
 	return nil
 }
 func saveCrosees() error {
@@ -135,6 +138,6 @@ func saveCrosees() error {
 		crosses[reg.toKey()] = c
 		count++
 	}
-	// logger.Info.Println("save cross ", count)
+	logger.Info.Println("save cross ", count)
 	return nil
 }

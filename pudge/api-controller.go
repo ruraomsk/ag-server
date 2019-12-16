@@ -21,6 +21,8 @@ func isRegistred(id int) string {
 	return ""
 }
 
+var cCount int
+
 func setStatusCross() {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -36,42 +38,46 @@ func setStatusCross() {
 		// 31 32 33
 		statusDevice := 0
 
-		for statusDevice == 0 {
-			// if cc.DK1.ODK || cc.DK2.ODK {
-			// 	//16 - Открыта дверь
-			// 	statusDevice = 16
-			// 	continue
-			// }
-			// if cc.Error.V220DK1 || cc.Error.V220DK2 {
-			// 	//18 - Авария 220
-			// 	statusDevice = 18
-			// 	continue
-			// }
-			// if cc.LastOperation == time.Unix(0, 0) {
-			// 	//17 - Нет информации
-			// 	statusDevice = 17
-			// 	continue
-			// }
-			// if !cc.GPS.Ok {
-			// 	//32 - Неисправность часов
-			// 	statusDevice = 32
-			// 	continue
-			// }
-			// if cc.Base {
-			// 	//30 - Базовая привязка
-			// 	statusDevice = 30
-			// 	continue
-			// }
-			// if !cc.IsConnected() {
-			// 	//19 Нет связи с УСДК
-			// 	statusDevice = 19
-			// 	continue
-			// }
+		// for statusDevice == 0 {
+		// if cc.DK1.ODK || cc.DK2.ODK {
+		// 	//16 - Открыта дверь
+		// 	statusDevice = 16
+		// 	continue
+		// }
+		// if cc.Error.V220DK1 || cc.Error.V220DK2 {
+		// 	//18 - Авария 220
+		// 	statusDevice = 18
+		// 	continue
+		// }
+		// if cc.LastOperation == time.Unix(0, 0) {
+		// 	//17 - Нет информации
+		// 	statusDevice = 17
+		// 	continue
+		// }
+		// if !cc.GPS.Ok {
+		// 	//32 - Неисправность часов
+		// 	statusDevice = 32
+		// 	continue
+		// }
+		// if cc.Base {
+		// 	//30 - Базовая привязка
+		// 	statusDevice = 30
+		// 	continue
+		// }
+		// if !cc.IsConnected() {
+		// 	//19 Нет связи с УСДК
+		// 	statusDevice = 19
+		// 	continue
+		// }
+		cCount++
+		if cCount%3 == 0 {
 			statusDevice = rand.Intn(33)
 			if statusDevice == 0 {
 				statusDevice = 1
 			}
+
 		}
+		// }
 		if statusDevice != cr.StatusDevice {
 			cr.StatusDevice = statusDevice
 			cr.WriteToDB = true
@@ -92,9 +98,9 @@ func setStatusCross() {
 			cr.Statistics = cc.Statistics
 			cr.WriteToDB = true
 		}
-		if cr.WriteToDB {
-			reg := Region{cr.Region, cr.ID}
-			crosses[reg.toKey()] = cr
-		}
+		// if cr.WriteToDB {
+		// 	reg := Region{cr.Region, cr.ID}
+		// 	crosses[reg.toKey()] = cr
+		// }
 	}
 }

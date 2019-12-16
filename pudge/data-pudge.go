@@ -238,8 +238,8 @@ func (c *Controller) Compare(cc *Controller) bool {
 }
 
 //CreateEmptyController создает экземпляр контроллера пустой
-func CreateEmptyController(id int) Controller {
-	var c Controller
+func CreateEmptyController(id int) *Controller {
+	c := new(Controller)
 	c.ID = id
 	c.LastOperation = time.Unix(0, 0)
 	c.StatusConnection = Connected
