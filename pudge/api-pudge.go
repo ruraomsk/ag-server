@@ -84,6 +84,7 @@ func SetController(c *Controller) {
 	_, is := controllers[c.ID]
 	if !is {
 		insert = true
+		controllers[c.ID] = c
 	}
 	js, _ := json.Marshal(c)
 	if insert {

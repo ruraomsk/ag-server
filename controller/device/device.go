@@ -1,6 +1,7 @@
 package device
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"net"
@@ -45,6 +46,43 @@ type Device struct {
 	Random       bool
 }
 
+//LogToList вывод лога для GUI
+func (d *Device) LogToList() []string {
+	result := make([]string, 0)
+	for _, ll := range d.LogInts {
+		t := ll.Time.Format("15:04:05")
+		d := "s"
+		if ll.Source {
+			d = "d"
+		}
+		message := hex.EncodeToString(ll.Message)
+		m := ""
+		for i := 0; i < len(message); i++ {
+			m += message[i : i+1]
+			if i%2 == 1 {
+				m += " "
+			}
+		}
+		r := m + ";" + t + d
+		result = append(result, r)
+
+	}
+	return result
+}
+
+//ToList Вывод для GUI
+func (d *Device) ToList() []string {
+	result := make([]string, 0)
+	r := "На линии;" + strconv.FormatBool(d.Status)
+	result = append(result, r)
+	r = "УСДК включен;" + strconv.FormatBool(d.StatusDevice)
+	result = append(result, r)
+	r = "Управление по ДК1;" + strconv.FormatBool(d.dk1)
+	result = append(result, r)
+	r = "Управление по ДК2;" + strconv.FormatBool(d.dk2)
+	result = append(result, r)
+	return result
+}
 func (d *Device) addLog(source bool, buffer []byte) {
 	l := new(LogInt)
 	l.Time = time.Now()
@@ -95,7 +133,7 @@ func (d *Device) StartDevice() {
 	d.Mutex.Lock()
 	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
 	d.Mutex.Unlock()
-	timer := extcon.SetTimerClock(time.Duration(setup.Set.Server.TimeOutRead * 4 * time.Second))
+	timer := extcon.SetTimerClock(time.Duration(time.Duration(setup.Set.Controller.Step) * time.Second))
 	for {
 		d.Mutex.Lock()
 		d.Status = true
@@ -143,60 +181,6 @@ func (d *Device) StartDevice() {
 	}
 }
 
-//SetDefault Заполнить по умолчанию
-func SetDefault(c *pudge.Controller) {
-	c.LastOperation = time.Unix(0, 0)
-	c.TexRezim = 1
-	c.Base = true
-	c.PK = 1
-	c.CK = 2
-	c.NK = 3
-	var cc pudge.StatusCommandDU
-	cc.IsPK = true
-	cc.IsPKS = true
-	cc.IsNK = true
-	c.StatusCommandDU = cc
-	var dk pudge.DK
-	dk.RDK = 1
-	dk.FDK = 1
-	dk.DDK = 2
-	dk.EDK = 0
-	dk.PDK = false
-	dk.EEDK = 0
-	dk.ODK = false
-	dk.LDK = 0
-	dk.FTUDK = 1
-	dk.TDK = 10
-	dk.TTCDK = 20
-	c.DK1 = dk
-	c.DK2 = dk
-	c.TMax = 0
-	var m pudge.Model
-	m.VPCPD = 101
-	m.VPBS = 2
-	m.C12 = true
-	m.STP = true
-	m.DKA = true
-	m.DTA = true
-	c.Model = m
-	var er pudge.ErrorDevice
-	er.V220DK1 = false
-	er.V220DK2 = false
-	er.RTC = false
-	er.TVP1 = false
-	er.TVP2 = false
-	er.FRAM = false
-	c.Error = er
-	var gps pudge.GPS
-	gps.Ok = true
-	c.GPS = gps
-	var input pudge.Input
-	input.V1 = false
-	c.Input = input
-	c.Statistics = make([]pudge.Statistic, 0)
-	c.Arrays = make([]pudge.ArrayPriv, 0)
-	c.LogLines = make([]pudge.LogLine, 0)
-}
 func (d *Device) writeFirstMessage() error {
 	// d.Mutex.Lock()
 	// defer d.Mutex.Unlock()

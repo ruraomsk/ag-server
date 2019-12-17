@@ -324,7 +324,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 }
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
-	ctrl, is := pudge.GetController(id)
+	ctrl := new(pudge.Controller)
+	c, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
 		request <- id
@@ -332,9 +333,13 @@ func getController(id int) (*pudge.Controller, error) {
 		if len(name) == 0 {
 			return nil, fmt.Errorf("id %d не зарегистрирован", id)
 		}
-		ctrl = pudge.CreateEmptyController(id)
+
+		pudge.SetDefault(ctrl)
+		ctrl.ID = id
 		ctrl.Name = name
+		return ctrl, nil
 	}
+	ctrl = c
 	return ctrl, nil
 }
 func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"rura/ag-server/controller/device"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -32,6 +33,17 @@ type OneLog struct {
 	Time      time.Time `json:"t"`
 	Direction string    `json:"d"`
 	Message   string    `json:"m"`
+}
+
+//Values структура для возврата состояния устройства
+type Values struct {
+	Values []Value `json:"dev"`
+}
+
+//Value одна такая переменная
+type Value struct {
+	Desc  string `json:"desc"`
+	Value string `json:"value"`
 }
 
 //GetList возращает json list
@@ -78,4 +90,31 @@ func getLog(id int) ([]byte, error) {
 		logs.Logs = append(logs.Logs, l)
 	}
 	return json.MarshalIndent(&logs, "", "   ")
+}
+func getDevice(id int) ([]byte, error) {
+	var vals Values
+	// var result []byte
+	var v Value
+	d, is := device.Devs[id]
+	if !is {
+		return nil, fmt.Errorf("нет такого устройства %d", id)
+	}
+	rh := d.ToList()
+	rl := d.LogToList()
+	r := d.Controller.ToList()
+	rs := make([]string, 0)
+	rs = append(rs, rh...)
+	rs = append(rs, r...)
+	rs = append(rs, rl...)
+	for _, rr := range rs {
+		ss := strings.Split(rr, ";")
+		v.Desc = ss[0]
+		if len(ss) < 2 {
+			v.Value = " "
+		} else {
+			v.Value = ss[1]
+		}
+		vals.Values = append(vals.Values, v)
+	}
+	return json.MarshalIndent(&vals, "", "   ")
 }

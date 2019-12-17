@@ -114,7 +114,7 @@ func saveControllers() error {
 		c.WriteToDB = false
 		controllers[c.ID] = c
 	}
-	logger.Info.Println("controllers ", count)
+	// logger.Info.Println("controllers ", count)
 	return nil
 }
 func saveCrosees() error {
@@ -138,6 +138,6 @@ func saveCrosees() error {
 		crosses[reg.toKey()] = c
 		count++
 	}
-	logger.Info.Println("save cross ", count)
+	// logger.Info.Println("save cross ", count)
 	return nil
 }

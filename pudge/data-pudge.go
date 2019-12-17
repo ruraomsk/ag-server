@@ -63,6 +63,35 @@ type DK struct {
 
 }
 
+//ToList для вывода в гуи
+func (d *DK) ToList(result []string) []string {
+	r := "Режим ДК;" + strconv.Itoa(d.RDK)
+	result = append(result, r)
+	r = "Фаза ДК;" + strconv.Itoa(d.FDK)
+	result = append(result, r)
+	r = "Устройство ДК;" + strconv.Itoa(d.DDK)
+	result = append(result, r)
+	r = "Код неисправности ДК;" + strconv.Itoa(d.EDK)
+	result = append(result, r)
+	r = "Признак переходного периода ДК;" + strconv.FormatBool(d.PDK)
+	result = append(result, r)
+	r = "Дополнительный код неисправности ДК;" + strconv.Itoa(d.EEDK)
+	result = append(result, r)
+	r = "Открыта дверь ДК;" + strconv.FormatBool(d.ODK)
+	result = append(result, r)
+	r = "Номер фазы на которой сгорели лампы ДК;" + strconv.Itoa(d.LDK)
+	result = append(result, r)
+	r = "Фаза ТУ ДК на момент передачи;" + strconv.Itoa(d.FTUDK)
+	result = append(result, r)
+	r = "Время отработки ТУ в секундах;" + strconv.Itoa(d.TDK)
+	result = append(result, r)
+	r = "Фаза ТС ДК;" + strconv.Itoa(d.FTSDK)
+	result = append(result, r)
+	r = "Время от начала фазы в секундах" + strconv.Itoa(d.TTCDK)
+	result = append(result, r)
+	return result
+}
+
 //Compare сравнивание истина если равны
 func (d *DK) Compare(dd *DK) bool {
 	return reflect.DeepEqual(d, dd)
@@ -76,6 +105,23 @@ type Model struct {
 	STP   bool //Разрешение накопление статистики по ТП
 	DKA   bool //Контроллер ДК-А
 	DTA   bool //Детектор транспорта
+}
+
+//ToList для вывода в гуи
+func (m *Model) ToList(result []string) []string {
+	r := "Версия ПО пдаты ПСПД;" + strconv.Itoa(m.VPCPD)
+	result = append(result, r)
+	r = "Версия ПО пдаты ПБС;" + strconv.Itoa(m.VPBS)
+	result = append(result, r)
+	r = "Субблок С12;" + strconv.FormatBool(m.C12)
+	result = append(result, r)
+	r = "Разрешение накопления статистики по ТП;" + strconv.FormatBool(m.STP)
+	result = append(result, r)
+	r = "Контроллер ДК-А;" + strconv.FormatBool(m.DKA)
+	result = append(result, r)
+	r = "Детектор транспорта;" + strconv.FormatBool(m.DTA)
+	result = append(result, r)
+	return result
 }
 
 //Compare сравнивание истина если равны
@@ -93,6 +139,23 @@ type ErrorDevice struct {
 	FRAM    bool //Неисправность FRAM
 }
 
+//ToList для вывода в гуи
+func (e *ErrorDevice) ToList(result []string) []string {
+	r := "Срабатывание входа контроля 220В DK1;" + strconv.FormatBool(e.V220DK1)
+	result = append(result, r)
+	r = "Срабатывание входа контроля 220В DK2;" + strconv.FormatBool(e.V220DK2)
+	result = append(result, r)
+	r = "Неисправность часов RTC;" + strconv.FormatBool(e.RTC)
+	result = append(result, r)
+	r = "Неисправность ТВП1;" + strconv.FormatBool(e.TVP1)
+	result = append(result, r)
+	r = "Неисправность ТВП2;" + strconv.FormatBool(e.TVP2)
+	result = append(result, r)
+	r = "Неисправность FRAM;" + strconv.FormatBool(e.FRAM)
+	result = append(result, r)
+	return result
+}
+
 //Compare сравнивание истина если равны
 func (e *ErrorDevice) Compare(ee *ErrorDevice) bool {
 	return reflect.DeepEqual(e, ee)
@@ -106,6 +169,22 @@ type GPS struct {
 	E03  bool // Нет валидного времени
 	E04  bool // Мало спутников
 	Seek bool // Поиск спутников после включения
+}
+
+//ToList для вывода в гуи
+func (g *GPS) ToList(result []string) []string {
+	r := "Исправно;" + strconv.FormatBool(g.Ok)
+	result = append(result, r)
+	r = "Нет связи с приемником;" + strconv.FormatBool(g.E01)
+	result = append(result, r)
+	r = "Ошибка CRC;" + strconv.FormatBool(g.E02)
+	result = append(result, r)
+	r = "Нет валидного времени;" + strconv.FormatBool(g.E03)
+	result = append(result, r)
+	r = "Мало спутников;" + strconv.FormatBool(g.E04)
+	result = append(result, r)
+	r = "Поиск спутников после включения;" + strconv.FormatBool(g.Seek)
+	return result
 }
 
 //Compare сравнивание истина если равны
@@ -161,6 +240,25 @@ type StatusCommandDU struct {
 	IsDUDK2    bool //на 2 ДК есть команда ДУ
 	IsReqSFDK1 bool //Есть запрос на передачу фаз по 1 ДК СФДК
 	IsReqSFDK2 bool //Есть запрос на передачу фаз по 2 ДК СФДК
+}
+
+//ToList для вывода в гуи
+func (s *StatusCommandDU) ToList(result []string) []string {
+	r := "Назначен ПК;" + strconv.FormatBool(s.IsPK)
+	result = append(result, r)
+	r = "Назначена карта выбора по времени суток;" + strconv.FormatBool(s.IsPKS)
+	result = append(result, r)
+	r = "Назначена недельная карта;" + strconv.FormatBool(s.IsNK)
+	result = append(result, r)
+	r = "На 1 ДК есть команда ДУ;" + strconv.FormatBool(s.IsDUDK1)
+	result = append(result, r)
+	r = "На 2 ДК есть команда ДУ;" + strconv.FormatBool(s.IsDUDK2)
+	result = append(result, r)
+	r = "Есть запрос на передачу фаз по 1 ДК СФДК;" + strconv.FormatBool(s.IsReqSFDK1)
+	result = append(result, r)
+	r = "Есть запрос на передачу фаз по 2 ДК СФДК;" + strconv.FormatBool(s.IsReqSFDK2)
+	result = append(result, r)
+	return result
 }
 
 //Compare сравнивание истина если равны
@@ -232,20 +330,98 @@ type Controller struct {
 	LogLines         []LogLine
 }
 
+//ToList для вывода в гуи
+func (c *Controller) ToList() []string {
+	result := make([]string, 0)
+	r := "Технологический режим;" + strconv.Itoa(c.TexRezim)
+	result = append(result, r)
+	r = "Работаем в базовой привязке;" + strconv.FormatBool(c.Base)
+	result = append(result, r)
+	r = "Номер плана координации;" + strconv.Itoa(c.PK)
+	result = append(result, r)
+	r = "Номер суточной карты;" + strconv.Itoa(c.CK)
+	result = append(result, r)
+	r = "Номер недельной карты;" + strconv.Itoa(c.CK)
+	result = append(result, r)
+	r = "Максимальное время ожидания от сервера;" + strconv.Itoa(c.TMax)
+	result = append(result, r)
+	r = "ДК1; "
+	result = append(result, r)
+	result = c.DK1.ToList(result)
+	r = "ДК2; "
+	result = append(result, r)
+	result = c.DK2.ToList(result)
+	r = "МОДЕЛЬ УСТРОЙСТВА; "
+	result = append(result, r)
+	result = c.Model.ToList(result)
+	r = "ОШИБКИ УСТРОЙСТВА; "
+	result = append(result, r)
+	result = c.Error.ToList(result)
+	r = "СОСТОЯНИЕ GPS ПРИЕМНИКА; "
+	result = append(result, r)
+	result = c.GPS.ToList(result)
+	r = "ТЕКУЩИЕ КОМАНДЫ ДУ; "
+	result = append(result, r)
+	result = c.StatusCommandDU.ToList(result)
+	return result
+}
+
 //Compare сравнивание истина если равны
 func (c *Controller) Compare(cc *Controller) bool {
 	return reflect.DeepEqual(c, cc)
 }
 
-//CreateEmptyController создает экземпляр контроллера пустой
-func CreateEmptyController(id int) *Controller {
-	c := new(Controller)
-	c.ID = id
+//SetDefault Заполнить по умолчанию
+func SetDefault(c *Controller) {
 	c.LastOperation = time.Unix(0, 0)
-	c.StatusConnection = Connected
+	c.TexRezim = 1
 	c.Base = true
+	c.PK = 1
+	c.CK = 2
+	c.NK = 3
+	var cc StatusCommandDU
+	cc.IsPK = true
+	cc.IsPKS = true
+	cc.IsNK = true
+	c.StatusCommandDU = cc
+	var dk DK
+	dk.RDK = 1
+	dk.FDK = 1
+	dk.DDK = 2
+	dk.EDK = 0
+	dk.PDK = false
+	dk.EEDK = 0
+	dk.ODK = false
+	dk.LDK = 0
+	dk.FTUDK = 1
+	dk.TDK = 10
+	dk.TTCDK = 20
+	c.DK1 = dk
+	c.DK2 = dk
+	c.TMax = 0
+	var m Model
+	m.VPCPD = 101
+	m.VPBS = 2
+	m.C12 = true
+	m.STP = true
+	m.DKA = true
+	m.DTA = true
+	c.Model = m
+	var er ErrorDevice
+	er.V220DK1 = false
+	er.V220DK2 = false
+	er.RTC = false
+	er.TVP1 = false
+	er.TVP2 = false
+	er.FRAM = false
+	c.Error = er
+	var gps GPS
+	gps.Ok = true
+	c.GPS = gps
+	var input Input
+	input.V1 = false
+	c.Input = input
 	c.Statistics = make([]Statistic, 0)
 	c.Arrays = make([]ArrayPriv, 0)
 	c.LogLines = make([]LogLine, 0)
-	return c
 }

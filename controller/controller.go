@@ -34,9 +34,25 @@ func restartDevice() {
 		d.Mutex.Unlock()
 	}
 }
+func getController(id int, rq chan int, ans chan string) *pudge.Controller {
+	//Вначале проверим на pudge
+	ctrl := new(pudge.Controller)
+	c, is := pudge.GetController(id)
+	if !is {
+		//Нет на pudge теперь надо проверить среди регистрированных
+		rq <- id
+		name := <-ans
+		pudge.SetDefault(ctrl)
+		ctrl.ID = id
+		ctrl.Name = name
+		return ctrl
+	}
+	ctrl = c
+	return ctrl
+}
 
 //Start Запуск имитатора контроллеров
-func Start(context *extcon.ExtContext) {
+func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	defer func() {
 		if r := recover(); r != nil {
@@ -75,12 +91,7 @@ func Start(context *extcon.ExtContext) {
 		}
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
-		c, is := pudge.GetController(dev.ID)
-		if !is {
-			device.SetDefault(c)
-			c.ID = dev.ID
-		}
-		dev.Controller = c
+		dev.Controller = getController(dev.ID, rq, ans)
 		device.Devs[dev.ID] = dev
 		go dev.StartDevice()
 		count++
