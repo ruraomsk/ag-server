@@ -88,7 +88,7 @@ func (d *DK) ToList(result []string) []string {
 	result = append(result, r)
 	r = "Фаза ТС ДК;" + strconv.Itoa(d.FTSDK)
 	result = append(result, r)
-	r = "Время от начала фазы в секундах" + strconv.Itoa(d.TTCDK)
+	r = "Время от начала фазы в секундах;" + strconv.Itoa(d.TTCDK)
 	result = append(result, r)
 	return result
 }
