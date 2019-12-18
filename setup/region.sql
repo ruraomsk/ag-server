@@ -28,3 +28,7 @@ COMMENT ON COLUMN public.region.name
         (region, name)
     VALUES
         (2, 'Чукотка');
+    INSERT INTO public.region
+        (region, name)
+    VALUES
+        (3, 'Сахалин');

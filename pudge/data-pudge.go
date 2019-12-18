@@ -14,6 +14,7 @@ package pudge
 */
 
 import (
+	"math/rand"
 	"reflect"
 	"strconv"
 	"time"
@@ -155,6 +156,31 @@ func (e *ErrorDevice) ToList(result []string) []string {
 	result = append(result, r)
 	return result
 }
+func randBool() bool {
+	if rand.Intn(2) == 1 {
+		return true
+	}
+	return false
+}
+func (e *ErrorDevice) MakeError() bool {
+	switch rand.Intn(7) {
+	case 0:
+		return false
+	case 1:
+		e.V220DK1 = randBool()
+	case 2:
+		e.V220DK2 = randBool()
+	case 3:
+		e.RTC = randBool()
+	case 4:
+		e.TVP1 = randBool()
+	case 5:
+		e.TVP2 = randBool()
+	case 6:
+		e.FRAM = randBool()
+	}
+	return true
+}
 
 //Compare сравнивание истина если равны
 func (e *ErrorDevice) Compare(ee *ErrorDevice) bool {
@@ -169,6 +195,27 @@ type GPS struct {
 	E03  bool // Нет валидного времени
 	E04  bool // Мало спутников
 	Seek bool // Поиск спутников после включения
+}
+
+//MakeError порождает ошибки или испавность
+func (g *GPS) MakeError() bool {
+	switch rand.Intn(7) {
+	case 0:
+		return false
+	case 1:
+		g.Ok = randBool()
+	case 2:
+		g.E01 = randBool()
+	case 3:
+		g.E02 = randBool()
+	case 4:
+		g.E03 = randBool()
+	case 5:
+		g.E04 = randBool()
+	case 6:
+		g.Seek = randBool()
+	}
+	return true
 }
 
 //ToList для вывода в гуи
@@ -202,6 +249,52 @@ type Input struct {
 	V6 bool //Неисправность входа 6
 	V7 bool //Неисправность входа 7
 	V8 bool //Неисправность входа 8
+}
+
+//MakeError порождает ошибки или испавность
+func (i *Input) MakeError() bool {
+	switch rand.Intn(9) {
+	case 0:
+		return false
+	case 1:
+		i.V1 = randBool()
+	case 2:
+		i.V2 = randBool()
+	case 3:
+		i.V3 = randBool()
+	case 4:
+		i.V4 = randBool()
+	case 5:
+		i.V5 = randBool()
+	case 6:
+		i.V6 = randBool()
+	case 7:
+		i.V7 = randBool()
+	case 8:
+		i.V8 = randBool()
+	}
+	return true
+}
+
+//ToList для вывода в гуи
+func (i *Input) ToList(result []string) []string {
+	r := "Неисправность входа 1;" + strconv.FormatBool(i.V1)
+	result = append(result, r)
+	r = "Неисправность входа 2;" + strconv.FormatBool(i.V2)
+	result = append(result, r)
+	r = "Неисправность входа 3;" + strconv.FormatBool(i.V3)
+	result = append(result, r)
+	r = "Неисправность входа 4;" + strconv.FormatBool(i.V4)
+	result = append(result, r)
+	r = "Неисправность входа 5;" + strconv.FormatBool(i.V5)
+	result = append(result, r)
+	r = "Неисправность входа 6;" + strconv.FormatBool(i.V6)
+	result = append(result, r)
+	r = "Неисправность входа 7;" + strconv.FormatBool(i.V7)
+	result = append(result, r)
+	r = "Неисправность входа 8;" + strconv.FormatBool(i.V8)
+	result = append(result, r)
+	return result
 }
 
 //Compare сравнивание истина если равны
@@ -363,6 +456,9 @@ func (c *Controller) ToList() []string {
 	r = "ТЕКУЩИЕ КОМАНДЫ ДУ; "
 	result = append(result, r)
 	result = c.StatusCommandDU.ToList(result)
+	r = "ТЕКУЩИЕ НЕИСПРАВНОСТИ ВХОДОВ; "
+	result = append(result, r)
+	result = c.Input.ToList(result)
 	return result
 }
 

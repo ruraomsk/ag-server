@@ -56,4 +56,5 @@ type Controller struct {
 	Port      int           `json:"port"`
 	Step      int           `json:"step"`            //Интервал времени в секундах для расчетов
 	KeepAlive time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
+	Random    bool          `json:"random"`
 }

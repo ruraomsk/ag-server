@@ -165,6 +165,10 @@ func (d *Device) StartDevice() {
 		select {
 		case <-timer.C:
 			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
+				//Возможно сделать несиправности
+				if d.randomChange() {
+					// logger.Info.Println("Изменено устройство ", d.ID)
+				}
 				err = d.sendKeepAlive()
 				if err != nil {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())
@@ -172,7 +176,6 @@ func (d *Device) StartDevice() {
 				}
 				continue
 			}
-			// d.sendIfChange()
 
 		case <-d.context.Done():
 			logger.Info.Printf("id %d завершает работу...", d.ID)

@@ -33,6 +33,7 @@
 		"port": 2000,
 		"step": 10,
 		"guiport": 8080,
+		"random": true,
 		"time_keep_alive": 120000000000
 	},
 	"location": "Asia/Omsk"

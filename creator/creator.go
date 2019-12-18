@@ -103,6 +103,9 @@ func SQLCreate(path string) error {
 		if strings.Contains(nfile, "Чукотка") {
 			region = "2"
 		}
+		if strings.Contains(nfile, "Сахалин") {
+			region = "3"
+		}
 		var scanner *bufio.Scanner
 		if region == "1" {
 			strFile, _ := decodeUTF16(file)

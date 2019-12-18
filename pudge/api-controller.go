@@ -70,8 +70,8 @@ func setStatusCross() {
 		// }
 		cCount++
 		if cCount%3 == 0 {
-			statusDevice := rand.Intn(33)
-			if statusDevice == 0 {
+			statusDevice := rand.Intn(34)
+			if statusDevice == 0 || statusDevice == 34 {
 				statusDevice = 1
 			}
 			if statusDevice != cr.StatusDevice {
