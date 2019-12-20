@@ -1,4 +1,4 @@
-const URL_SERVER = 'http://192.168.1.44:8080';
+const URL_SERVER = 'http://192.168.1.16:8080';
 
 
 var urlList = URL_SERVER + '/list';
