@@ -79,9 +79,9 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 	}
 	count := 0
 	for rows.Next() {
-		if count > 500 {
-			break
-		}
+		// if count > 500 {
+		// 	break
+		// }
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
 		dev.Controller = getController(dev.ID, rq, ans)
