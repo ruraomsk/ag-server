@@ -54,13 +54,6 @@ func getController(id int, rq chan int, ans chan string) *pudge.Controller {
 //Start Запуск имитатора контроллеров
 func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	defer func() {
-		if r := recover(); r != nil {
-			//Panic recover
-			fmt.Println("Panic recover")
-
-		}
-	}()
 	logger.Info.Println("Start controller work...")
 	fmt.Println("Controller start work...")
 	device.Devs = make(map[int]*device.Device)
