@@ -79,7 +79,7 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 	}
 	count := 0
 	for rows.Next() {
-		if count > 500 {
+		if count > 501 {
 			break
 		}
 		dev := new(device.Device)
