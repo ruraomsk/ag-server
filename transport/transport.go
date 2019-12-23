@@ -119,7 +119,7 @@ func (d *HeaderDevice) MakeBuffer() []byte {
 	buffer[0] = d.TypeDevice
 	str := []byte(fmt.Sprintf("%02d%08d", d.TypeDevice, d.ID))
 	for i := 0; i < 10; i++ {
-		buffer[i] = str[i]
+		buffer[i] = str[i] - '0'
 	}
 	putDate(d.Time, buffer, 10)
 	d.Time = takeDate(buffer, 10)
