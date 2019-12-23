@@ -450,6 +450,104 @@ func (s *SubMessage) Get0x1CDevice() (num int) {
 	return
 }
 
+//Get0x1DDevice изменяет состояние контроллера по команду
+func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
+	if s.Message[0] != 0x1D {
+		return fmt.Errorf("неверный номер команды %x", s.Message[0])
+	}
+	c.Error.V220DK1 = (s.Message[1] & 1) != 0
+	c.Error.V220DK2 = (s.Message[1] & 32) != 0
+	c.Error.RTC = (s.Message[1] & 2) != 0
+	c.Error.TVP1 = (s.Message[1] & 4) != 0
+	c.Error.TVP2 = (s.Message[1] & 8) != 0
+	c.Error.FRAM = (s.Message[1] & 16) != 0
+	c.GPS.Ok = s.Message[2] == 0
+	c.GPS.E01 = s.Message[2] == 1
+	c.GPS.E02 = s.Message[2] == 2
+	c.GPS.E03 = s.Message[2] == 3
+	c.GPS.E04 = s.Message[2] == 4
+	c.GPS.Seek = s.Message[2] == 0x0A
+	// c.Input.V1 = (s.Message[3] & 1) != 0
+	// c.Input.V2 = (s.Message[3] & 2) != 0
+	// c.Input.V3 = (s.Message[3] & 4) != 0
+	// c.Input.V4 = (s.Message[3] & 8) != 0
+	// c.Input.V5 = (s.Message[3] & 16) != 0
+	// c.Input.V6 = (s.Message[3] & 32) != 0
+	// c.Input.V7 = (s.Message[3] & 64) != 0
+	// c.Input.V8 = (s.Message[3] & 128) != 0
+	return nil
+}
+
+//Set0x1DDevice изменяет состояние контроллера по команду
+func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
+	s.Type = 0x1D
+	s.Message = make([]uint8, 13)
+	s.Message[0] = 0x1D
+	s.Message[1] = 0
+	if c.Error.V220DK1 {
+		s.Message[1] |= 1
+	}
+	if c.Error.V220DK2 {
+		s.Message[1] |= 32
+	}
+	if c.Error.RTC {
+		s.Message[1] |= 2
+	}
+	if c.Error.TVP1 {
+		s.Message[1] |= 4
+	}
+	if c.Error.TVP2 {
+		s.Message[1] |= 8
+	}
+	if c.Error.FRAM {
+		s.Message[1] |= 16
+	}
+	if c.GPS.Ok {
+		s.Message[2] = 0
+	}
+	if c.GPS.E01 {
+		s.Message[2] = 1
+	}
+	if c.GPS.E02 {
+		s.Message[2] = 2
+	}
+	if c.GPS.E03 {
+		s.Message[2] = 3
+	}
+	if c.GPS.E04 {
+		s.Message[2] = 4
+	}
+	if c.GPS.Seek {
+		s.Message[2] = 0x0A
+	}
+	s.Message[3] = 0
+
+	// if c.Input.V1 {
+	// 	s.Message[3] |= 1
+	// }
+	// if c.Input.V2 {
+	// 	s.Message[3] |= 2
+	// }
+	// if c.Input.V3 {
+	// 	s.Message[3] |= 4
+	// }
+	// if c.Input.V4 {
+	// 	s.Message[3] |= 8
+	// }
+	// if c.Input.V5 {
+	// 	s.Message[3] |= 16
+	// }
+	// if c.Input.V6 {
+	// 	s.Message[3] |= 32
+	// }
+	// if c.Input.V7 {
+	// 	s.Message[3] |= 64
+	// }
+	// if c.Input.V8 {
+	// 	s.Message[3] |= 128
+	// }
+}
+
 func takeDateDevice(buffer []byte, pos int) time.Time {
 	year := int(buffer[pos+5]) + 2000
 	month := time.Month(int(buffer[pos+4]))

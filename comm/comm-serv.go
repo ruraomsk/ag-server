@@ -84,13 +84,17 @@ func newConnect(soc net.Conn, stop chan int) {
 	dmess := hDev.ParseMessage()
 	flag := false
 	for _, m := range dmess {
+		if m.Type == 0x1D {
+			flag = true
+			m.Get0x1DDevice(ctrl)
+		}
 		if m.Type == 0x10 {
 			flag = true
 			m.Get0x10Device(ctrl)
 		}
 	}
 	if !flag {
-		//В сообщении соединении нет 0x10 значит рвем связь
+		//В сообщении соединении нет 0x10 или 0x1D значит рвем связь
 		logger.Error.Printf("Устройство %d неверный формат подключения", hDev.ID)
 		return
 	}
@@ -314,6 +318,13 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 			}
 			if !flag {
 				c.Arrays = append(c.Arrays, ar)
+			}
+		case 0x1D:
+			//Состояние подключения
+			err := mes.Get0x1DDevice(c)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
+				continue
 			}
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)

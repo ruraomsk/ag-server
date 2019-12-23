@@ -227,6 +227,8 @@ func Test_TcpDevice(t *testing.T) {
 	mss = append(mss, ms)
 	ms.Set0x12Device(&c)
 	mss = append(mss, ms)
+	ms.Set0x1DDevice(&c)
+	mss = append(mss, ms)
 	var ar pudge.ArrayPriv
 	ar.Array = make([]int, 0)
 	// ms.Set0x13Device(&ar)

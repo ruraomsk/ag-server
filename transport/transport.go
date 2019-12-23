@@ -64,13 +64,13 @@ func (s *HeaderServer) Compare(ss *HeaderServer) bool {
 
 //Parse разбор сообщения от устройства
 func (d *HeaderDevice) Parse(buffer []byte) error {
-
-	if !checkCRC(buffer, 19) {
-		return fmt.Errorf("неверная контрольная сумма")
+	err := checkCRC(buffer, 19)
+	if err != nil {
+		return err
 	}
 	t := make([]byte, 2)
 	for i := 0; i < 2; i++ {
-		t[i] = buffer[i]
+		t[i] = buffer[i] + '0'
 	}
 	lt, err := strconv.Atoi(string(t))
 	if err != nil {
@@ -79,7 +79,7 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 	d.TypeDevice = uint8(lt)
 	id := make([]byte, 8)
 	for i := 0; i < len(id); i++ {
-		id[i] = buffer[i+2]
+		id[i] = buffer[i+2] + '0'
 	}
 	lid, err := strconv.Atoi(string(id))
 	if err != nil {
@@ -98,8 +98,9 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 
 //Parse разбор сообщения от сервера
 func (s *HeaderServer) Parse(buffer []byte) error {
-	if !checkCRC(buffer, 13) {
-		return fmt.Errorf("неверная контрольная сумма")
+	err := checkCRC(buffer, 13)
+	if err != nil {
+		return err
 	}
 	s.IDServer = uint8(buffer[1])
 	s.Time = takeDate(buffer, 4)
@@ -130,10 +131,10 @@ func (d *HeaderDevice) MakeBuffer() []byte {
 	}
 	sumB, sumP := makeCRC(buffer, 19)
 	pos := len(buffer) - 4
-	buffer[pos] = uint8((sumB >> 8) & 0xff)
-	buffer[pos+1] = uint8(sumB & 0xff)
-	buffer[pos+2] = uint8((sumP >> 8) & 0xff)
-	buffer[pos+3] = uint8(sumP & 0xff)
+	buffer[pos+1] = uint8((sumB >> 8) & 0xff)
+	buffer[pos] = uint8(sumB & 0xff)
+	buffer[pos+3] = uint8((sumP >> 8) & 0xff)
+	buffer[pos+2] = uint8(sumP & 0xff)
 
 	return buffer
 }
@@ -152,16 +153,16 @@ func (s *HeaderServer) MakeBuffer() []byte {
 	}
 	sumB, sumP := makeCRC(buffer, 13)
 	pos := len(buffer) - 4
-	buffer[pos] = uint8((sumB >> 8) & 0xff)
-	buffer[pos+1] = uint8(sumB & 0xff)
-	buffer[pos+2] = uint8((sumP >> 8) & 0xff)
-	buffer[pos+3] = uint8(sumP & 0xff)
+	buffer[pos+1] = uint8((sumB >> 8) & 0xff)
+	buffer[pos] = uint8(sumB & 0xff)
+	buffer[pos+3] = uint8((sumP >> 8) & 0xff)
+	buffer[pos+2] = uint8(sumP & 0xff)
 	return buffer
 }
 
 func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
-	sumP = 0
-	sumB = 0
+	sumP = 0xe752
+	sumB = 0x2756
 	for i := 0; i < lenHeader; i++ {
 		sumP += uint(buffer[i])
 		sumP = sumP & 0xffff
@@ -173,19 +174,20 @@ func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
 		sumB += uint(buffer[lenHeader+i])
 		sumB = sumB & 0xffff
 	}
-	sumB = (sumB + 0x2756) & 0xffff
-	sumP = (sumP + 0xe752) & 0xffff
+	sumB = (sumB) & 0xffff
+	sumP += uint(sumB>>8) + uint(sumB&0xff)
+	sumP = (sumP) & 0xffff //0xe752???
 	return sumB, sumP
 }
-func checkCRC(buffer []byte, lenHeader int) bool {
+func checkCRC(buffer []byte, lenHeader int) error {
 	sumB, sumP := makeCRC(buffer, lenHeader)
 	len := int(buffer[lenHeader-1] - 2)
-	tb := ((uint(buffer[lenHeader+len]) & 0xff) << 8) | uint(buffer[lenHeader+len+1]&0xff)
-	tp := ((uint(buffer[lenHeader+len+2]) & 0xff) << 8) | uint(buffer[lenHeader+len+3]&0xff)
+	tb := ((uint(buffer[lenHeader+len+1]) & 0xff) << 8) | uint(buffer[lenHeader+len]&0xff)
+	tp := ((uint(buffer[lenHeader+len+3]) & 0xff) << 8) | uint(buffer[lenHeader+len+2]&0xff)
 	if tb != sumB || tp != sumP {
-		return false
+		return fmt.Errorf("ошибка CRC %d %d != %d %d", sumB, sumP, tb, tp)
 	}
-	return true
+	return nil
 }
 
 func takeDate(buffer []byte, pos int) time.Time {

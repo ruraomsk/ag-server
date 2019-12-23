@@ -103,6 +103,8 @@ func Test_ParseDevice(t *testing.T) {
 	mss = append(mss, ms)
 	ms.Set0x11Device(&c)
 	mss = append(mss, ms)
+	ms.Set0x1DDevice(&c)
+	mss = append(mss, ms)
 	ms.Set0x12Device(&c)
 	mss = append(mss, ms)
 	var ar pudge.ArrayPriv
