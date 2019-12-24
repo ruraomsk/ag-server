@@ -54,6 +54,12 @@ func CreateHeaderServer(num, code int) HeaderServer {
 	h.Number = uint8(num)
 	h.Code = uint8(code)
 	h.Message = make([]uint8, 0)
+	var ms SubMessage
+	mss := make([]SubMessage, 0)
+	ms.Set0x03Server()
+	mss = append(mss, ms)
+	h.UpackMessages(mss)
+
 	return h
 }
 

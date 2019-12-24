@@ -105,7 +105,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	ctrl.StatusConnection = pudge.Connected
 	ctrl.LastOperation = time.Now()
 	pudge.SetController(ctrl)
-	//Готовим пустое сообщение
+	//Запросим состояние устройства
 	hs := transport.CreateHeaderServer(0, 0)
 	err = transport.SendMessageToDevice(soc, hs)
 	if err != nil {
