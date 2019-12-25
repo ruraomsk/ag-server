@@ -2,7 +2,6 @@ package device
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"net"
 	"rura/ag-server/extcon"
@@ -11,7 +10,6 @@ import (
 	"rura/ag-server/setup"
 	"rura/ag-server/transport"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -128,11 +126,6 @@ func (d *Device) StartDevice() {
 
 	d.writeFirstMessage()
 	d.Status = true
-	err = d.readMessageServer()
-	if err != nil {
-		logger.Error.Printf("Ошибка  приема %s", err.Error())
-		return
-	}
 	// Начинаем основной цикл
 	d.Mutex.Lock()
 	d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
@@ -185,78 +178,16 @@ func (d *Device) writeFirstMessage() {
 	d.HeadDevice = transport.CreateHeaderDevice(d.Controller.ID, 30, 0, code)
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
-	ms.Set0x10Device(d.Controller)
+	ms.Set0x1DDevice(d.Controller)
 	mss = append(mss, ms)
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
-
+	d.hout <- d.HeadDevice
 	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
 	return
 }
-func (d *Device) readMaybeMessageFromServer() (bool, error) {
-	// d.Mutex.Lock()
-	// defer d.Mutex.Unlock()
-	d.Soc.SetReadDeadline(time.Now().Add(setup.Set.Server.TimeOutRead))
-	buf := make([]byte, 13)
-	n, err := d.Soc.Read(buf)
-	if strings.Contains(err.Error(), "i/o timeout") {
-		return false, nil
-	}
-	if err == nil && n != len(buf) {
-		err = fmt.Errorf("id %d при чтении сообщения от сервера прочитано %d байт нужно %d", d.ID, n, len(buf))
-	}
-	if err != nil {
-		return false, err
-	}
-	buf2 := make([]byte, buf[12]+2)
-	n, err = d.Soc.Read(buf2)
-	if strings.Contains(err.Error(), "i/o timeout") {
-		return false, nil
-	}
-	if err == nil && n != len(buf2) {
-		err = fmt.Errorf("id %d при чтении сообщения от сервера прочитано %d байт нужно %d", d.ID, n, len(buf2))
-	}
-	if err != nil {
-		return false, err
-	}
-	buffer := append(buf, buf2...)
-	err = d.HeadServer.Parse(buffer)
-	if err != nil {
-		return true, fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
-	}
-	return true, err
-}
 
-func (d *Device) readMessageServer() error {
-	// d.Mutex.Lock()
-	// defer d.Mutex.Unlock()
-	buf := make([]byte, 13)
-	n, err := d.Soc.Read(buf)
-	if err == nil && n != len(buf) {
-		err = fmt.Errorf("id %d при чтении сообщения от сервера прочитано %d байт нужно %d", d.ID, n, len(buf))
-	}
-	if err != nil {
-		return err
-	}
-	buf2 := make([]byte, buf[12]+2)
-	n, err = d.Soc.Read(buf2)
-	if err == nil && n != len(buf2) {
-		err = fmt.Errorf("id %d при чтении сообщения от сервера прочитано %d байт нужно %d", d.ID, n, len(buf2))
-	}
-	if err != nil {
-		return err
-	}
-	buffer := append(buf, buf2...)
-
-	err = d.HeadServer.Parse(buffer)
-	if err != nil {
-		return fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
-	}
-	d.addLog(false, buffer)
-	d.Controller.LastOperation = time.Now()
-	return err
-}
 func (d *Device) updateDevice() {
 	// d.Mutex.Lock()
 	// defer d.Mutex.Unlock()
@@ -388,14 +319,7 @@ func (d *Device) sendKeepAlive() error {
 	mss = append(mss, ms)
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
-	d.Soc.SetWriteDeadline(time.Now().Add(setup.Set.Server.TimeOutWrite))
-	n, err := d.Soc.Write(buffer)
-	if err == nil && n != len(buffer) {
-		return fmt.Errorf("при keepAlive id %d передано %d байт вместо %d", d.ID, n, len(buffer))
-	}
-	if err != nil {
-		return nil
-	}
+	d.hout <- d.HeadDevice
 	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
 	return nil

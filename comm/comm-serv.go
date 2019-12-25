@@ -78,7 +78,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	hDev := <-hin
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
-		logger.Error.Printf("Устройств %s %s", soc.LocalAddr().String(), err.Error())
+		logger.Error.Printf("Устройствo %s %s", soc.LocalAddr().String(), err.Error())
 		return
 	}
 	dmess := hDev.ParseMessage()
