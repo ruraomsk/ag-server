@@ -159,7 +159,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 
 		case <-timer.C:
-			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
+			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = pudge.NotConnected

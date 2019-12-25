@@ -24,7 +24,7 @@
 		"porta": 2002,
 		"read_timeout": 300000000000,
 		"write_timeout": 1000000000,
-		"time_keep_alive": 300000000000,
+		"time_keep_alive": 200000000000,
 		"lenid": 19,
 		"id": 167
 	},
