@@ -107,6 +107,11 @@ func newConnect(soc net.Conn, stop chan int) {
 	pudge.SetController(ctrl)
 	//Запросим состояние устройства
 	hs := transport.CreateHeaderServer(0, 0)
+	mss := make([]transport.SubMessage, 0)
+	var ms transport.SubMessage
+	ms.Set0x01Server(0)
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
 	hout <- hs
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
