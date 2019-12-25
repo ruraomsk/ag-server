@@ -47,9 +47,9 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice) {
 //GetMessagesFromService прием сообщений от сервера
 func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 	defer socket.Close()
-	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
 	var hs HeaderServer
 	for {
+		socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
 		if err == nil && n != len(buf) {
