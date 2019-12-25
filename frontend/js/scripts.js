@@ -1,4 +1,4 @@
-const URL_SERVER = 'http://192.168.1.16:8080';
+var URL_SERVER = 'http://192.168.1.16:8080';
 
 
 var urlList = URL_SERVER + '/list';
@@ -109,6 +109,7 @@ function getCurrentLog(id) {
 // }
 
 $(document).ready(function () {
+    URL_SERVER = window.location.origin;
     showDevices();
 
     $("#nav-left-devices").on('click', '.nave-item a', function () {

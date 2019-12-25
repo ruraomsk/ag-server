@@ -44,6 +44,8 @@ type Device struct {
 	context      *extcon.ExtContext
 	LogInts      []LogInt
 	Random       bool
+	hout         chan transport.HeaderDevice
+	hin          chan transport.HeaderServer
 }
 
 //LogToList вывод лога для GUI
@@ -91,6 +93,7 @@ func (d *Device) addLog(source bool, buffer []byte) {
 	d.Mutex.Lock()
 	d.LogInts = append(d.LogInts, *l)
 	d.Mutex.Unlock()
+
 }
 
 //Close ТИПА ЗАКРЫВАЕМ УСТРОЙСТВО
@@ -114,15 +117,16 @@ func (d *Device) StartDevice() {
 		logger.Error.Printf("Ошибка соединения с портом %s", err.Error())
 		return
 	}
+	d.hout = make(chan transport.HeaderDevice)
+	d.hin = make(chan transport.HeaderServer)
+	defer close(d.hout)
+	defer close(d.hin)
 	defer d.Close()
+	go transport.GetMessagesFromService(soc, d.hin)
+	go transport.SendMessagesToServer(soc, d.hout)
 	d.Soc = soc
 
-	err = d.writeFirstMessage()
-	if err != nil {
-		logger.Error.Printf("Ошибка  передачи %s", err.Error())
-		return
-	}
-	// logger.Info.Println("Device ", d.ID)
+	d.writeFirstMessage()
 	d.Status = true
 	err = d.readMessageServer()
 	if err != nil {
@@ -136,15 +140,16 @@ func (d *Device) StartDevice() {
 	timer := extcon.SetTimerClock(time.Duration(time.Duration(setup.Set.Controller.Step) * time.Second))
 	for {
 		d.Mutex.Lock()
-		d.Status = true
-		d.Mutex.Unlock()
-		is, err := d.readMaybeMessageFromServer()
-		if err != nil {
-			logger.Error.Printf("Ошибка возможного приема %s", err.Error())
-			return
+		if d.context == nil {
+			logger.Error.Printf("Пропал контекст %d ", d.ID)
+			d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
 		}
-		if is {
-
+		d.Mutex.Unlock()
+		select {
+		case d.HeadServer = <-d.hin:
+			buffer := d.HeadServer.MakeBuffer()
+			d.addLog(false, buffer)
+			d.Controller.LastOperation = time.Now()
 			d.updateDevice()
 			if len(d.needAns) != 0 {
 				err = d.makeAndSendAnsware()
@@ -153,16 +158,6 @@ func (d *Device) StartDevice() {
 					return
 				}
 			}
-		}
-		d.Mutex.Lock()
-		if d.context == nil {
-			logger.Error.Printf("Пропал контекст %d ", d.ID)
-			d.context, _ = extcon.NewContext("device" + strconv.Itoa(d.ID))
-			// d.Mutex.Unlock()
-			// return
-		}
-		d.Mutex.Unlock()
-		select {
 		case <-timer.C:
 			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
 				//Возможно сделать несиправности
@@ -174,9 +169,7 @@ func (d *Device) StartDevice() {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())
 					return
 				}
-				continue
 			}
-
 		case <-d.context.Done():
 			logger.Info.Printf("id %d завершает работу...", d.ID)
 			return
@@ -184,9 +177,7 @@ func (d *Device) StartDevice() {
 	}
 }
 
-func (d *Device) writeFirstMessage() error {
-	// d.Mutex.Lock()
-	// defer d.Mutex.Unlock()
+func (d *Device) writeFirstMessage() {
 	code := 0
 	if d.Controller.Base {
 		code = 0xac
@@ -198,13 +189,10 @@ func (d *Device) writeFirstMessage() error {
 	mss = append(mss, ms)
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
-	n, err := d.Soc.Write(buffer)
-	if err == nil && n != len(buffer) {
-		err = fmt.Errorf("id %d передано %d байт вместо %d", d.Controller.ID, n, len(buffer))
-	}
+
 	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
-	return err
+	return
 }
 func (d *Device) readMaybeMessageFromServer() (bool, error) {
 	// d.Mutex.Lock()
@@ -237,8 +225,6 @@ func (d *Device) readMaybeMessageFromServer() (bool, error) {
 	if err != nil {
 		return true, fmt.Errorf("id %d при разборе  сообщения от сервера %s", d.ID, err.Error())
 	}
-	d.addLog(false, buffer)
-	d.Controller.LastOperation = time.Now()
 	return true, err
 }
 
@@ -378,17 +364,9 @@ func (d *Device) makeAndSendAnsware() error {
 	}
 	d.HeadDevice.UpackMessages(mss)
 	buffer := d.HeadDevice.MakeBuffer()
-	d.Soc.SetWriteDeadline(time.Now().Add(setup.Set.Server.TimeOutWrite))
-	n, err := d.Soc.Write(buffer)
-	if err == nil && n != len(buffer) {
-		return fmt.Errorf("при отправке id %d передано %d байт вместо %d", d.ID, n, len(buffer))
-	}
-	if err != nil {
-		return nil
-	}
-
 	d.addLog(true, buffer)
 	d.Controller.LastOperation = time.Now()
+	d.hout <- d.HeadDevice
 	return nil
 }
 func (d *Device) sendKeepAlive() error {

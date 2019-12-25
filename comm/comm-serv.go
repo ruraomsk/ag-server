@@ -65,22 +65,22 @@ func newConnect(soc net.Conn, stop chan int) {
 		работы, Состояние оборудования , Состояние ДК V3, сервер отвечает
 		подтверждением с номером принятого пакета.
 	*/
-	var hDev transport.HeaderDevice
 	ctrl := new(pudge.Controller)
 	var err error
-	defer soc.Close()
 	start := time.Now()
-	hDev, err = transport.GetMessageFromDevice(soc)
-	if err != nil {
-		logger.Error.Printf("При приеме первого соединения от устройства %s %s", soc.LocalAddr().String(), err.Error())
-		return
-	}
+	hout := make(chan transport.HeaderServer)
+	hin := make(chan transport.HeaderDevice)
+	defer soc.Close()
+	defer close(hout)
+	defer close(hin)
+	go transport.GetMessagesFromDevice(soc, hin)
+	go transport.SendMessagesToDevice(soc, hout)
+	hDev := <-hin
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
 		logger.Error.Printf("Устройств %s %s", soc.LocalAddr().String(), err.Error())
 		return
 	}
-
 	dmess := hDev.ParseMessage()
 	flag := false
 	for _, m := range dmess {
@@ -107,19 +107,11 @@ func newConnect(soc net.Conn, stop chan int) {
 	pudge.SetController(ctrl)
 	//Запросим состояние устройства
 	hs := transport.CreateHeaderServer(0, 0)
-	err = transport.SendMessageToDevice(soc, hs)
-	if err != nil {
-		logger.Error.Printf("При передаче %s", err.Error())
-		return
-	}
+	hout <- hs
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
-	hDev, err = transport.GetMessageFromDevice(soc)
-	if err != nil {
-		logger.Error.Printf("При ожидании состояния устройства %s", err.Error())
-		return
-	}
+	hDev = <-hin
 	dd := new(device)
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
@@ -131,6 +123,9 @@ func newConnect(soc net.Conn, stop chan int) {
 	mutex.Unlock()
 	updateController(ctrl, &hDev)
 	pudge.SetController(ctrl)
+	if hDev.ID > 40000 {
+		logger.Info.Println("Создали устройство")
+	}
 	//С этого момента начинается основной цикл работы
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -155,18 +150,14 @@ func newConnect(soc net.Conn, stop chan int) {
 	*/
 	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 	for {
-		is, err := transport.GetMaybeMessageFromDevice(soc, &hDev)
-		if err != nil {
-			logger.Error.Printf("При приеме сообщения от %d %s", dd.id, err.Error())
-			ctrl.StatusConnection = pudge.NotConnected
-			pudge.SetController(ctrl)
-			return
-		}
-		if is {
+		select {
+		case hDev = <-hin:
 			updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
-		}
-		select {
+			if hDev.ID > 40000 {
+				logger.Info.Println("Обновили устройство")
+			}
+
 		case <-timer.C:
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.KeepAlive {
 				//Уже пять минут нет связи с устройством
@@ -185,23 +176,14 @@ func newConnect(soc net.Conn, stop chan int) {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.id, err.Error())
 				continue
 			}
-			err = transport.SendMessageToDevice(soc, hs)
-			if err != nil {
-				logger.Error.Printf("При передаче %d %s", dd.id, err.Error())
-				return
-			}
+			hout <- hs
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
 
 			hss := makeArrayToDevice(dd, comArray)
 			for _, h := range hss {
-				err = transport.SendMessageToDevice(soc, h)
-				if err != nil {
-					logger.Error.Printf("При передаче %d %s", dd.id, err.Error())
-					return
-				}
-				time.Sleep(10 * time.Second)
+				hout <- h
 			}
 
 		}

@@ -22,9 +22,9 @@
 		"port": 2000,
 		"portc": 2001,
 		"porta": 2002,
-		"read_timeout": 1000000000,
+		"read_timeout": 300000000000,
 		"write_timeout": 1000000000,
-		"time_keep_alive": 180000000000,
+		"time_keep_alive": 300000000000,
 		"lenid": 19,
 		"id": 167
 	},
@@ -34,7 +34,7 @@
 		"step": 10,
 		"guiport": 8080,
 		"random": true,
-		"time_keep_alive": 120000000000
+		"time_keep_alive": 200000000000
 	},
 	"location": "Asia/Omsk"
 }
