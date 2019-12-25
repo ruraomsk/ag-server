@@ -82,6 +82,9 @@ func newConnect(soc net.Conn, stop chan int) {
 		return
 	}
 	dmess := hDev.ParseMessage()
+	if hDev.ID > 40000 {
+		logger.Info.Println("Knok knok")
+	}
 	flag := false
 	for _, m := range dmess {
 		if m.Type == 0x1D {
@@ -107,16 +110,18 @@ func newConnect(soc net.Conn, stop chan int) {
 	pudge.SetController(ctrl)
 	//Запросим состояние устройства
 	hs := transport.CreateHeaderServer(0, 0)
-	mss := make([]transport.SubMessage, 0)
-	var ms transport.SubMessage
-	ms.Set0x01Server(0)
-	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	// mss := make([]transport.SubMessage, 0)
+	// var ms transport.SubMessage
+	// ms.Set0x01Server(0)
+	// mss = append(mss, ms)
+	// hs.UpackMessages(mss)
 	hout <- hs
+	if hDev.ID > 40000 {
+		logger.Info.Println("send 1 rep")
+	}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
-	hDev = <-hin
 	dd := new(device)
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
@@ -168,6 +173,7 @@ func newConnect(soc net.Conn, stop chan int) {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = pudge.NotConnected
+				pudge.SetController(ctrl)
 				logger.Info.Printf("Устройство %d более положенного не выходит на связь", dd.id)
 				return
 			}
@@ -199,11 +205,11 @@ func newConnect(soc net.Conn, stop chan int) {
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
 func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 	dmess := hDev.ParseMessage()
-	mutex.Lock()
+	// mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
 	c.StatusConnection = pudge.Connected
-	defer mutex.Unlock()
+	// defer mutex.Unlock()
 	for _, mes := range dmess {
 		switch mes.Type {
 		case 0x00:

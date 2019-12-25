@@ -10,9 +10,10 @@ import (
 //GetMessagesFromDevice принять сообщение
 func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice) {
 	defer socket.Close()
-	socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
 	var h HeaderDevice
 	for {
+		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
+		// socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
 		if err == nil && n != len(buf) {
@@ -49,7 +50,8 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 	defer socket.Close()
 	var hs HeaderServer
 	for {
-		socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
+		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
+		// socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
 		if err == nil && n != len(buf) {
