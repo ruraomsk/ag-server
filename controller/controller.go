@@ -24,7 +24,7 @@ import (
 var Dmutex sync.Mutex
 
 func restartDevice() {
-	time.Sleep(60 * time.Second)
+	time.Sleep(120 * time.Second)
 	for _, d := range device.Devs {
 		d.Mutex.Lock()
 		if !d.Status {
