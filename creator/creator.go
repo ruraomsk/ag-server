@@ -4,12 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
+	"encoding/xml"
 	"io/ioutil"
 	"rura/ag-server/setup"
 	"strconv"
 	"strings"
-	"unicode/utf16"
-	"unicode/utf8"
 
 	"fmt"
 	"rura/ag-server/logger"
@@ -22,26 +21,65 @@ import (
 //Если таковые будут))
 var err error
 
+//Creator define Creator
+type Creator struct {
+	SQL     SQL     `xml:"sql" json:"sql"`
+	Regions Regions `xml:"regions" json:"regions"`
+}
+
+//SQL def SQL
+type SQL struct {
+	Ext  string `xml:"ext,attr" json:"ext"`
+	Path string `xml:"path,attr" json:"path"`
+}
+
+//Regions def Regions
+type Regions struct {
+	Path string   `xml:"path,attr" json:"path"`
+	Regs []Region `xml:"reg" json:"reg"`
+}
+
+//Region def Region
+type Region struct {
+	ID    int    `xml:"id,attr" json:"id"`
+	Name  string `xml:"name,attr" json:"name"`
+	Areas []Area `xml:"area" json:"area"`
+}
+
+//Area def area
+type Area struct {
+	ID       int       `xml:"id,attr" json:"id"`
+	Name     string    `xml:"name,attr" json:"name"`
+	SubAreas []SubArea `xml:"subarea" json:"subarea"`
+}
+
+//SubArea def subarea
+type SubArea struct {
+	ID   int    `xml:"id,attr" json:"id"`
+	File string `xml:"file,attr" json:"file"`
+}
+
+var st Creator
+var con *sql.DB
+
 //Start создание баз данных
 func Start(path string) error {
 	logger.Info.Println("Start creator...")
 	fmt.Println("Start creator...")
-	err = SQLCreate(path + "/setup")
+	buf, err := ioutil.ReadFile(path + "/setup/creator.xml")
 	if err != nil {
-		fmt.Println("Найдены ошибки проверьте log file")
-		return fmt.Errorf("Найдены ошибки проверьте log file")
+		logger.Error.Println(err.Error())
+		return err
 	}
-	logger.Info.Println("Exit creator...")
-	fmt.Println("Exit creator...")
-	return nil
-}
-
-//SQLCreate просмотр каталога и исполнить все запросы с расширением create
-func SQLCreate(path string) error {
+	err = xml.Unmarshal(buf, &st)
+	if err != nil {
+		logger.Error.Println(err.Error())
+		return err
+	}
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
-	con, err := sql.Open("postgres", dbinfo)
+	con, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
 		return err
@@ -51,6 +89,41 @@ func SQLCreate(path string) error {
 		logger.Error.Printf("Ping %s", err.Error())
 		return err
 	}
+	err = sqlCreate(path+"/"+st.SQL.Path, st.SQL.Ext)
+	if err != nil {
+		return fmt.Errorf("Найдены ошибки проверьте log file")
+	}
+	err = regionCreate(path)
+	logger.Info.Println("Exit creator...")
+	fmt.Println("Exit creator...")
+	return nil
+}
+func regionCreate(path string) error {
+	path += "/" + st.Regions.Path
+	for _, reg := range st.Regions.Regs {
+		for _, ar := range reg.Areas {
+			w := "insert into region (region,area,nameregion,namearea) values(" + strconv.Itoa(reg.ID) +
+				"," + strconv.Itoa(ar.ID) + ",'" + reg.Name + "','" + ar.Name + "');"
+			_, err = con.Exec(w)
+			if err != nil {
+				logger.Error.Printf("Error %s  %s\n", w, err.Error())
+				return err
+			}
+			for _, sub := range ar.SubAreas {
+				err = loadCross(reg.ID, ar.ID, sub.ID, path+"/"+sub.File)
+				if err != nil {
+					logger.Error.Printf("Error loadCross  %s\n", err.Error())
+					return err
+				}
+
+			}
+		}
+	}
+	return nil
+}
+
+//sqlCreate просмотр каталога и исполнить все запросы с расширением create
+func sqlCreate(path string, ext string) error {
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
 		logger.Error.Printf("Ошибка чтения содержимого кaталога %s %s", path, err.Error())
@@ -61,7 +134,7 @@ func SQLCreate(path string) error {
 		if dir.IsDir() {
 			continue
 		}
-		if !strings.HasSuffix(dir.Name(), ".sql") {
+		if !strings.HasSuffix(dir.Name(), ext) {
 			continue
 		}
 		nfile := path + "/" + dir.Name()
@@ -71,6 +144,7 @@ func SQLCreate(path string) error {
 			return err
 		}
 		logger.Info.Printf("Обрабатываем файл %s", nfile)
+		// fmt.Println(string(cmd))
 		_, err = con.Exec(string(cmd))
 
 		if err != nil {
@@ -79,88 +153,38 @@ func SQLCreate(path string) error {
 		}
 
 	}
-	dirs, err = ioutil.ReadDir(path)
-	//Загружаем координаты устройств
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			continue
-		}
-		if !strings.HasSuffix(dir.Name(), ".mrk") {
-			// fmt.Println(dir.Name())
-			continue
-		}
-		nfile := path + "/" + dir.Name()
-		file, err := ioutil.ReadFile(nfile)
-		if err != nil {
-			logger.Error.Printf("Error reading file %s! %s\n", path, err.Error())
-			return err
-		}
-		logger.Info.Printf("Обрабатываем файл %s", nfile)
-		region := "0"
-		if strings.Contains(nfile, "Мосавтодор") {
-			region = "1"
-		}
-		if strings.Contains(nfile, "Чукотка") {
-			region = "2"
-		}
-		if strings.Contains(nfile, "Сахалин") {
-			region = "3"
-		}
-		var scanner *bufio.Scanner
-		if region == "1" {
-			strFile, _ := decodeUTF16(file)
-			strFile = strings.ReplaceAll(strFile, "\ufeff", "")
-			scanner = bufio.NewScanner(strings.NewReader(strFile))
-		} else {
-			scanner = bufio.NewScanner(bytes.NewReader(file))
-		}
-
-		for scanner.Scan() {
-			str := scanner.Text()
-			if len(str) == 0 {
-				continue
-			}
-
-			ss := strings.Split(str, "#")
-			if len(ss) != 3 {
-				continue
-			}
-			id, _ := strconv.Atoi(ss[0])
-			reg, _ := strconv.Atoi(region)
-			w := "insert into public.\"cross\" (region,id,dgis,describ,idevice,state) values(" + region + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "'," +
-				strconv.Itoa(reg*10000+id) + ",'{}');"
-			_, err = con.Exec(w)
-
-			if err != nil {
-				logger.Error.Printf("Error %s  %s\n", w, err.Error())
-				return err
-			}
-
-		}
-
-	}
-
 	return nil
 }
-func decodeUTF16(b []byte) (string, error) {
-
-	if len(b)%2 != 0 {
-		return "", fmt.Errorf("Must have even length byte slice")
+func loadCross(region int, area int, subarea int, nfile string) error {
+	file, err := ioutil.ReadFile(nfile)
+	if err != nil {
+		logger.Error.Printf("Error reading file %s! %s\n", nfile, err.Error())
+		return err
 	}
+	logger.Info.Printf("Обрабатываем файл %s", nfile)
+	var scanner *bufio.Scanner
+	scanner = bufio.NewScanner(bytes.NewReader(file))
+	reg := strconv.Itoa(region) + "," + strconv.Itoa(area) + "," + strconv.Itoa(subarea)
+	for scanner.Scan() {
+		str := scanner.Text()
+		if len(str) == 0 {
+			continue
+		}
 
-	u16s := make([]uint16, 1)
+		ss := strings.Split(str, "#")
+		if len(ss) != 3 {
+			continue
+		}
+		id, _ := strconv.Atoi(ss[0])
+		w := "insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(" + reg + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "'," +
+			strconv.Itoa(region*10000+id) + ",'{}');"
+		_, err = con.Exec(w)
 
-	ret := &bytes.Buffer{}
+		if err != nil {
+			logger.Error.Printf("Error %s  %s\n", w, err.Error())
+			return err
+		}
 
-	b8buf := make([]byte, 4)
-
-	lb := len(b)
-	for i := 0; i < lb; i += 2 {
-		u16s[0] = uint16(b[i]) + (uint16(b[i+1]) << 8)
-		r := utf16.Decode(u16s)
-		n := utf8.EncodeRune(b8buf, r[0])
-		ret.Write(b8buf[:n])
 	}
-
-	return ret.String(), nil
+	return nil
 }

@@ -33,6 +33,9 @@ func main() {
 	if len(os.Args) > 1 {
 		if strings.Contains(os.Args[1], "create") {
 			err = creator.Start(path)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 			return
 		}
 	}
