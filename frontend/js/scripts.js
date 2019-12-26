@@ -15,25 +15,6 @@ function setTitleDevice(name, id) {
     $('title').html(id + "-" + name);
     $('#title').html(id + "-" + name);
 }
-function setTitleLog(name, id) {
-    $('title').html(id + "-Логгирование");
-    $('#title').html(id + "-Логгирование");
-}
-function stopDeviceView() {
-
-}
-function stopLogView() {
-
-}
-function addTableHeadForLog() {
-    var headers = [];
-    headers.push("<tr>");
-    headers.push("<th>time</th>");
-    headers.push("<th>message</th>");
-    headers.push("<th>from-to</th>");
-    headers.push("</tr>");
-    $('#main_table_head').html(headers.join(""));
-}
 function addTableHeadForDevice() {
     var headers = [];
     headers.push("<tr>");
@@ -44,6 +25,7 @@ function addTableHeadForDevice() {
 
 }
 function showDevices() {
+    urlList = window.location.origin + '/list';
     $.getJSON(urlList, function (data) {
         var items = [];
         devices = [];
@@ -58,10 +40,9 @@ function showDevices() {
         $("#nav-left-devices").html(items.join(""));
 
     });
-    // getCurrentDevice(currentDevice)
 }
 function getCurrentDevice(id) {
-    stopLogView();
+    urlCurrentController = window.location.origin + '/device?id=';
     setTitleDevice(devices[id], id);
     addTableHeadForDevice();
     $.getJSON(urlCurrentController + id, function (data) {
@@ -77,44 +58,13 @@ function getCurrentDevice(id) {
         $('#main_table_body').html(items.join(""));
     });
     currentDevice = id
-    // startUpdatingDevice();
 }
-function getCurrentLog(id) {
-    stopDeviceView()
-    setTitleLog(devices[id], id);
-    addTableHeadForLog();
-    $.getJSON(urlCurrentLog + id, function (data) {
-        var items = [];
-        $.each(data.ls, function () {
-            result = "<tr>"
-            time = this['t']
-            time = time.substring(11, 19)
-            result += "<td>" + time + "</td>"
-            result += "<td>" + this['m'] + "</td>"
-            result += "<td>" + this['d'] + "</td>"
-            result += "<tr>"
-            items.push(result);
-        });
-        // items.sort();
-        $('#main_table_body').html(items.join(""));
-    });
-    currentDevice = id
-    // startUpdatingDevice();
-}
-// function startUpdatingDevice() {
-//     if (currentDevice != 0) {
-//         updateValuesSubsystem();
-//         updateIntervalId = setInterval(updateValuesSubsystem, timeInterval);
-//     }
-// }
 
 $(document).ready(function () {
-    URL_SERVER = window.location.origin;
     showDevices();
 
     $("#nav-left-devices").on('click', '.nave-item a', function () {
         getCurrentDevice($(this).attr('id'));
-        // getCurrentLog($(this).attr('id'));
     });
 
     $("#get-device").click(function () {
@@ -126,6 +76,5 @@ $(document).ready(function () {
 
     $("#content-filter").on("input", function () {
         contentFilter = this.value;
-        // updateContent();
     });
 });

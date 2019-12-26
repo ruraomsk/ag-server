@@ -13,7 +13,7 @@
 		"time_keep_alive": 120000000000
 	},
 	"Pudge": {
-		"step": 15,
+		"step": 20,
 		"log": "log",
 		"save": "devices",
 		"cross": "public.cross"
