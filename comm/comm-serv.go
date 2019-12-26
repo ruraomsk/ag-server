@@ -328,6 +328,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transpo
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
 		}
 	}
+	pudge.SetController(c)
 	hs := transport.CreateHeaderServer(0, 0)
 	if hDev.Number != 0 {
 		mss := make([]transport.SubMessage, 0)
