@@ -215,11 +215,11 @@ func newConnect(soc net.Conn, stop chan int) {
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
 func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transport.HeaderServer {
 	dmess := hDev.ParseMessage()
-	// mutex.Lock()
+	mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
 	c.StatusConnection = pudge.Connected
-	// defer mutex.Unlock()
+	defer mutex.Unlock()
 	for _, mes := range dmess {
 		switch mes.Type {
 		case 0x00:
