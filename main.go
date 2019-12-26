@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 	"rura/ag-server/comm"
+	"rura/ag-server/controller"
 	"rura/ag-server/creator"
 	"rura/ag-server/extcon"
 	"rura/ag-server/logger"
@@ -48,9 +49,9 @@ func main() {
 	ans := make(chan string)
 	go pudge.Start(p, stop, rq, ans)
 	go comm.StartListen(stop, rq, ans)
-	// time.Sleep(5 * time.Second)
-	// c, _ := extcon.NewContext("controller")
-	// go controller.Start(c, rq, ans)
+	time.Sleep(5 * time.Second)
+	c, _ := extcon.NewContext("controller")
+	go controller.Start(c, rq, ans)
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 
