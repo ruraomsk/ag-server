@@ -434,7 +434,7 @@ func (c *Controller) ToList() []string {
 	result = append(result, r)
 	r = "Номер суточной карты;" + strconv.Itoa(c.CK)
 	result = append(result, r)
-	r = "Номер недельной карты;" + strconv.Itoa(c.CK)
+	r = "Номер недельной карты;" + strconv.Itoa(c.NK)
 	result = append(result, r)
 	r = "Максимальное время ожидания от сервера;" + strconv.Itoa(c.TMax)
 	result = append(result, r)
