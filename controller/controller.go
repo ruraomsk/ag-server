@@ -84,6 +84,9 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 		}
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
+		if dev.ID > 40000 {
+			continue
+		}
 		dev.Controller = getController(dev.ID, rq, ans)
 		device.Devs[dev.ID] = dev
 		go dev.StartDevice()

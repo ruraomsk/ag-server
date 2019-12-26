@@ -106,7 +106,7 @@ func (d *Device) Close() {
 func (d *Device) StartDevice() {
 	// logger.Info.Printf("Запускаем id %d", d.ID)
 	rand.Seed(int64(d.ID))
-	time.Sleep(time.Duration(rand.Intn(30)+1) * time.Second)
+	time.Sleep(time.Duration(rand.Intn(60)+1) * time.Second)
 	d.Status = false
 	d.StatusDevice = true
 	d.LogInts = make([]LogInt, 0)

@@ -108,13 +108,13 @@ func newConnect(soc net.Conn, stop chan int) {
 	ctrl.StatusConnection = pudge.Connected
 	ctrl.LastOperation = time.Now()
 	pudge.SetController(ctrl)
-	//Запросим состояние устройства
+	//Подтвердим что клоиент прописан
 	hs := transport.CreateHeaderServer(0, 0)
-	// mss := make([]transport.SubMessage, 0)
-	// var ms transport.SubMessage
-	// ms.Set0x01Server(0)
-	// mss = append(mss, ms)
-	// hs.UpackMessages(mss)
+	mss := make([]transport.SubMessage, 0)
+	var ms transport.SubMessage
+	ms.Set0x00Device()
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
 	hout <- hs
 	if hDev.ID > 40000 {
 		logger.Info.Println("send 1 rep")
@@ -133,6 +133,14 @@ func newConnect(soc net.Conn, stop chan int) {
 	mutex.Unlock()
 	updateController(ctrl, &hDev)
 	pudge.SetController(ctrl)
+	time.Sleep(5 * time.Second)
+	//Запросим состояние устройства
+	hs = transport.CreateHeaderServer(0, 0)
+	mss = make([]transport.SubMessage, 0)
+	ms.Set0x03Server()
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	hout <- hs
 	if hDev.ID > 40000 {
 		logger.Info.Println("Создали устройство")
 	}
@@ -162,12 +170,14 @@ func newConnect(soc net.Conn, stop chan int) {
 	for {
 		select {
 		case hDev = <-hin:
-			updateController(ctrl, &hDev)
+			hs := updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
-			if hDev.ID > 40000 {
-				logger.Info.Println("Обновили устройство")
+			if len(hs.Message) != 0 {
+				hout <- hs
+				if hDev.ID > 40000 {
+					logger.Info.Println("Обновили устройство")
+				}
 			}
-
 		case <-timer.C:
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead {
 				//Уже пять минут нет связи с устройством
@@ -203,7 +213,7 @@ func newConnect(soc net.Conn, stop chan int) {
 }
 
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
-func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
+func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transport.HeaderServer {
 	dmess := hDev.ParseMessage()
 	// mutex.Lock()
 	d := devs[hDev.ID]
@@ -275,7 +285,6 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 			err := mes.Get0x0FDevice(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
-				continue
 			}
 		case 0x10:
 			logger.Error.Printf("Повторная выдача команды 0x10 id %d ", hDev.ID)
@@ -284,14 +293,12 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 			err := mes.Get0x11Device(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x11 id %d %s", hDev.ID, err.Error())
-				continue
 			}
 		case 0x12:
 			//Состояние ДК v3
 			err := mes.Get0x12Device(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
-				continue
 			}
 		case 0x13:
 			//Массив приявязки
@@ -299,7 +306,6 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 			err := mes.Get0x13Device(&ar)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
-				continue
 			}
 			flag := false
 			for n, a := range c.Arrays {
@@ -317,14 +323,20 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) {
 			err := mes.Get0x1DDevice(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
-				continue
 			}
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
 		}
-
 	}
-	return
+	hs := transport.CreateHeaderServer(0, 0)
+	if hDev.Number != 0 {
+		mss := make([]transport.SubMessage, 0)
+		var ms transport.SubMessage
+		ms.Set0x01Server(int(hDev.Number))
+		mss = append(mss, ms)
+		hs.UpackMessages(mss)
+	}
+	return hs
 }
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
