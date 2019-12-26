@@ -12,7 +12,7 @@ func Test_ParseServer(t *testing.T) {
 	hs.IDServer = uint8(0xa7)
 	hs.Time = time.Now()
 	hs.Code = 0x7f
-	hs.Number = 1
+	hs.Number = 128
 	var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x01Server(10)
@@ -59,7 +59,7 @@ func Test_EmptyDevice(t *testing.T) {
 	hd.TypeDevice = 30
 	hd.Time = time.Now()
 	hd.Code = 0x7f
-	hd.Number = 1
+	hd.Number = 128
 	// var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
 	hd.UpackMessages(mss)
@@ -80,7 +80,7 @@ func Test_ParseDevice(t *testing.T) {
 	hd.TypeDevice = 30
 	hd.Time = time.Now()
 	hd.Code = 0x7f
-	hd.Number = 1
+	hd.Number = 133
 	var ms transport.SubMessage
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x00Device()

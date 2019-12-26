@@ -87,17 +87,19 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer) {
 	defer socket.Close()
 	for {
-		hs := <-hout
-		socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
-		buffer := hs.MakeBuffer()
-		n, err := socket.Write(buffer)
-		if err != nil {
-			logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-			return
-		}
-		if n != len(buffer) {
-			logger.Error.Printf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
-			return
+		select {
+		case hs := <-hout:
+			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
+			buffer := hs.MakeBuffer()
+			n, err := socket.Write(buffer)
+			if err != nil {
+				logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+				return
+			}
+			if n != len(buffer) {
+				logger.Error.Printf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
+				return
+			}
 		}
 	}
 }
@@ -106,17 +108,19 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer) {
 func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice) {
 	defer socket.Close()
 	for {
-		hd := <-hout
-		socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
-		buffer := hd.MakeBuffer()
-		n, err := socket.Write(buffer)
-		if err != nil {
-			logger.Error.Printf("при передаче на сервер  %s %s", socket.RemoteAddr().String(), err.Error())
-			return
-		}
-		if n != len(buffer) {
-			logger.Error.Printf("при передаче на сервер %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
-			return
+		select {
+		case hd := <-hout:
+			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
+			buffer := hd.MakeBuffer()
+			n, err := socket.Write(buffer)
+			if err != nil {
+				logger.Error.Printf("при передаче на сервер  %s %s", socket.RemoteAddr().String(), err.Error())
+				return
+			}
+			if n != len(buffer) {
+				logger.Error.Printf("при передаче на сервер %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
+				return
+			}
 		}
 	}
 }

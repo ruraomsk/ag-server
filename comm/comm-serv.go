@@ -67,7 +67,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	*/
 	ctrl := new(pudge.Controller)
 	var err error
-	start := time.Now()
 	hout := make(chan transport.HeaderServer)
 	hin := make(chan transport.HeaderDevice)
 	defer soc.Close()
@@ -76,6 +75,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	go transport.GetMessagesFromDevice(soc, hin)
 	go transport.SendMessagesToDevice(soc, hout)
 	hDev := <-hin
+	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
 		logger.Error.Printf("Устройствo %s %s", soc.LocalAddr().String(), err.Error())
@@ -112,8 +112,8 @@ func newConnect(soc net.Conn, stop chan int) {
 	hs := transport.CreateHeaderServer(0, 0)
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
-	ms.Set0x00Device()
-	mss = append(mss, ms)
+	// ms.Set0x00Device()
+	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
 	if hDev.ID > 40000 {

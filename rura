@@ -1,0 +1,11 @@
+panic: runtime error: index out of range [10] with length 0
+
+goroutine 540 [running]:
+rura/ag-server/transport.(*HeaderDevice).UpackMessages(0xc0001b9108, 0xc091009900, 0x3, 0x4, 0x3, 0xc091009900)
+	/home/rura/go/src/rura/ag-server/transport/message.go:158 +0x179
+rura/ag-server/controller/device.(*Device).makeAndSendAnsware(0xc0001b90e0, 0x993646e750, 0xa41020)
+	/home/rura/go/src/rura/ag-server/controller/device/device.go:296 +0x8c7
+rura/ag-server/controller/device.(*Device).StartDevice(0xc0001b90e0)
+	/home/rura/go/src/rura/ag-server/controller/device/device.go:148 +0x6fe
+created by rura/ag-server/controller.Start
+	/home/rura/go/src/rura/ag-server/controller/controller.go:92 +0x521
