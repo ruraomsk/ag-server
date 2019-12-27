@@ -26,8 +26,10 @@ type SetPk struct {
 
 //Stage описание одной фазы плана координации
 type Stage struct {
-	Number int `json:"num"` //Номер фазы
-	Tf     int `json:"tf"`  //Тип фазы 0 -простая
+	Nline  int `json:"l"`     //Номер строки
+	Start  int `json:"start"` //Время начала фазы
+	Number int `json:"num"`   //Номер фазы
+	Tf     int `json:"tf"`    //Тип фазы 0 -простая
 	// 1 - МГР
 	// 2 - 1ТВП
 	// 3 - 2ТВП

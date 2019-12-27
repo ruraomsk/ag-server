@@ -52,3 +52,48 @@ func Test_Years(t *testing.T) {
 		return
 	}
 }
+func Test_StatDefine(t *testing.T) {
+	buffer := []int{14, 0, 14, 9, 0, 1, 5, 6, 0, 0, 0, 0, 0}
+
+	td := binding.NewStatDefine()
+	err := td.FromBuffer(buffer)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out := td.ToBuffer()
+	if !reflect.DeepEqual(&buffer, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+}
+func Test_PointSet(t *testing.T) {
+	buffer := []int{15, 0, 15, 13, 0, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, 6, 1}
+
+	td := binding.NewPointSet()
+	err := td.FromBuffer(buffer)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out := td.ToBuffer()
+	if !reflect.DeepEqual(&buffer, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+}
+func Test_UseInput(t *testing.T) {
+	buffer := []int{16, 0, 16, 9, 0, 1, 1, 1, 1, 1, 1, 1, 1}
+
+	td := binding.NewUseInput()
+	err := td.FromBuffer(buffer)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out := td.ToBuffer()
+	if !reflect.DeepEqual(&buffer, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+}
