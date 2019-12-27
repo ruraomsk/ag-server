@@ -9,7 +9,7 @@ import (
 
 func Test_ParseServer(t *testing.T) {
 	var hs transport.HeaderServer
-	hs.IDServer = uint8(0xa7)
+	hs.IDServer = 0xa78d
 	hs.Time = time.Now()
 	hs.Code = 0x7f
 	hs.Number = 128

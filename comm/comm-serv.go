@@ -82,9 +82,6 @@ func newConnect(soc net.Conn, stop chan int) {
 		return
 	}
 	dmess := hDev.ParseMessage()
-	if hDev.ID > 40000 {
-		logger.Info.Println("Knok knok")
-	}
 	flag := false
 	for _, m := range dmess {
 		if m.Type == 0x1D {
@@ -116,9 +113,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
-	if hDev.ID > 40000 {
-		logger.Info.Println("send 1 rep")
-	}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -141,9 +135,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
-	if hDev.ID > 40000 {
-		logger.Info.Println("Создали устройство")
-	}
 	//С этого момента начинается основной цикл работы
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -170,13 +161,10 @@ func newConnect(soc net.Conn, stop chan int) {
 	for {
 		select {
 		case hDev = <-hin:
-			hs := updateController(ctrl, &hDev)
+			hs, need := updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
-			if len(hs.Message) != 0 {
+			if len(hs.Message) != 0 || need {
 				hout <- hs
-				if hDev.ID > 40000 {
-					logger.Info.Println("Обновили устройство")
-				}
 			}
 		case <-timer.C:
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead {
@@ -213,8 +201,9 @@ func newConnect(soc net.Conn, stop chan int) {
 }
 
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
-func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transport.HeaderServer {
+func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transport.HeaderServer, bool) {
 	dmess := hDev.ParseMessage()
+	need := false
 	mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
@@ -282,12 +271,17 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transpo
 			c.LogLines = append(c.LogLines, lg)
 		case 0x0f:
 			//Установление связи ДК v2
+			need = true
 			err := mes.Get0x0FDevice(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
 			}
 		case 0x10:
-			logger.Error.Printf("Повторная выдача команды 0x10 id %d ", hDev.ID)
+			need = true
+			err := mes.Get0x10Device(c)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
+			}
 		case 0x11:
 			//Состояние оборудования v2
 			err := mes.Get0x11Device(c)
@@ -320,6 +314,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transpo
 			}
 		case 0x1D:
 			//Состояние подключения
+			need = true
 			err := mes.Get0x1DDevice(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
@@ -337,7 +332,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) transpo
 		mss = append(mss, ms)
 		hs.UpackMessages(mss)
 	}
-	return hs
+	return hs, need
 }
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge

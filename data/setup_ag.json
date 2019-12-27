@@ -1,6 +1,6 @@
 {
 	"DataBase": {
-		"host": "localhost",
+		"host": "192.168.1.16",
 		"port": 5432,
 		"user": "postgres",
 		"password": "162747",
@@ -13,7 +13,7 @@
 		"time_keep_alive": 120000000000
 	},
 	"Pudge": {
-		"step": 20,
+		"step": 10,
 		"log": "log",
 		"save": "devices",
 		"cross": "public.cross"

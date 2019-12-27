@@ -21,7 +21,6 @@ type CommServer struct {
 	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
 	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
 	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
-	IDServer     uint8         `json:"id"`              //ID сервера или 0xa7 или 0x8d
 }
 
 //Server настройки для сервера армов

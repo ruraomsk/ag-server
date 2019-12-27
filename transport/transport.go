@@ -2,7 +2,6 @@ package transport
 
 import (
 	"reflect"
-	"rura/ag-server/setup"
 	"time"
 
 	"fmt"
@@ -39,7 +38,7 @@ func (d *HeaderDevice) Compare(dd *HeaderDevice) bool {
 
 //HeaderServer Сообщение от сервера
 type HeaderServer struct {
-	IDServer uint8     //ID Сервера 0xa7 or 0x8D
+	IDServer int       //ID Сервера 0xa7 0x8D
 	Time     time.Time // Время сообщения
 	Number   uint8     // Номер сообщения
 	Code     uint8     // Код отправителя
@@ -49,7 +48,7 @@ type HeaderServer struct {
 //CreateHeaderServer создает заголовок сервера
 func CreateHeaderServer(num, code int) HeaderServer {
 	var h HeaderServer
-	h.IDServer = setup.Set.CommServer.IDServer
+	h.IDServer = 0xa78d
 	h.Time = time.Now()
 	h.Number = uint8(num)
 	h.Code = uint8(code)
@@ -108,7 +107,7 @@ func (s *HeaderServer) Parse(buffer []byte) error {
 	if err != nil {
 		return err
 	}
-	s.IDServer = uint8(buffer[1])
+	s.IDServer = 0xa78d
 	s.Time = takeDate(buffer, 4)
 	s.Number = buffer[10]
 	s.Code = buffer[11]
@@ -148,7 +147,8 @@ func (d *HeaderDevice) MakeBuffer() []byte {
 //MakeBuffer создает буфер для передачи полностью упакованный со всеми КС
 func (s *HeaderServer) MakeBuffer() []byte {
 	buffer := make([]byte, 13+len(s.Message)+4)
-	buffer[1] = s.IDServer
+	buffer[0] = 0xa7
+	buffer[1] = 0x8d
 	putDate(s.Time, buffer, 4)
 	s.Time = takeDate(buffer, 4)
 	buffer[10] = s.Number
@@ -174,6 +174,9 @@ func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
 		sumP = sumP & 0xffff
 	}
 	len := int(buffer[lenHeader-1] - 2)
+	if len == 0 {
+		sumB = 0
+	}
 	for i := 0; i < len; i++ {
 		sumP += uint(buffer[lenHeader+i])
 		sumP = sumP & 0xffff

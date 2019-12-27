@@ -136,7 +136,7 @@ func Test_TcpServer(t *testing.T) {
 	rServer = make(chan transport.HeaderServer)
 	go startServer(t)
 	var hs transport.HeaderServer
-	hs.IDServer = uint8(0xa7)
+	hs.IDServer = 0xa78d
 	hs.Time = time.Now()
 	hs.Code = 0x7f
 	hs.Number = 1
