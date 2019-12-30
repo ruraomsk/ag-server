@@ -80,13 +80,13 @@ func monthFromBuffer(buffer []int) (*OneMonth, error) {
 	if len(buffer) != 36 {
 		return nil, fmt.Errorf("неверная длина массива")
 	}
-	if buffer[0]-84 != buffer[4] {
+	if buffer[2] != 22 {
 		return nil, fmt.Errorf("несовпал номер массива на сервере и номер массива")
 	}
-	if buffer[4] <= 0 || buffer[4] > 12 {
+	if buffer[0]-84 <= 0 || buffer[0]-84 > 12 {
 		return nil, fmt.Errorf("неверный номер массива")
 	}
-	om := newOneMonth(buffer[4])
+	om := newOneMonth(buffer[0] - 84)
 	for index := 0; index < len(om.Days); index++ {
 		om.Days[index] = buffer[5+index]
 	}

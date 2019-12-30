@@ -80,13 +80,13 @@ func nedelFromBuffer(buffer []int) (*OneNedel, error) {
 	if len(buffer) != 12 {
 		return nil, fmt.Errorf("неверная длина массива")
 	}
-	if buffer[0]-44 != buffer[4] {
+	if buffer[2] != 8 {
 		return nil, fmt.Errorf("несовпал номер массива на сервере и номер массива")
 	}
-	if buffer[4] <= 0 || buffer[4] > 12 {
+	if buffer[0]-44 <= 0 || buffer[0]-44 > 12 {
 		return nil, fmt.Errorf("неверный номер массива")
 	}
-	nm := newOneNedel(buffer[4])
+	nm := newOneNedel(buffer[0] - 44)
 	for index := 0; index < len(nm.Days); index++ {
 		nm.Days[index] = buffer[5+index]
 	}

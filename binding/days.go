@@ -130,13 +130,13 @@ func dayFromBuffer(buffer []int) (*OneDay, error) {
 	if len(buffer) != 43 {
 		return nil, fmt.Errorf("неверная длина массива")
 	}
-	if buffer[0]-64 != buffer[4] {
+	if buffer[2] != 137 {
 		return nil, fmt.Errorf("несовпал номер массива на сервере и номер массива")
 	}
-	if buffer[4] <= 0 || buffer[4] > 12 {
+	if buffer[0]-64 <= 0 || buffer[0]-64 > 12 {
 		return nil, fmt.Errorf("неверный номер массива")
 	}
-	d := newOneDay(buffer[4])
+	d := newOneDay(buffer[0] - 64)
 	d.Count = buffer[5]
 	for index := 0; index < len(d.Lines); index++ {
 		l := new(Line)

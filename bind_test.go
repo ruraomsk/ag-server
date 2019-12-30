@@ -97,3 +97,44 @@ func Test_UseInput(t *testing.T) {
 		return
 	}
 }
+func Test_TimeDevice(t *testing.T) {
+	buffer := []int{21, 0, 21, 5, 1, 6, 0, 0, 0}
+
+	td := binding.NewTimeDevice()
+	err := td.FromBuffer(buffer)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out := td.ToBuffer()
+	if !reflect.DeepEqual(&buffer, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+}
+func Test_SetupDK(t *testing.T) {
+	buffer := []int{40, 0, 7, 10, 1, 6, 1, 0, 40, 1, 7, 1, 12, 1}
+	buff := []int{41, 0, 7, 10, 2, 6, 1, 1, 40, 2, 7, 201, 12, 1}
+
+	td := binding.NewSetupDK()
+	err := td.FromBuffer(buffer)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out := td.ToBuffer()
+	if !reflect.DeepEqual(&buffer, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+	err = td.FromBuffer(buff)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out = td.ToBuffer()
+	if !reflect.DeepEqual(&buff, &out) {
+		t.Errorf("No equal\n%v\n%v", buffer, out)
+		return
+	}
+}
