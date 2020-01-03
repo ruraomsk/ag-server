@@ -1,6 +1,9 @@
 package binding
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 //Планы координации
 
@@ -17,12 +20,15 @@ func (sd *SetDK) Compare(ss *SetDK) bool {
 
 //SetPk набор планов координации перекрестка
 type SetPk struct {
-	DK     int     `json:"dk"`    //Номер ДК
-	Pk     int     `json:"pk"`    //Номер программы от 1 до 12
-	TypePU int     `json:"tpu"`   //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
-	Tc     int     `json:"tc"`    //Время цикла программы
-	Sdvig  int     `json:"sdvig"` //Время цикла
-	Stages []Stage `json:"sts"`   //Фазы переключения
+	DK         int     `json:"dk"`         //Номер ДК
+	Pk         int     `json:"pk"`         //Номер программы от 1 до 12
+	TypePU     int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
+	RazLen     bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
+	Tc         int     `json:"tc"`         //Время цикла программы
+	Sdvig      int     `json:"sdvig"`      //Сдвиг начала цикла
+	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
+	LastNumber int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
+	Stages     []Stage `json:"sts"`        //Фазы переключения
 }
 
 //Stage описание одной фазы плана координации
@@ -47,12 +53,14 @@ func NewSetDK() *SetDK {
 	r.DK1 = make([]SetPk, 12)
 	r.DK2 = make([]SetPk, 12)
 	for n := range r.DK1 {
-		r.DK1[n] = newSetPk(1, n+1)
-		r.DK2[n] = newSetPk(2, n+1)
+		r.DK1[n] = NewSetPk(1, n+1)
+		r.DK2[n] = NewSetPk(2, n+1)
 	}
 	return r
 }
-func newSetPk(dk int, pk int) SetPk {
+
+//NewSetPk новый план
+func NewSetPk(dk int, pk int) SetPk {
 	r := new(SetPk)
 	r.DK = dk
 	r.Pk = pk
@@ -81,4 +89,203 @@ func isEmpty(set []SetPk, p int) bool {
 		}
 	}
 	return true
+}
+
+//ToBuffer выгружает в буфер
+func (st *SetPk) ToBuffer() []int {
+	r := make([]int, 34)
+	r[0] = st.Pk + 99
+	if st.DK == 2 {
+		r[0] = st.Pk + 119
+	}
+	r[2] = 133
+	r[3] = 30
+	r[4] = st.Pk
+	if st.DK == 2 {
+		r[4] += 128
+	}
+	r[5] = st.Tc
+	r[6] = 256 % st.Tc
+	r[7] = (256 * 256) % st.Tc
+	l := 0
+	for _, s := range st.Stages {
+		if s.Number == 0 && s.Tf == 0 && s.Len == 0 {
+			break
+		}
+		l++
+	}
+	r[8] = 192 + l
+	if st.Sdvig != 0 {
+		r[9] += 16 //Есть переход фаз
+		r[8]++
+	}
+	if st.TypePU == 1 {
+		r[9] += 128 //Есть ЛПУ
+	}
+	mgr := false
+	for _, s := range st.Stages {
+		if s.Tf == 1 {
+			mgr = true
+			break
+		}
+	}
+	if mgr {
+		r[9] += 64 //Среди фаз есть МГР
+	}
+	if st.RazLen {
+		r[9] += 32
+	}
+	pos := 10
+	if st.Sdvig != 0 {
+		//Есть сдвиг формируем запись сдвига
+		//Находим последнюю фазу
+		r[pos] = st.LastNumber
+		if st.LastType == 2 {
+			r[pos] += 160 // 2 - 1ТВП
+		}
+		if st.LastType == 3 {
+			r[pos] += 96 // 3 - 2ТВП
+		}
+		if st.LastType == 4 {
+			r[pos] += 224 // 4 - 1,2ТВП
+		}
+		if st.LastType == 5 {
+			r[pos] += 128 // 5 - Зам 1 ТВП
+		}
+		if st.LastType == 6 {
+			r[pos] += 64 //  6 - Зам 2 ТВП
+		}
+		if st.LastType == 7 {
+			r[pos] += 16 //  7 - Зам
+		}
+		pos++
+		r[pos] = st.Sdvig
+		pos++
+	}
+	for _, s := range st.Stages {
+		if s.Number == 0 && s.Tf == 0 && s.Len == 0 {
+			break
+		}
+		r[pos] = s.Number
+		if s.Tf == 2 {
+			r[pos] += 160 // 2 - 1ТВП
+		}
+		if s.Tf == 3 {
+			r[pos] += 96 // 3 - 2ТВП
+		}
+		if s.Tf == 4 {
+			r[pos] += 224 // 4 - 1,2ТВП
+		}
+		if s.Tf == 5 {
+			r[pos] += 128 // 5 - Зам 1 ТВП
+		}
+		if s.Tf == 6 {
+			r[pos] += 64 //  6 - Зам 2 ТВП
+		}
+		if s.Tf == 7 {
+			r[pos] += 16 //  7 - Зам
+		}
+		pos++
+		r[pos] = s.Len
+		pos++
+	}
+	return r
+}
+
+//FromBuffer создает план координации из буфера возвращает ошибку
+func (st *SetPk) FromBuffer(buffer []int) error {
+	if len(buffer) != 34 {
+		return fmt.Errorf("неверная длина массива")
+	}
+	if buffer[2] != 133 {
+		return fmt.Errorf("несовпал номер массива на сервере и номер массива")
+	}
+	if buffer[0] < 100 || buffer[0] > 131 {
+		return fmt.Errorf("неверный номер массива")
+	}
+	st.Pk = buffer[4] & 0x7f
+	if buffer[4]&0x80 != 0 {
+		st.DK = 2
+	} else {
+		st.DK = 1
+	}
+	st.Tc = buffer[5]
+	sdvig := false
+	if buffer[9]&16 != 0 {
+		//есть переход фаз нужно читать сдвиг
+		sdvig = true
+	}
+	if buffer[9]&128 != 0 {
+		st.TypePU = 1
+	}
+	mgr := false
+	if buffer[9]&64 != 0 {
+		mgr = true //Среди фаз есть МГР
+	}
+	if buffer[9]&32 != 0 {
+		st.RazLen = true
+	} else {
+		st.RazLen = false
+	}
+	pos := 10
+	ss := make([]Stage, 12)
+	for n := range ss {
+		ss[n].Nline = n + 1
+	}
+	for n := range ss {
+		if buffer[pos] == 0 && buffer[pos+1] == 0 {
+			break
+		}
+		ss[n].Number = buffer[pos] & 15
+		m := buffer[pos] & 0xf0
+		if m == 160 {
+			ss[n].Tf = 2 // 2 - 1ТВП
+		}
+		if m == 96 {
+			ss[n].Tf = 3 // 3 - 2ТВП
+		}
+		if m == 224 {
+			ss[n].Tf = 4 // 4 - 1,2ТВП
+		}
+		if m == 128 {
+			ss[n].Tf = 5 // 5 - Зам 1 ТВП
+		}
+		if m == 64 {
+			ss[n].Tf = 6 // 6 - Зам 2 ТВП
+		}
+		if m == 16 {
+			ss[n].Tf = 7 //  7 - Зам
+		}
+		if ss[n].Number == 0 {
+			if !mgr {
+				return fmt.Errorf("есть фаза ноль но нет признака мгр ")
+			}
+			ss[n].Tf = 1
+		}
+		pos++
+		ss[n].Len = buffer[pos]
+		pos++
+	}
+	if sdvig {
+		//Если есть сдвиг то первая фаза задает сдвиг
+		st.Sdvig = ss[0].Len
+	}
+	//Перекатываем в Stage
+	start := st.Sdvig
+	j := 0
+	for n := range ss {
+		if sdvig && n == 0 {
+			st.LastType = ss[n].Tf
+			st.LastNumber = ss[n].Number
+			continue
+		}
+		st.Stages[j].Nline = j + 1
+		st.Stages[j].Start = start
+		st.Stages[j].Number = ss[n].Number
+		st.Stages[j].Tf = ss[n].Tf
+		st.Stages[j].Len = ss[n].Len
+		start += ss[n].Len
+		j++
+	}
+	return nil
 }

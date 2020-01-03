@@ -67,13 +67,7 @@ type Line struct {
 }
 
 func (l *Line) isEmpty() bool {
-	if l.PKNom != 0 {
-		return false
-	}
-	if l.Hour != 0 {
-		return false
-	}
-	if l.Min != 0 {
+	if l.PKNom != 0 || l.Hour != 0 || l.Min != 0 {
 		return false
 	}
 	return true
