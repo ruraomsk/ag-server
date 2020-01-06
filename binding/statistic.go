@@ -63,7 +63,7 @@ func NewStatDefine() *StatDefine {
 //NewPointSet создание новой
 func NewPointSet() *PointSet {
 	r := new(PointSet)
-	r.Points = make([]Point, 6)
+	r.Points = make([]Point, 0)
 	return r
 }
 
@@ -94,10 +94,10 @@ func (st *StatDefine) ToBuffer() []int {
 
 //ToBuffer сохранить в буфер
 func (ps *PointSet) ToBuffer() []int {
-	buffer := make([]int, 17)
+	buffer := make([]int, (len(ps.Points)*2)+5)
 	buffer[0] = 15
 	buffer[2] = 15
-	buffer[3] = 13
+	buffer[3] = (len(ps.Points) * 2) + 1
 	buffer[4] = ps.Number
 	pos := 5
 	for _, l := range ps.Points {
@@ -152,9 +152,9 @@ func (st *StatDefine) FromBuffer(buffer []int) error {
 
 //FromBuffer заполнить из буфера
 func (ps *PointSet) FromBuffer(buffer []int) error {
-	if len(buffer) != 17 {
-		return fmt.Errorf("неверная длина массива")
-	}
+	// if len(buffer) != 17 {
+	// 	return fmt.Errorf("неверная длина массива")
+	// }
 	if buffer[0] != buffer[2] {
 		return fmt.Errorf("не совпал номер массива на сервере и номер массива")
 	}
@@ -162,6 +162,7 @@ func (ps *PointSet) FromBuffer(buffer []int) error {
 		return fmt.Errorf("неверный номер массива")
 	}
 	pos := 5
+	ps.Points = make([]Point, (buffer[3]-1)/2)
 	for n := range ps.Points {
 		ps.Points[n].NumPoint = buffer[pos]
 		pos++

@@ -400,36 +400,36 @@ func (s *SubMessage) Get0x0BDevice(lg *pudge.LogLine) error {
 	return nil
 }
 
-//Set0x13Device сообщение массива привязки
-func (s *SubMessage) Set0x13Device(ar *pudge.ArrayPriv) {
-	s.Type = 0x13
-	s.Message = make([]uint8, len(ar.Array)+3)
-	s.Message[0] = 0x13
-	s.Message[1] = uint8(ar.Number)
-	s.Message[2] = uint8(len(ar.Array))
-	pos := 3
-	for _, al := range ar.Array {
-		s.Message[pos] = uint8(al)
-		pos++
-	}
-}
+// //Set0x13Device сообщение массива привязки
+// func (s *SubMessage) Set0x13Device(ar *pudge.ArrayPriv) {
+// 	s.Type = 0x13
+// 	s.Message = make([]uint8, len(ar.Array)+3)
+// 	s.Message[0] = 0x13
+// 	s.Message[1] = uint8(ar.Number)
+// 	s.Message[2] = uint8(len(ar.Array))
+// 	pos := 3
+// 	for _, al := range ar.Array {
+// 		s.Message[pos] = uint8(al)
+// 		pos++
+// 	}
+// }
 
-//Get0x13Device сообщение массива привязки
-func (s *SubMessage) Get0x13Device(ar *pudge.ArrayPriv) error {
-	if s.Message[0] != 0x13 {
-		return fmt.Errorf("неверный номер команды %x", s.Message[0])
-	}
-	ar.Number = int(s.Message[1])
-	ar.Array = make([]int, 0)
-	count := int(s.Message[2])
-	pos := 3
-	for count > 0 {
-		ar.Array = append(ar.Array, int(s.Message[pos]))
-		pos++
-		count--
-	}
-	return nil
-}
+// //Get0x13Device сообщение массива привязки
+// func (s *SubMessage) Get0x13Device(ar *pudge.ArrayPriv) error {
+// 	if s.Message[0] != 0x13 {
+// 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
+// 	}
+// 	ar.Number = int(s.Message[1])
+// 	ar.Array = make([]int, 0)
+// 	count := int(s.Message[2])
+// 	pos := 3
+// 	for count > 0 {
+// 		ar.Array = append(ar.Array, int(s.Message[pos]))
+// 		pos++
+// 		count--
+// 	}
+// 	return nil
+// }
 
 //Set0x1CDevice записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x1CDevice(num int) {

@@ -2,37 +2,17 @@
 <create> 
 	<sql ext="sql" description="Все SQL запросы на создание БД"	path="setup" />
     <regions path="setup">
-        <reg id="1" name="Мосавтодор">
-            <area id="1" name="Первая половина">
-                <subarea id="1" file="ms0101.mrk"/>
-                <subarea id="2" file="ms0102.mrk"/>
-                <subarea id="3" file="ms0103.mrk"/>
-                <subarea id="4" file="ms0104.mrk"/>
-            </area>
-            <area id="2" name="Вторая половина">
-                <subarea id="1" file="ms0201.mrk"/>
-                <subarea id="2" file="ms0202.mrk"/>
-                <subarea id="3" file="ms0203.mrk"/>
-            </area>
-            <area id="3" name="Третий кусок">
-                <subarea id="1" file="ms0301.mrk"/>
-                <subarea id="2" file="ms0302.mrk"/>
-            </area>
+        <reg id="1" name="Мосавтодор" file="Moskva.mrk">
+            <area id="1" name="Первая половина"/>
+            <area id="2" name="Вторая половина"/>
+            <area id="3" name="Третий кусок"/>
         </reg>
-        <reg id="2" name="Чукотка">
-            <area id="1" name="Перший">
-                <subarea id="1" file="ch0101.mrk"/>
-                <subarea id="2" file="ch0102.mrk"/>
-            </area>
-            <area id="2" name="Вторый">
-                <subarea id="1" file="ch0201.mrk"/>
-                <subarea id="2" file="ch0202.mrk"/>
-            </area>
+        <reg id="2" name="Чукотка" file="Chukotka.mrk">
+            <area id="1" name="Перший"/>
+            <area id="2" name="Вторый"/>
         </reg>
-        <reg id="3" name="Сахалин">
-            <area id="1" name="Без районов" >
-                <subarea id="1" file="Сахалин.mrk"/>
-            </area>
+        <reg id="3" name="Сахалин" file="Сахалин.mrk">
+            <area id="1" name="Без районов" />
         </reg>
     </regions>
 </create>

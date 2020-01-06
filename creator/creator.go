@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
+	"rura/ag-server/pudge"
 	"rura/ag-server/setup"
 	"strconv"
 	"strings"
@@ -43,20 +45,14 @@ type Regions struct {
 type Region struct {
 	ID    int    `xml:"id,attr" json:"id"`
 	Name  string `xml:"name,attr" json:"name"`
+	File  string `xml:"file,attr" json:"file"`
 	Areas []Area `xml:"area" json:"area"`
 }
 
 //Area def area
 type Area struct {
-	ID       int       `xml:"id,attr" json:"id"`
-	Name     string    `xml:"name,attr" json:"name"`
-	SubAreas []SubArea `xml:"subarea" json:"subarea"`
-}
-
-//SubArea def subarea
-type SubArea struct {
 	ID   int    `xml:"id,attr" json:"id"`
-	File string `xml:"file,attr" json:"file"`
+	Name string `xml:"name,attr" json:"name"`
 }
 
 var st Creator
@@ -109,14 +105,12 @@ func regionCreate(path string) error {
 				logger.Error.Printf("Error %s  %s\n", w, err.Error())
 				return err
 			}
-			for _, sub := range ar.SubAreas {
-				err = loadCross(reg.ID, ar.ID, sub.ID, path+"/"+sub.File)
-				if err != nil {
-					logger.Error.Printf("Error loadCross  %s\n", err.Error())
-					return err
-				}
 
-			}
+		}
+		err = loadCross(reg.ID, path+"/"+reg.File)
+		if err != nil {
+			logger.Error.Printf("Error loadCross  %s\n", err.Error())
+			return err
 		}
 	}
 	return nil
@@ -155,7 +149,7 @@ func sqlCreate(path string, ext string) error {
 	}
 	return nil
 }
-func loadCross(region int, area int, subarea int, nfile string) error {
+func loadCross(region int, nfile string) error {
 	file, err := ioutil.ReadFile(nfile)
 	if err != nil {
 		logger.Error.Printf("Error reading file %s! %s\n", nfile, err.Error())
@@ -164,27 +158,163 @@ func loadCross(region int, area int, subarea int, nfile string) error {
 	logger.Info.Printf("Обрабатываем файл %s", nfile)
 	var scanner *bufio.Scanner
 	scanner = bufio.NewScanner(bytes.NewReader(file))
-	reg := strconv.Itoa(region) + "," + strconv.Itoa(area) + "," + strconv.Itoa(subarea)
+	isempty := true
+	state := pudge.NewCross()
+	var dgis string
 	for scanner.Scan() {
 		str := scanner.Text()
 		if len(str) == 0 {
 			continue
 		}
-
-		ss := strings.Split(str, "#")
-		if len(ss) != 3 {
+		if strings.HasPrefix(str, "@u,") {
+			//Начало нового перекрестка
+			if !isempty {
+				saveState(state, dgis)
+			}
+			isempty = false
+			state = pudge.NewCross()
+			ss := strings.Split(str, ",")
+			if len(ss) != 8 {
+				logger.Error.Printf("в строке %s неверное число параметров", str)
+				return err
+			}
+			state.ID, _ = strconv.Atoi(ss[1])
+			state.Region = region
+			state.Area, _ = strconv.Atoi(ss[4])
+			state.SubArea, _ = strconv.Atoi(ss[5])
+			state.NumDev, _ = strconv.Atoi(ss[2])
+			state.ConType = ss[3][0:2]
+			state.ID, _ = strconv.Atoi(ss[3][2:])
 			continue
 		}
-		id, _ := strconv.Atoi(ss[0])
-		w := "insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(" + reg + "," + ss[0] + ",point(" + ss[1] + "),'" + ss[2] + "'," +
-			strconv.Itoa(region*10000+id) + ",'{}');"
-		_, err = con.Exec(w)
+		if strings.HasPrefix(str, "@C,") {
+			//Координаты
+			dgis = str[3:]
+			continue
+		}
+		if strings.HasPrefix(str, "@S,") {
+			//Наименование
+			state.Name = str[3:]
+			continue
+		}
+		if strings.HasPrefix(str, "@N,") {
+			//Телефон
+			state.Fone = str[3:]
+			continue
+		}
+		if strings.HasPrefix(str, "@k1,") {
+			//Массив
+			ss := strings.Split(str, ",")
+			sint := make([]int, 0)
+			for i := 1; i < len(ss); i++ {
+				ii, _ := strconv.Atoi(ss[i])
+				sint = append(sint, ii)
+			}
+			if sint[0] == 14 {
+				err = state.StatDefine.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 15 {
+				err = state.PointSet.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 16 {
+				err = state.UseInput.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 21 {
+				err = state.TimeDivice.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 40 {
+				err = state.Arrays.SetupDK1.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 41 {
+				err = state.Arrays.SetupDK2.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] >= 45 && sint[0] <= 56 {
+				//Недельные массивы
+				err = state.Arrays.NedelSets.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] >= 65 && sint[0] <= 76 {
+				//Суточные массивы
+				err = state.Arrays.DaySets.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] >= 85 && sint[0] <= 96 {
+				//Годовые массивы
+				err = state.Arrays.MonthSets.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] >= 100 && sint[0] <= 131 {
+				//Планы координации
+				err = state.Arrays.SetDK.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			logger.Info.Printf("в строке %s нет такого обработчика", str)
 
-		if err != nil {
-			logger.Error.Printf("Error %s  %s\n", w, err.Error())
-			return err
 		}
 
+	}
+	return nil
+}
+func saveState(state *pudge.Cross, dgis string) error {
+	b, err := json.Marshal(&state)
+	if err != nil {
+		logger.Error.Printf("%s\n", err.Error())
+		return err
+	}
+
+	w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(%d,%d,%d,%d,point(%s),'%s',%d,'%s');",
+		state.Region, state.Area, state.SubArea, state.ID, dgis, state.Name, state.IDevice, string(b))
+	_, err = con.Exec(w)
+
+	if err != nil {
+		logger.Error.Printf("Error %s  %s\n", w, err.Error())
+		return err
 	}
 	return nil
 }

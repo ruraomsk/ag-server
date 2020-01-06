@@ -294,24 +294,24 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
 			}
-		case 0x13:
-			//Массив приявязки
-			var ar pudge.ArrayPriv
-			err := mes.Get0x13Device(&ar)
-			if err != nil {
-				logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
-			}
-			flag := false
-			for n, a := range c.Arrays {
-				if a.Number == ar.Number {
-					//Заменим массив
-					c.Arrays[n] = ar
-					flag = true
-				}
-			}
-			if !flag {
-				c.Arrays = append(c.Arrays, ar)
-			}
+		// case 0x13:
+		// 	//Массив приявязки
+		// 	var ar pudge.ArrayPriv
+		// 	err := mes.Get0x13Device(&ar)
+		// 	if err != nil {
+		// 		logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
+		// 	}
+		// 	flag := false
+		// 	for n, a := range c.Arrays {
+		// 		if a.Number == ar.Number {
+		// 			//Заменим массив
+		// 			c.Arrays[n] = ar
+		// 			flag = true
+		// 		}
+		// 	}
+		// 	if !flag {
+		// 		c.Arrays = append(c.Arrays, ar)
+		// 	}
 		case 0x1D:
 			//Состояние подключения
 			need = true

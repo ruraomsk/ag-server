@@ -33,7 +33,7 @@ type SetPk struct {
 
 //Stage описание одной фазы плана координации
 type Stage struct {
-	Nline  int `json:"l"`     //Номер строки
+	Nline  int `json:"line"`  //Номер строки
 	Start  int `json:"start"` //Время начала фазы
 	Number int `json:"num"`   //Номер фазы
 	Tf     int `json:"tf"`    //Тип фазы 0 -простая
@@ -190,6 +190,21 @@ func (st *SetPk) ToBuffer() []int {
 		pos++
 	}
 	return r
+}
+
+//FromBuffer создает план координации из буфера возвращает ошибку
+func (sd *SetDK) FromBuffer(buffer []int) error {
+	st := NewSetPk(1, 1)
+	err := st.FromBuffer(buffer)
+	if err != nil {
+		return nil
+	}
+	if st.DK == 1 {
+		sd.DK1[st.Pk-1] = st
+	} else {
+		sd.DK2[st.Pk-1] = st
+	}
+	return nil
 }
 
 //FromBuffer создает план координации из буфера возвращает ошибку

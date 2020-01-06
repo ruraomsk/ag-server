@@ -16,6 +16,7 @@ package pudge
 import (
 	"math/rand"
 	"reflect"
+	"rura/ag-server/binding"
 	"strconv"
 	"time"
 )
@@ -162,6 +163,8 @@ func randBool() bool {
 	}
 	return false
 }
+
+//MakeError случайным образом создает ошибку
 func (e *ErrorDevice) MakeError() bool {
 	switch rand.Intn(7) {
 	case 0:
@@ -371,30 +374,38 @@ func (l *LogLine) Compare(ll *LogLine) bool {
 	return reflect.DeepEqual(l, ll)
 }
 
-//ArrayPriv Массим привязки
-type ArrayPriv struct {
-	Number int
-	Array  []int
-}
-
-//Compare сравнивание истина если равны
-func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
-	return reflect.DeepEqual(a, aa)
+//Arrays описание и хранение всех настроечных массивов
+type Arrays struct {
+	SetupDK1  binding.SetupDK
+	SetupDK2  binding.SetupDK
+	SetDK     binding.SetDK
+	MonthSets binding.MonthSets
+	NedelSets binding.NedelSets
+	DaySets   binding.DaySets
 }
 
 //Cross описание перекрестка
 type Cross struct {
-	Region       int         `json:"region"`
-	ID           int         `json:"id"`
-	IDevice      int         `json:"idevice"`
-	Name         string      `json:"name"`
-	StatusDevice int         `json:"status"` // Статус устройства
-	WriteToDB    bool        `json:"-"`      //Если истина то еще не записана в БД
-	PK           int         `json:"pk"`     //Номер плана координации
-	CK           int         `json:"ck"`     //Номер суточной карты
-	NK           int         `json:"nk"`     //Номер недельной карты
-	Statistics   []Statistic //Накопленная статистика
-	Arrays       []ArrayPriv //Файлы привязки
+	Region       int                `json:"region"`  //Регион
+	Area         int                `json:"area"`    //Район
+	SubArea      int                `json:"subarea"` //подрайон
+	ID           int                `json:"id"`      //Номер перекрестка
+	IDevice      int                `json:"idevice"` // Назначенное на перекресток устройство
+	ConType      string             `json:"contype"` //Тип соединения устройства
+	NumDev       int                `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
+	Name         string             `json:"name"`
+	Fone         string             `json:"fone"`      //Телефон
+	TimeDivice   binding.TimeDevice `json:"timedev"`   //Настройки времени
+	StatDefine   binding.StatDefine `json:"defstatis"` // Описание настройки сбора статистики
+	PointSet     binding.PointSet   `json:"pointset"`  //Точки сбора статистики
+	UseInput     binding.UseInput   `json:"useinput"`  //Назначение входов для сбора статистики
+	StatusDevice int                `json:"status"`    // Статус устройства
+	WriteToDB    bool               `json:"-"`         //Если истина то еще не записана в БД
+	PK           int                `json:"pk"`        //Номер плана координации
+	CK           int                `json:"ck"`        //Номер суточной карты
+	NK           int                `json:"nk"`        //Номер недельной карты
+	Statistics   []Statistic        `json:"statis"`    //Накопленная статистика
+	Arrays       Arrays             `json:"arrays"`    //Файлы привязки
 
 }
 
@@ -419,7 +430,7 @@ type Controller struct {
 	GPS              GPS
 	Input            Input
 	Statistics       []Statistic
-	Arrays           []ArrayPriv
+	Arrays           Arrays `json:"arrays"` //Файлы привязки
 	LogLines         []LogLine
 }
 
@@ -518,6 +529,26 @@ func SetDefault(c *Controller) {
 	input.V1 = false
 	c.Input = input
 	c.Statistics = make([]Statistic, 0)
-	c.Arrays = make([]ArrayPriv, 0)
 	c.LogLines = make([]LogLine, 0)
+}
+
+//NewCross создание нового описания перекрестка
+func NewCross() *Cross {
+	r := new(Cross)
+	r.StatDefine = *binding.NewStatDefine()
+	r.PointSet = *binding.NewPointSet()
+	r.UseInput = *binding.NewUseInput()
+	r.Statistics = make([]Statistic, 0)
+	r.Arrays = *newArrays()
+	return r
+}
+func newArrays() *Arrays {
+	r := new(Arrays)
+	r.SetupDK1 = *binding.NewSetupDK()
+	r.SetupDK2 = *binding.NewSetupDK()
+	r.SetDK = *binding.NewSetDK()
+	r.MonthSets = *binding.NewYearSets()
+	r.NedelSets = *binding.NewNedelSets()
+	r.DaySets = *binding.NewDaySet()
+	return r
 }
