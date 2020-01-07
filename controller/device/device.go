@@ -194,25 +194,26 @@ func (d *Device) updateDevice() {
 	d.needAns = make([]int, 0)
 	mss := d.HeadServer.ParseMessage()
 	for _, ms := range mss {
-		// if ms.Type != 0 {
-		// 	//Прислали массив привязки
-		// 	num, array := ms.GetArray()
-		// 	flag := false
-		// 	for n, ar := range d.Controller.Arrays {
-		// 		if ar.Number == num {
-		// 			flag = true
-		// 			d.Controller.Arrays[n].Array = array
-		// 		}
-		// 	}
-		// 	if !flag {
-		// 		var arr pudge.ArrayPriv
-		// 		arr.Number = num
-		// 		arr.Array = array
-		// 		d.Controller.Arrays = append(d.Controller.Arrays, arr)
-		// 	}
-		// 	d.needAns = append(d.needAns, int(d.HeadServer.Number))
-		// 	continue
-		// }
+		if ms.Type != 0 {
+			//Прислали массив привязки
+			num, array := ms.GetArray()
+			flag := false
+			for n, ar := range d.Controller.Arrays {
+				if ar.Number == num && ar.NElem == array[1] {
+					flag = true
+					d.Controller.Arrays[n].Array = array
+				}
+			}
+			if !flag {
+				arr := new(pudge.ArrayPriv)
+				arr.Number = num
+				arr.NElem = array[1]
+				arr.Array = array
+				d.Controller.Arrays = append(d.Controller.Arrays, *arr)
+			}
+			d.needAns = append(d.needAns, int(d.HeadServer.Number))
+			continue
+		}
 		switch ms.GetCodeCommandServer() {
 		case 0x02:
 			//Управление УСДК
@@ -280,17 +281,17 @@ func (d *Device) makeAndSendAnsware() error {
 			i++
 			continue
 		}
-		// if d.needAns[i] == -2 {
-		// 	i++
-		// 	for _, ar := range d.Controller.Arrays {
-		// 		if ar.Number == d.needAns[i] {
-		// 			ms.SetArray(ar.Number, ar.Array)
-		// 			break
-		// 		}
-		// 	}
-		// 	i += 2
-		// 	mss = append(mss, ms)
-		// }
+		if d.needAns[i] == -2 {
+			i++
+			for _, ar := range d.Controller.Arrays {
+				if ar.Number == d.needAns[i] {
+					ms.SetArray(ar.Number, ar.Array)
+					break
+				}
+			}
+			i += 2
+			mss = append(mss, ms)
+		}
 
 	}
 	d.HeadDevice.UpackMessages(mss)

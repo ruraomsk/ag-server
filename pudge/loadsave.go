@@ -63,7 +63,7 @@ func loadCrosees() error {
 		c.StatusDevice = 17
 		c.WriteToDB = true
 		reg := Region{Region: region, ID: id}
-		crosses[reg.toKey()] = c
+		crosses[reg.ToKey()] = c
 	}
 	return nil
 }
@@ -135,7 +135,7 @@ func saveCrosees() error {
 		}
 		c.WriteToDB = false
 		reg := Region{Region: c.Region, ID: c.ID}
-		crosses[reg.toKey()] = c
+		crosses[reg.ToKey()] = c
 		count++
 	}
 	// logger.Info.Println("save cross ", count)

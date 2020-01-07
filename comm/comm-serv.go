@@ -21,6 +21,15 @@ var request chan int
 //Это сервер коммуникации
 //Слушает входящие сообщения и распределяет их на устройства
 
+//GetChanArray возвращает канал для присылки массивов для данного устройства
+func GetChanArray(id int) (chan CommandArray, bool) {
+	d, is := devs[id]
+	if !is {
+		return nil, false
+	}
+	return d.CommandArray, true
+}
+
 //StartListen основной вход сервер коммуникаций
 func StartListen(stop chan int, rq chan int, ans chan string) {
 	request = rq
@@ -189,11 +198,29 @@ func newConnect(soc net.Conn, stop chan int) {
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
-
+			is := false
+			for n, ap := range ctrl.Arrays {
+				if ap.Number == comArray.Number && ap.NElem == comArray.NElem {
+					ctrl.Arrays[n].Array = comArray.Elems
+					is = true
+					break
+				}
+			}
+			if !is {
+				ap := new(pudge.ArrayPriv)
+				ap.Number = comArray.Number
+				ap.NElem = comArray.NElem
+				ap.Array = comArray.Elems
+				ctrl.Arrays = append(ctrl.Arrays, *ap)
+			}
+			pudge.SetController(ctrl)
 			hss := makeArrayToDevice(dd, comArray)
+			logger.Info.Printf("ready send array %d", ctrl.ID)
 			for _, h := range hss {
 				hout <- h
+				time.Sleep(1 * time.Second)
 			}
+			logger.Info.Printf("send array sucsses %d", ctrl.ID)
 
 		}
 	}
@@ -294,24 +321,24 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
 			}
-		// case 0x13:
-		// 	//Массив приявязки
-		// 	var ar pudge.ArrayPriv
-		// 	err := mes.Get0x13Device(&ar)
-		// 	if err != nil {
-		// 		logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
-		// 	}
-		// 	flag := false
-		// 	for n, a := range c.Arrays {
-		// 		if a.Number == ar.Number {
-		// 			//Заменим массив
-		// 			c.Arrays[n] = ar
-		// 			flag = true
-		// 		}
-		// 	}
-		// 	if !flag {
-		// 		c.Arrays = append(c.Arrays, ar)
-		// 	}
+		case 0x13:
+			//Массив приявязки
+			var ar pudge.ArrayPriv
+			err := mes.Get0x13Device(&ar)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x13 id %d %s", hDev.ID, err.Error())
+			}
+			flag := false
+			for n, a := range c.Arrays {
+				if a.Number == ar.Number {
+					//Заменим массив
+					c.Arrays[n] = ar
+					flag = true
+				}
+			}
+			if !flag {
+				c.Arrays = append(c.Arrays, ar)
+			}
 		case 0x1D:
 			//Состояние подключения
 			need = true

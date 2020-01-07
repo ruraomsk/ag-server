@@ -8,6 +8,7 @@ import (
 	"rura/ag-server/controller"
 	"rura/ag-server/creator"
 	"rura/ag-server/extcon"
+	"rura/ag-server/inspect"
 	"rura/ag-server/logger"
 	"rura/ag-server/pudge"
 	"rura/ag-server/setup"
@@ -55,6 +56,9 @@ func main() {
 	time.Sleep(5 * time.Second)
 	c, _ := extcon.NewContext("controller")
 	go controller.Start(c, rq, ans)
+	i, _ := extcon.NewContext("inspector")
+	go inspect.Start(i, stop)
+
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 

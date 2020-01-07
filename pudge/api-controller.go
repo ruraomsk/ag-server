@@ -7,7 +7,7 @@ import (
 
 //IsConnected возвращает на связи ли устройство
 func (c *Controller) IsConnected() bool {
-	return c.StatusConnection != Connected
+	return c.StatusConnection == Connected
 }
 
 func isRegistred(id int) string {
@@ -102,7 +102,7 @@ func setStatusCross() {
 		}
 		if cr.WriteToDB {
 			reg := Region{cr.Region, cr.ID}
-			crosses[reg.toKey()] = cr
+			crosses[reg.ToKey()] = cr
 		}
 	}
 }

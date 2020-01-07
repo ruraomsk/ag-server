@@ -32,8 +32,20 @@ func GetCross(region, id int) (Cross, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	reg := Region{Region: region, ID: id}
-	c, is := crosses[reg.toKey()]
+	c, is := crosses[reg.ToKey()]
 	return *c, is
+}
+
+//GetCrosses возвращает все перекрестки
+func GetCrosses() []Region {
+	mutex.Lock()
+	defer mutex.Unlock()
+	r := make([]Region, 0)
+	for _, cr := range crosses {
+		reg := Region{Region: cr.Region, ID: cr.ID}
+		r = append(r, reg)
+	}
+	return r
 }
 func getNameCross(idevice int) string {
 	for _, c := range crosses {
@@ -56,7 +68,7 @@ func GetController(id int) (*Controller, bool) {
 func SetCrossNewDevice(reg Region, idevice int) error {
 	mutex.Lock()
 	defer mutex.Unlock()
-	c, is := crosses[reg.toKey()]
+	c, is := crosses[reg.ToKey()]
 	if !is {
 		return fmt.Errorf("нет такого перекрестка %v", reg)
 	}
@@ -72,7 +84,7 @@ func SetCross(c *Cross) {
 	defer mutex.Unlock()
 	reg := Region{Region: c.Region, ID: c.ID}
 	c.WriteToDB = true
-	crosses[reg.toKey()] = c
+	crosses[reg.ToKey()] = c
 	return
 }
 

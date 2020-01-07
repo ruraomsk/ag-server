@@ -15,8 +15,8 @@ type CommandARM struct {
 //CommandArray Привязка от Сервера АРМ
 type CommandArray struct {
 	ID     int   `json:"id"`
-	UserID int   `json:"user"`
 	Number int   `json:"number"`
+	NElem  int   `json:"nelem"`
 	Elems  []int `json:"elems"`
 }
 
