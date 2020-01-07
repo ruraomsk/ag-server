@@ -49,7 +49,7 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 			continue
 		}
 		count++
-		if count%100 == 0 {
+		if count%10 == 0 {
 			logger.Info.Println("Входящих соединений", count)
 		}
 		go newConnect(socket, stop)

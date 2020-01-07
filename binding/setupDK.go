@@ -42,13 +42,13 @@ func (sdk *SetupDK) FromBuffer(buffer []int) error {
 	sdk.DKNum = buffer[4]
 	sdk.TMaxF = buffer[5]
 	sdk.TMinF = buffer[6]
-	if buffer[7] != buffer[4]-1 {
-		return fmt.Errorf("неверный смещение массива ДК")
-	}
+	// if buffer[7] != buffer[4]-1 {
+	// 	return fmt.Errorf("неверный смещение массива ДК")
+	// }
 	sdk.TmaxTmin = buffer[8]
-	if buffer[9] != buffer[4] {
-		return fmt.Errorf("неверный номер ДК массива ")
-	}
+	// if buffer[9] != buffer[4] {
+	// 	return fmt.Errorf("неверный номер ДК массива ")
+	// }
 	sdk.DKType = buffer[10]
 	sdk.ExtNum = buffer[11]
 	sdk.Tprom = buffer[12]

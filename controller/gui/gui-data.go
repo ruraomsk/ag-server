@@ -61,7 +61,7 @@ func getList() ([]byte, error) {
 		// d.Mutex.Unlock()
 	}
 	sort.Slice(list.Devices, func(i, j int) bool { return list.Devices[i].ID < list.Devices[j].ID })
-	return json.MarshalIndent(&list, "", "   ")
+	return json.Marshal(&list)
 }
 func getLog(id int) ([]byte, error) {
 	var logs Logs

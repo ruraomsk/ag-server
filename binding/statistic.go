@@ -70,7 +70,7 @@ func NewPointSet() *PointSet {
 //NewUseInput создание новой
 func NewUseInput() *UseInput {
 	r := new(UseInput)
-	r.Used = make([]bool, 8)
+	r.Used = make([]bool, 0)
 	return r
 }
 
@@ -111,10 +111,10 @@ func (ps *PointSet) ToBuffer() []int {
 
 //ToBuffer сохранить в буфер
 func (us *UseInput) ToBuffer() []int {
-	buffer := make([]int, 13)
+	buffer := make([]int, len(us.Used)+5)
 	buffer[0] = 16
 	buffer[2] = 16
-	buffer[3] = 9
+	buffer[3] = len(us.Used) + 1
 	buffer[4] = us.Number
 	pos := 5
 	for _, l := range us.Used {
@@ -174,9 +174,9 @@ func (ps *PointSet) FromBuffer(buffer []int) error {
 
 //FromBuffer заполнить из буфера
 func (us *UseInput) FromBuffer(buffer []int) error {
-	if len(buffer) != 13 {
-		return fmt.Errorf("неверная длина массива")
-	}
+	// if len(buffer) != 13 {
+	// 	return fmt.Errorf("неверная длина массива")
+	// }
 	if buffer[0] != buffer[2] {
 		return fmt.Errorf("не совпал номер массива на сервере и номер массива")
 	}
@@ -184,6 +184,7 @@ func (us *UseInput) FromBuffer(buffer []int) error {
 		return fmt.Errorf("неверный номер массива")
 	}
 	pos := 5
+	us.Used = make([]bool, buffer[3]-1)
 	for n := range us.Used {
 		us.Used[n] = false
 		if buffer[pos] == 1 {

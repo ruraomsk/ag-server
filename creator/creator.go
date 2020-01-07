@@ -184,7 +184,7 @@ func loadCross(region int, nfile string) error {
 			state.SubArea, _ = strconv.Atoi(ss[5])
 			state.NumDev, _ = strconv.Atoi(ss[2])
 			state.ConType = ss[3][0:2]
-			state.ID, _ = strconv.Atoi(ss[3][2:])
+			state.IDevice, _ = strconv.Atoi(ss[3][2:])
 			continue
 		}
 		if strings.HasPrefix(str, "@C,") {
