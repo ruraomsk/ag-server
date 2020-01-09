@@ -81,7 +81,7 @@ func getLog(id int) ([]byte, error) {
 		message := hex.EncodeToString(ll.Message)
 		l.Message = ""
 		for i := 0; i < len(message); i++ {
-			l.Message += message[i : i+1]
+			l.Message += message[i:i]
 			if i%2 == 1 {
 				l.Message += " "
 			}

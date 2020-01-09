@@ -2,13 +2,13 @@ package device
 
 import (
 	"encoding/hex"
-	"math/rand"
-	"net"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"github.com/ruraomsk/ag-server/transport"
+	"math/rand"
+	"net"
 	"strconv"
 	"sync"
 	"time"
@@ -196,6 +196,7 @@ func (d *Device) updateDevice() {
 	for _, ms := range mss {
 		if ms.Type != 0 {
 			//Прислали массив привязки
+			// logger.Info.Printf("Прислали массив привязки %d", d.ID)
 			num, array := ms.GetArray()
 			flag := false
 			for n, ar := range d.Controller.Arrays {
@@ -218,7 +219,9 @@ func (d *Device) updateDevice() {
 		case 0x02:
 			//Управление УСДК
 			d.StatusDevice = ms.Get0x02Server()
-			d.needAns = append(d.needAns, int(d.HeadServer.Number))
+			// logger.Info.Printf("Управление УСДК %d", d.ID)
+
+			// d.needAns = append(d.needAns, int(d.HeadServer.Number))
 		case 0x03:
 			//Запрос состояния устройства
 			d.needAns = append(d.needAns, -1)

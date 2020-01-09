@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/ruraomsk/ag-server/pudge"
-	"github.com/ruraomsk/ag-server/transport"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/transport"
 )
 
 func Test_ParseServer(t *testing.T) {
@@ -50,6 +52,11 @@ func Test_ParseServer(t *testing.T) {
 		if !nmes.Compare(&mes) {
 			t.Error(nmes.ToString(), " not equal ", mes.ToString())
 		}
+	}
+	buffer1 := nhs.MakeBuffer()
+	if !reflect.DeepEqual(&buffer, &buffer1) {
+		t.Errorf("Не совпали буфера \n%v \n%v\n", buffer, buffer1)
+
 	}
 
 }

@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"fmt"
-	"rura/ag-server/logger"
+	"github.com/ruraomsk/ag-server/logger"
 
 	_ "github.com/lib/pq"
 )

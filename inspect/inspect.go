@@ -173,6 +173,6 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
-	logger.Info.Printf("послали массив на %d", dev.ID)
+	// logger.Info.Printf("послали массив на %d", dev.ID)
 	ch <- *cmd
 }

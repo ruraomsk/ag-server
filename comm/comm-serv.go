@@ -215,12 +215,12 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 			pudge.SetController(ctrl)
 			hss := makeArrayToDevice(dd, comArray)
-			logger.Info.Printf("ready send array %d", ctrl.ID)
+			// logger.Info.Printf("ready send array %d", ctrl.ID)
 			for _, h := range hss {
 				hout <- h
 				time.Sleep(1 * time.Second)
 			}
-			logger.Info.Printf("send array sucsses %d", ctrl.ID)
+			// logger.Info.Printf("send array sucsses %d", ctrl.ID)
 
 		}
 	}
