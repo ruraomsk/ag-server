@@ -38,10 +38,10 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 		time.Sleep(1 * time.Second)
 	}
 
-	//Запускаем слушателя для команд от АРМ
-	go listenArmCommand()
-	//Запускаем слушателя для массивов привязки от АРМ
-	go listenArmArray()
+	// //Запускаем слушателя для команд от АРМ
+	// go listenArmCommand()
+	// //Запускаем слушателя для массивов привязки от АРМ
+	// go listenArmArray()
 	count := 0
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))
