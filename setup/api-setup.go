@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"rura/ag-server/logger"
+	"github.com/ruraomsk/ag-server/logger"
 )
 
 //Set переменная для хранения текущих настроек

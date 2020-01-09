@@ -1,14 +1,14 @@
 package inspect
 
-import "rura/ag-server/extcon"
+import "github.com/ruraomsk/ag-server/extcon"
 
-import "rura/ag-server/pudge"
+import "github.com/ruraomsk/ag-server/pudge"
 
-import "rura/ag-server/logger"
+import "github.com/ruraomsk/ag-server/logger"
 
 import "time"
 
-import "rura/ag-server/comm"
+import "github.com/ruraomsk/ag-server/comm"
 
 var croses map[string]pudge.Region
 

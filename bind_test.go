@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/ruraomsk/ag-server/binding"
 	"reflect"
-	"rura/ag-server/binding"
 	"testing"
 )
 

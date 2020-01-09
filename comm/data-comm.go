@@ -1,7 +1,7 @@
 package comm
 
 import (
-	"rura/ag-server/extcon"
+	github.com/ruraomsk/ag-server/extcon"
 )
 
 //CommandARM Команды от Сервера АРМ

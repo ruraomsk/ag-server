@@ -2,12 +2,12 @@ package comm
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/setup"
+	"github.com/ruraomsk/ag-server/transport"
 	"net"
-	"rura/ag-server/extcon"
-	"rura/ag-server/logger"
-	"rura/ag-server/pudge"
-	"rura/ag-server/setup"
-	"rura/ag-server/transport"
 	"strconv"
 	"sync"
 	"time"

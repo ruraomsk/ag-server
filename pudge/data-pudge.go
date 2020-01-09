@@ -16,7 +16,7 @@ package pudge
 import (
 	"math/rand"
 	"reflect"
-	"rura/ag-server/binding"
+	"github.com/ruraomsk/ag-server/binding"
 	"strconv"
 	"time"
 )

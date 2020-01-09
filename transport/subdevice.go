@@ -2,7 +2,7 @@ package transport
 
 import (
 	"fmt"
-	"rura/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/pudge"
 	"time"
 )
 

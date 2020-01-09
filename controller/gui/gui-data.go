@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"rura/ag-server/controller/device"
+	"github.com/ruraomsk/ag-server/controller/device"
 	"sort"
 	"strings"
 	"time"

@@ -6,9 +6,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/setup"
 	"io/ioutil"
-	"rura/ag-server/pudge"
-	"rura/ag-server/setup"
 	"strconv"
 	"strings"
 
@@ -298,6 +298,9 @@ func loadCross(region int, nfile string) error {
 
 		}
 
+	}
+	if !isempty {
+		saveState(state, dgis)
 	}
 	return nil
 }

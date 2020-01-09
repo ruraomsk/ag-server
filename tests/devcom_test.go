@@ -1,8 +1,8 @@
 package main
 
 import (
-	"rura/ag-server/pudge"
-	"rura/ag-server/transport"
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/transport"
 	"testing"
 	"time"
 )

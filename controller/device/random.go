@@ -2,7 +2,7 @@ package device
 
 import (
 	"math/rand"
-	"rura/ag-server/setup"
+	"github.com/ruraomsk/ag-server/setup"
 )
 
 //В этом месте производим разные измения состояния устройства

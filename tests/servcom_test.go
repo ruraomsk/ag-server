@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-import "rura/ag-server/transport"
+import "github.com/ruraomsk/ag-server/transport"
 
 import "strings"
 

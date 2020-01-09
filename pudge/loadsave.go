@@ -2,8 +2,8 @@ package pudge
 
 import (
 	"encoding/json"
-	"rura/ag-server/logger"
-	"rura/ag-server/setup"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/setup"
 	"strconv"
 	"time"
 )

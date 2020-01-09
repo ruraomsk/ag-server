@@ -1,10 +1,10 @@
 package gui
 
 import (
+	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/setup"
 	"net/http"
-	"rura/ag-server/extcon"
-	"rura/ag-server/logger"
-	"rura/ag-server/setup"
 	"strconv"
 )
 
