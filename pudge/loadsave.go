@@ -84,6 +84,7 @@ func loadControllers() error {
 			return err
 		}
 		c.WriteToDB = false
+		c.StatusConnection = NotConnected
 		controllers[id] = c
 	}
 	return nil

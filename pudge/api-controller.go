@@ -1,7 +1,6 @@
 package pudge
 
 import (
-	"math/rand"
 	"reflect"
 )
 
@@ -36,7 +35,7 @@ func setStatusCross() {
 		// 11 12 13 14 15 16 17 18 19 20
 		// 21 22 23 24 25 26 27 28 29 30
 		// 31 32 33
-		// statusDevice := 0
+		statusDevice := 0
 
 		// for statusDevice == 0 {
 		// if cc.DK1.ODK || cc.DK2.ODK {
@@ -69,17 +68,17 @@ func setStatusCross() {
 		// 	statusDevice = 19
 		// 	continue
 		// }
-		cCount++
-		if cCount%3 == 0 {
-			statusDevice := rand.Intn(34)
-			if statusDevice == 0 || statusDevice == 34 {
-				statusDevice = 1
-			}
-			if statusDevice != cr.StatusDevice {
-				cr.StatusDevice = statusDevice
-				cr.WriteToDB = true
-			}
-		}
+		// cCount++
+		// if cCount%3 == 0 {
+		// 	statusDevice := rand.Intn(34)
+		// 	if statusDevice == 0 || statusDevice == 34 {
+		// 		statusDevice = 1
+		// 	}
+		// 	if statusDevice != cr.StatusDevice {
+		// 		cr.StatusDevice = statusDevice
+		// 		cr.WriteToDB = true
+		// 	}
+		// }
 		// }
 		if cr.PK != cc.PK {
 			cr.PK = cc.PK

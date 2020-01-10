@@ -14,9 +14,9 @@ package pudge
 */
 
 import (
+	"github.com/ruraomsk/ag-server/binding"
 	"math/rand"
 	"reflect"
-	"github.com/ruraomsk/ag-server/binding"
 	"strconv"
 	"time"
 )
@@ -51,8 +51,13 @@ const (
 
 //DK диагностика состояния по ДК
 type DK struct {
-	RDK   int  `json:"rdk"`   //Режим ДК
-	FDK   int  `json:"fdk"`   //Фаза ДК
+	RDK int `json:"rdk"` //Режим ДК
+	FDK int `json:"fdk"` //Фаза ДК
+	// от 1 до 8 номера рабочих фаз
+	// 9 промежуточный такт
+	// 10 желтое мигание
+	// 11 отключен светофор
+	// 12 кругом краснный
 	DDK   int  `json:"ddk"`   //Устройство ДК
 	EDK   int  `json:"edk"`   //Неисправность ДК
 	PDK   bool `json:"pdk"`   //Признак переходного периода ДК
@@ -312,21 +317,27 @@ type Controller struct {
 	LastOperation    time.Time        `json:"ltime"` // Время последней операции обмена с устройством
 	WriteToDB        bool             `json:"-"`     //Если истина то еще не записана в БД
 	TexRezim         int              `json:"rezim"` //Технологический режим
-	Base             bool             `json:"base"`  //Если истина то работает по базовой привязке
-	PK               int              `json:"pk"`    //Номер плана координации
-	CK               int              `json:"ck"`    //Номер суточной карты
-	NK               int              `json:"nk"`    //Номер недельной карты
-	StatusCommandDU  StatusCommandDU
-	DK1              DK
-	DK2              DK
-	TMax             int `json:"tmax"` //Максимальное время ожидания ответа от сервера в секундах
-	Model            Model
-	Error            ErrorDevice
-	GPS              GPS
-	Input            Input
-	Statistics       []Statistic
-	Arrays           []ArrayPriv `json:"arrays"` //Файлы привязки
-	LogLines         []LogLine
+	// 1 2 Ручное управление
+	// 3 Зеленая улица
+	// 4 Диспетчерское управление
+	// 5 6 Локальное управление
+	// 8 9 Координированное управление
+
+	Base            bool `json:"base"` //Если истина то работает по базовой привязке
+	PK              int  `json:"pk"`   //Номер плана координации
+	CK              int  `json:"ck"`   //Номер суточной карты
+	NK              int  `json:"nk"`   //Номер недельной карты
+	StatusCommandDU StatusCommandDU
+	DK1             DK
+	DK2             DK
+	TMax            int `json:"tmax"` //Максимальное время ожидания ответа от сервера в секундах
+	Model           Model
+	Error           ErrorDevice
+	GPS             GPS
+	Input           Input
+	Statistics      []Statistic
+	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
+	LogLines        []LogLine
 }
 
 //Compare сравнивание истина если равны
