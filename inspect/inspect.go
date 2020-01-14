@@ -20,7 +20,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	listCross := pudge.GetCrosses()
 	croses = make(map[string]pudge.Region)
 	for _, r := range listCross {
-		_, is := pudge.GetCross(r.Region, r.ID)
+		_, is := pudge.GetCross(r.Region, r.Area, r.ID)
 		if !is {
 			logger.Error.Printf("Нет такого перекестка %d %d ", r.Region, r.ID)
 		}
@@ -52,7 +52,7 @@ func oneCross(reg pudge.Region) {
 main:
 	for {
 		time.Sleep(time.Duration(1 * time.Second))
-		cr, is := pudge.GetCross(reg.Region, reg.ID)
+		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
 			logger.Info.Printf("удалили перекресток %v", reg)
@@ -99,19 +99,19 @@ main:
 			}
 		}
 		//Все переслали все совпало можно и поспать
-		logger.Info.Printf("все совпало %v", reg)
+		// logger.Info.Printf("все совпало %v", reg)
 		time.Sleep(time.Duration(1 * time.Minute))
 	}
 }
 func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 	r := make([]pudge.ArrayPriv, 0)
-	buffer := cr.StatDefine.ToBuffer()
+	buffer := cr.Arrays.StatDefine.ToBuffer()
 	r = appBuffer(r, buffer)
-	buffer = cr.PointSet.ToBuffer()
+	buffer = cr.Arrays.PointSet.ToBuffer()
 	r = appBuffer(r, buffer)
-	buffer = cr.UseInput.ToBuffer()
+	buffer = cr.Arrays.UseInput.ToBuffer()
 	r = appBuffer(r, buffer)
-	buffer = cr.TimeDivice.ToBuffer()
+	buffer = cr.Arrays.TimeDivice.ToBuffer()
 	r = appBuffer(r, buffer)
 	buffer = cr.Arrays.SetupDK1.ToBuffer()
 	r = appBuffer(r, buffer)

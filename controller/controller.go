@@ -41,10 +41,11 @@ func getController(id int, rq chan int, ans chan string) *pudge.Controller {
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
 		rq <- id
-		name := <-ans
-		pudge.SetDefault(ctrl)
-		ctrl.ID = id
-		ctrl.Name = name
+		key := <-ans
+		if len(key) == 0 {
+			return nil
+		}
+		pudge.SetDefault(ctrl, key)
 		return ctrl
 	}
 	ctrl = c
@@ -85,6 +86,10 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
 		dev.Controller = getController(dev.ID, rq, ans)
+		if dev.Controller == nil {
+			logger.Error.Printf("нет такого ID на перекрестках %d", dev.ID)
+			continue
+		}
 		device.Devs[dev.ID] = dev
 		go dev.StartDevice()
 		count++

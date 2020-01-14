@@ -10,6 +10,7 @@
         <reg id="2" name="Чукотка" file="Chukotka.mrk">
             <area id="1" name="Перший"/>
             <area id="2" name="Вторый"/>
+            <area id="3" name="Треший"/>
         </reg>
         <reg id="3" name="Сахалин" file="Сахалин.mrk">
             <area id="1" name="Без районов" />

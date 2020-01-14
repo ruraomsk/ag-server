@@ -183,6 +183,7 @@ func loadCross(region int, nfile string) error {
 			state.Area, _ = strconv.Atoi(ss[4])
 			state.SubArea, _ = strconv.Atoi(ss[5])
 			state.NumDev, _ = strconv.Atoi(ss[2])
+			state.Double, _ = strconv.Atoi(ss[7])
 			state.ConType = ss[3][0:2]
 			state.IDevice, _ = strconv.Atoi(ss[3][2:])
 			continue
@@ -211,7 +212,7 @@ func loadCross(region int, nfile string) error {
 				sint = append(sint, ii)
 			}
 			if sint[0] == 14 {
-				err = state.StatDefine.FromBuffer(sint)
+				err = state.Arrays.StatDefine.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err
@@ -219,7 +220,7 @@ func loadCross(region int, nfile string) error {
 				continue
 			}
 			if sint[0] == 15 {
-				err = state.PointSet.FromBuffer(sint)
+				err = state.Arrays.PointSet.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err
@@ -227,7 +228,7 @@ func loadCross(region int, nfile string) error {
 				continue
 			}
 			if sint[0] == 16 {
-				err = state.UseInput.FromBuffer(sint)
+				err = state.Arrays.UseInput.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err
@@ -235,7 +236,7 @@ func loadCross(region int, nfile string) error {
 				continue
 			}
 			if sint[0] == 21 {
-				err = state.TimeDivice.FromBuffer(sint)
+				err = state.Arrays.TimeDivice.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err

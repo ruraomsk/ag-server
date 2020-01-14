@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/setup"
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -28,10 +28,10 @@ var dbinfo string
 var err error
 
 //GetCross возвращает копию перекрестка
-func GetCross(region, id int) (Cross, bool) {
+func GetCross(region, area, id int) (Cross, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	reg := Region{Region: region, ID: id}
+	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
 	return *c, is
 }
@@ -42,7 +42,7 @@ func GetCrosses() []Region {
 	defer mutex.Unlock()
 	r := make([]Region, 0)
 	for _, cr := range crosses {
-		reg := Region{Region: cr.Region, ID: cr.ID}
+		reg := Region{Region: cr.Region, Area: cr.Area, ID: cr.ID}
 		r = append(r, reg)
 	}
 	return r
@@ -74,7 +74,7 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 	}
 	c.IDevice = idevice
 	c.WriteToDB = true
-	// crosses[reg.toKey()] = c
+	crosses[reg.ToKey()] = c
 	return nil
 }
 
@@ -82,7 +82,7 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 func SetCross(c *Cross) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	reg := Region{Region: c.Region, ID: c.ID}
+	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 	c.WriteToDB = true
 	crosses[reg.ToKey()] = c
 	return

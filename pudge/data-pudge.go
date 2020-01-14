@@ -15,6 +15,7 @@ package pudge
 
 import (
 	"github.com/ruraomsk/ag-server/binding"
+	"github.com/ruraomsk/ag-server/logger"
 	"math/rand"
 	"reflect"
 	"strconv"
@@ -24,12 +25,13 @@ import (
 //Region указатель на номер перекрестка
 type Region struct {
 	Region int //Код региона
+	Area   int //Код района
 	ID     int //Номер перекрестка
 }
 
 //ToKey создает строковый ключ
 func (r *Region) ToKey() string {
-	return strconv.Itoa(r.Region) + ";" + strconv.Itoa(r.ID)
+	return strconv.Itoa(r.Region) + ";" + strconv.Itoa(r.Area) + ";" + strconv.Itoa(r.ID)
 }
 
 //Controllers возврат выбранных контроллеров
@@ -263,37 +265,26 @@ func (l *LogLine) Compare(ll *LogLine) bool {
 }
 
 //Arrays описание и хранение всех настроечных массивов
-type Arrays struct {
-	SetupDK1  binding.SetupDK
-	SetupDK2  binding.SetupDK
-	SetDK     binding.SetDK
-	MonthSets binding.MonthSets
-	NedelSets binding.NedelSets
-	DaySets   binding.DaySets
-}
 
 //Cross описание перекрестка
 type Cross struct {
-	Region       int                `json:"region"`  //Регион
-	Area         int                `json:"area"`    //Район
-	SubArea      int                `json:"subarea"` //подрайон
-	ID           int                `json:"id"`      //Номер перекрестка
-	IDevice      int                `json:"idevice"` // Назначенное на перекресток устройство
-	ConType      string             `json:"contype"` //Тип соединения устройства
-	NumDev       int                `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
-	Name         string             `json:"name"`
-	Fone         string             `json:"fone"`      //Телефон
-	TimeDivice   binding.TimeDevice `json:"timedev"`   //Настройки времени
-	StatDefine   binding.StatDefine `json:"defstatis"` // Описание настройки сбора статистики
-	PointSet     binding.PointSet   `json:"pointset"`  //Точки сбора статистики
-	UseInput     binding.UseInput   `json:"useinput"`  //Назначение входов для сбора статистики
-	StatusDevice int                `json:"status"`    // Статус устройства
-	WriteToDB    bool               `json:"-"`         //Если истина то еще не записана в БД
-	PK           int                `json:"pk"`        //Номер плана координации
-	CK           int                `json:"ck"`        //Номер суточной карты
-	NK           int                `json:"nk"`        //Номер недельной карты
-	Statistics   []Statistic        `json:"statis"`    //Накопленная статистика
-	Arrays       Arrays             `json:"arrays"`    //Файлы привязки
+	Region       int            `json:"region"`  //Регион
+	Area         int            `json:"area"`    //Район
+	SubArea      int            `json:"subarea"` //подрайон
+	ID           int            `json:"id"`      //Номер перекрестка
+	IDevice      int            `json:"idevice"` // Назначенное на перекресток устройство
+	ConType      string         `json:"contype"` //Тип соединения устройства
+	NumDev       int            `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
+	Double       int            `json:"double"`  //назначение на второй ДК
+	Name         string         `json:"name"`
+	Fone         string         `json:"fone"`   //Телефон
+	StatusDevice int            `json:"status"` // Статус устройства
+	WriteToDB    bool           `json:"-"`      //Если истина то еще не записана в БД
+	PK           int            `json:"pk"`     //Номер плана координации
+	CK           int            `json:"ck"`     //Номер суточной карты
+	NK           int            `json:"nk"`     //Номер недельной карты
+	Statistics   []Statistic    `json:"statis"` //Накопленная статистика
+	Arrays       binding.Arrays `json:"arrays"` //Файлы привязки
 
 }
 
@@ -311,12 +302,13 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 
 //Controller внутренне представление контроллера
 type Controller struct {
-	ID               int              `json:"id"`    // Уникальный номер контроллера
-	Name             string           `json:"name"`  //Имя перекрестка если привязан
-	StatusConnection StatusConnection `json:"scon"`  // Статус соединения
-	LastOperation    time.Time        `json:"ltime"` // Время последней операции обмена с устройством
-	WriteToDB        bool             `json:"-"`     //Если истина то еще не записана в БД
-	TexRezim         int              `json:"rezim"` //Технологический режим
+	ID               int              `json:"id"`     // Уникальный номер контроллера
+	Name             string           `json:"name"`   //Имя перекрестка если привязан
+	StatusConnection StatusConnection `json:"scon"`   // Статус соединения
+	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
+	Double           int              `json:"double"` //назначение на второй ДК
+	WriteToDB        bool             `json:"-"`      //Если истина то еще не записана в БД
+	TexRezim         int              `json:"rezim"`  //Технологический режим
 	// 1 2 Ручное управление
 	// 3 Зеленая улица
 	// 4 Диспетчерское управление
@@ -346,7 +338,17 @@ func (c *Controller) Compare(cc *Controller) bool {
 }
 
 //SetDefault Заполнить по умолчанию
-func SetDefault(c *Controller) {
+func SetDefault(c *Controller, key string) {
+	mutex.Lock()
+	cr, is := crosses[key]
+	mutex.Unlock()
+	if !is {
+		logger.Error.Fatalf("нет такого %s", key)
+	}
+	c.Double = cr.Double
+	c.Name = cr.Name
+	c.ID = cr.IDevice
+
 	c.LastOperation = time.Unix(0, 0)
 	c.TexRezim = 1
 	c.Base = true
@@ -371,7 +373,9 @@ func SetDefault(c *Controller) {
 	dk.TDK = 10
 	dk.TTCDK = 20
 	c.DK1 = dk
-	c.DK2 = dk
+	if c.Double != 0 {
+		c.DK2 = dk
+	}
 	c.TMax = 0
 	var m Model
 	m.VPCPD = 101
@@ -403,20 +407,8 @@ func SetDefault(c *Controller) {
 //NewCross создание нового описания перекрестка
 func NewCross() *Cross {
 	r := new(Cross)
-	r.StatDefine = *binding.NewStatDefine()
-	r.PointSet = *binding.NewPointSet()
-	r.UseInput = *binding.NewUseInput()
+	r.Double = 0
 	r.Statistics = make([]Statistic, 0)
-	r.Arrays = *newArrays()
-	return r
-}
-func newArrays() *Arrays {
-	r := new(Arrays)
-	r.SetupDK1 = *binding.NewSetupDK()
-	r.SetupDK2 = *binding.NewSetupDK()
-	r.SetDK = *binding.NewSetDK()
-	r.MonthSets = *binding.NewYearSets()
-	r.NedelSets = *binding.NewNedelSets()
-	r.DaySets = *binding.NewDaySet()
+	r.Arrays = *binding.NewArrays()
 	return r
 }

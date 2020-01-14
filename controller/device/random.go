@@ -1,8 +1,8 @@
 package device
 
 import (
-	"math/rand"
 	"github.com/ruraomsk/ag-server/setup"
+	"math/rand"
 )
 
 //В этом месте производим разные измения состояния устройства
@@ -26,5 +26,28 @@ func (d *Device) randomChange() bool {
 		return d.Controller.GPS.MakeError()
 
 	}
+	return false
+}
+
+//setDKs производим контроль перехода на автоматическое управление
+func (d *Device) setDKs() {
+	if d.Controller.Base {
+		//работаем в базовом режиме нужно проверить полноту настроек массивов
+		d.makeAreas()
+		if !d.isFullAreas() {
+			return
+		}
+		d.Controller.Base = false
+	}
+
+}
+func (d *Device) makeAreas() {
+	// for _,ar:=range d.Controller.Arrays{
+	// 	if
+	// }
+	return
+}
+func (d *Device) isFullAreas() bool {
+
 	return false
 }

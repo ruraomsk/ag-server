@@ -14,7 +14,8 @@ func isRegistred(id int) string {
 	defer mutex.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == id {
-			return c.Name
+			reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
+			return reg.ToKey()
 		}
 	}
 	return ""
@@ -35,7 +36,7 @@ func setStatusCross() {
 		// 11 12 13 14 15 16 17 18 19 20
 		// 21 22 23 24 25 26 27 28 29 30
 		// 31 32 33
-		statusDevice := 0
+		statusDevice := cc.calcStatus()
 
 		// for statusDevice == 0 {
 		// if cc.DK1.ODK || cc.DK2.ODK {
@@ -74,10 +75,10 @@ func setStatusCross() {
 		// 	if statusDevice == 0 || statusDevice == 34 {
 		// 		statusDevice = 1
 		// 	}
-		// 	if statusDevice != cr.StatusDevice {
-		// 		cr.StatusDevice = statusDevice
-		// 		cr.WriteToDB = true
-		// 	}
+		if statusDevice != cr.StatusDevice {
+			cr.StatusDevice = statusDevice
+			cr.WriteToDB = true
+		}
 		// }
 		// }
 		if cr.PK != cc.PK {
@@ -100,7 +101,7 @@ func setStatusCross() {
 			cr.WriteToDB = true
 		}
 		if cr.WriteToDB {
-			reg := Region{cr.Region, cr.ID}
+			reg := Region{cr.Region, cr.Area, cr.ID}
 			crosses[reg.ToKey()] = cr
 		}
 	}

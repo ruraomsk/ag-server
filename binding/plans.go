@@ -197,7 +197,7 @@ func (sd *SetDK) FromBuffer(buffer []int) error {
 	st := NewSetPk(1, 1)
 	err := st.FromBuffer(buffer)
 	if err != nil {
-		return nil
+		return err
 	}
 	if st.DK == 1 {
 		sd.DK1[st.Pk-1] = st

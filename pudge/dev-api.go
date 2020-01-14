@@ -223,15 +223,29 @@ func (cc *Controller) calcStatus() int {
 	return 33
 }
 func (cc *Controller) coderr() int {
+	// if cc.DK2.
+	if cc.DK1.EDK != 0 {
+		return cc.DK1.EDK
+	}
+	if cc.DK1.PDK {
+		return 1
+	}
 	return 0
 }
 
 func (cc *Controller) lamps() int {
-	return 0
+	if cc.DK1.LDK == 0 && cc.DK2.LDK == 0 {
+		return 0
+	}
+	return 1
 }
 func (cc *Controller) doors() int {
-	return 0
+	if !cc.DK1.ODK && !cc.DK2.ODK {
+		return 0
+	}
+	return 1
 }
 func (cc *Controller) codeDevice() int {
+
 	return 0
 }

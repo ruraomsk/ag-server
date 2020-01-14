@@ -368,14 +368,12 @@ func getController(id int) (*pudge.Controller, error) {
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
 		request <- id
-		name := <-answare
-		if len(name) == 0 {
+		strKey := <-answare
+		if len(strKey) == 0 {
 			return nil, fmt.Errorf("id %d не зарегистрирован", id)
 		}
 
-		pudge.SetDefault(ctrl)
-		ctrl.ID = id
-		ctrl.Name = name
+		pudge.SetDefault(ctrl, strKey)
 		return ctrl, nil
 	}
 	ctrl = c

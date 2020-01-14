@@ -36,19 +36,20 @@ func saveDBase() error {
 func loadCrosees() error {
 	mutex.Lock()
 	defer mutex.Unlock()
-	rows, err := conCross.Query("Select region,id,idevice,describ,state from " + setup.Set.Pudge.TableCross + ";")
+	rows, err := conCross.Query("Select region,area,id,idevice,describ,state from " + setup.Set.Pudge.TableCross + ";")
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 	var region int
+	var area int
 	var id int
 	var idevice int
 	var describ string
 	var state []byte
 	for rows.Next() {
 		c := new(Cross)
-		err = rows.Scan(&region, &id, &idevice, &describ, &state)
+		err = rows.Scan(&region, &area, &id, &idevice, &describ, &state)
 		if err != nil {
 			return err
 		}
@@ -57,12 +58,13 @@ func loadCrosees() error {
 			return err
 		}
 		c.Region = region
+		c.Area = area
 		c.ID = id
 		c.IDevice = idevice
 		c.Name = describ
 		c.StatusDevice = 17
 		c.WriteToDB = true
-		reg := Region{Region: region, ID: id}
+		reg := Region{Region: region, Area: area, ID: id}
 		crosses[reg.ToKey()] = c
 	}
 	return nil
@@ -129,13 +131,13 @@ func saveCrosees() error {
 		js, _ := json.Marshal(c)
 		_, err = conCross.Exec("update  " + setup.Set.Pudge.TableCross +
 			" set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "' where region=" +
-			strconv.Itoa(c.Region) + " and id=" + strconv.Itoa(c.ID) + ";")
+			strconv.Itoa(c.Region) + " and id=" + strconv.Itoa(c.ID) + " and area=" + strconv.Itoa(c.Area) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to cross %s", err.Error())
 			break
 		}
 		c.WriteToDB = false
-		reg := Region{Region: c.Region, ID: c.ID}
+		reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 		crosses[reg.ToKey()] = c
 		count++
 	}

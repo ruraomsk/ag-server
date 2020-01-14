@@ -2,16 +2,18 @@ package device
 
 import (
 	"encoding/hex"
-	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/pudge"
-	"github.com/ruraomsk/ag-server/setup"
-	"github.com/ruraomsk/ag-server/transport"
 	"math/rand"
 	"net"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/ruraomsk/ag-server/binding"
+	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/setup"
+	"github.com/ruraomsk/ag-server/transport"
 )
 
 //Devs список всех устройств
@@ -42,6 +44,14 @@ type Device struct {
 	context      *extcon.ExtContext
 	LogInts      []LogInt
 	Random       bool
+	StatDefine   binding.StatDefine `json:"defstatis"` // Описание настройки сбора статистики
+	PointSet     binding.PointSet   `json:"pointset"`  //Точки сбора статистики
+	UseInput     binding.UseInput   `json:"useinput"`  //Назначение входов для сбора статистики
+	PK           int                `json:"pk"`        //Номер плана координации
+	CK           int                `json:"ck"`        //Номер суточной карты
+	NK           int                `json:"nk"`        //Номер недельной карты
+	Statistics   []pudge.Statistic  `json:"statis"`    //Накопленная статистика
+	Arrays       binding.Arrays
 	hout         chan transport.HeaderDevice
 	hin          chan transport.HeaderServer
 }
@@ -203,6 +213,7 @@ func (d *Device) updateDevice() {
 				if ar.Number == num && ar.NElem == array[1] {
 					flag = true
 					d.Controller.Arrays[n].Array = array
+					break
 				}
 			}
 			if !flag {
