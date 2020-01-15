@@ -214,12 +214,12 @@ func newConnect(soc net.Conn, stop chan int) {
 				ctrl.Arrays = append(ctrl.Arrays, *ap)
 			}
 			pudge.SetController(ctrl)
-			hss := makeArrayToDevice(dd, comArray)
+			hs := makeArrayToDevice(dd, comArray)
 			// logger.Info.Printf("ready send array %d", ctrl.ID)
-			for _, h := range hss {
-				hout <- h
-				time.Sleep(1 * time.Second)
-			}
+			// for _, h := range hss {
+			hout <- hs
+			// 	time.Sleep(1 * time.Second)
+			// }
 			// logger.Info.Printf("send array sucsses %d", ctrl.ID)
 
 		}
@@ -418,30 +418,30 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 	hs.UpackMessages(mss)
 	return hs, nil
 }
-func makeArrayToDevice(dd *device, comArray CommandArray) []transport.HeaderServer {
-	hss := make([]transport.HeaderServer, 0)
+func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
+	// hss := make([]transport.HeaderServer, 0)
 	var ms transport.SubMessage
 	//Сообщение об отключении управления
 	hs := transport.CreateHeaderServer(0, 0)
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
-	hss = append(hss, hs)
+	// hs.UpackMessages(mss)
+	// hss = append(hss, hs)
 	//Собственно массив привязки
 	dd.addNumber()
-	hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
-	mss = make([]transport.SubMessage, 0)
+	// hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
+	// mss = make([]transport.SubMessage, 0)
 	ms.SetArray(comArray.Number, comArray.Elems)
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)
-	hss = append(hss, hs)
+	// hss = append(hss, hs)
 	//Сообщение о включении управления
-	hs = transport.CreateHeaderServer(0, 0)
-	mss = make([]transport.SubMessage, 0)
+	// hs = transport.CreateHeaderServer(0, 0)
+	// mss = make([]transport.SubMessage, 0)
 	ms.Set0x02Server(true)
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)
-	hss = append(hss, hs)
-	return hss
+	// hss = append(hss, hs)
+	return hs
 }

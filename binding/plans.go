@@ -28,6 +28,7 @@ type SetPk struct {
 	Sdvig      int     `json:"sdvig"`      //Сдвиг начала цикла
 	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
 	LastNumber int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
+	TwoT       bool    `json:"twot"`       //Признак 2Т
 	Stages     []Stage `json:"sts"`        //Фазы переключения
 }
 
@@ -44,7 +45,10 @@ type Stage struct {
 	// 5 - Зам 1 ТВП
 	// 6 - Зам 2 ТВП
 	// 7 - Зам
-	Len int `json:"len"` //Длительность секунд
+	// 8 - МДК
+	// 9 - ВДК
+	Len  int  `json:"len"`  //Длительность секунд
+	Plus bool `json:"plus"` //Признак переноса времени на следующую фазу
 }
 
 //NewSetDK создание нового набора планов координации
@@ -108,9 +112,17 @@ func (st *SetPk) ToBuffer() []int {
 	r[6] = 256 % st.Tc
 	r[7] = (256 * 256) % st.Tc
 	l := 0
+	mgr := false
+	plus := false
 	for _, s := range st.Stages {
 		if s.Number == 0 && s.Tf == 0 && s.Len == 0 {
 			break
+		}
+		if s.Plus {
+			plus = true
+		}
+		if s.Tf == 1 {
+			mgr = true
 		}
 		l++
 	}
@@ -122,18 +134,17 @@ func (st *SetPk) ToBuffer() []int {
 	if st.TypePU == 1 {
 		r[9] += 128 //Есть ЛПУ
 	}
-	mgr := false
-	for _, s := range st.Stages {
-		if s.Tf == 1 {
-			mgr = true
-			break
-		}
-	}
 	if mgr {
 		r[9] += 64 //Среди фаз есть МГР
 	}
 	if st.RazLen {
 		r[9] += 32
+	}
+	if st.TwoT {
+		r[9] += 2
+	}
+	if plus {
+		r[9] += 8
 	}
 	pos := 10
 	if st.Sdvig != 0 {
@@ -184,6 +195,12 @@ func (st *SetPk) ToBuffer() []int {
 		}
 		if s.Tf == 7 {
 			r[pos] += 16 //  7 - Зам
+		}
+		if s.Tf == 8 {
+			r[pos] += 45 //МДК
+		}
+		if s.Tf == 9 {
+			// r[pos] += 45 // 9 - ВДК
 		}
 		pos++
 		r[pos] = s.Len
@@ -242,6 +259,15 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	} else {
 		st.RazLen = false
 	}
+	if buffer[9]&2 != 0 {
+		st.TwoT = true
+	} else {
+		st.TwoT = false
+	}
+	plus := false
+	if buffer[9]&8 != 0 {
+		plus = true
+	}
 	pos := 10
 	ss := make([]Stage, 12)
 	for n := range ss {
@@ -261,6 +287,9 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		}
 		if m == 224 {
 			ss[n].Tf = 4 // 4 - 1,2ТВП
+			if plus {
+				ss[n].Plus = true
+			}
 		}
 		if m == 128 {
 			ss[n].Tf = 5 // 5 - Зам 1 ТВП
@@ -272,18 +301,36 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 			ss[n].Tf = 7 //  7 - Зам
 		}
 		if ss[n].Number == 0 {
-			if !mgr {
-				return fmt.Errorf("есть фаза ноль но нет признака мгр ")
+			if buffer[9] == 0 {
+				ss[n].Tf = 8
+			} else {
+				if buffer[9] == 32 {
+					ss[n].Tf = 9
+				} else {
+					if !mgr {
+						return fmt.Errorf("есть фаза ноль но нет признака мгр ")
+					}
+					ss[n].Tf = 1
+				}
 			}
-			ss[n].Tf = 1
 		}
 		pos++
 		ss[n].Len = buffer[pos]
 		pos++
 	}
 	if sdvig {
-		//Если есть сдвиг то первая фаза задает сдвиг
-		st.Sdvig = ss[0].Len
+		st.Sdvig = -1
+		//Если есть сдвиг то первая фаза не простая задает сдвиг
+		for _, s := range ss {
+			if s.Tf != 0 {
+				st.Sdvig = s.Len
+				break
+			}
+		}
+		if st.Sdvig < 0 {
+			//Все фазы простые берем первую
+			st.Sdvig = ss[0].Len
+		}
 	}
 	//Перекатываем в Stage
 	start := st.Sdvig
