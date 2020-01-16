@@ -10,6 +10,8 @@ type Arrays struct {
 	MonthSets  MonthSets
 	NedelSets  NedelSets
 	DaySets    DaySets
+	SetCtrl    SetCtrl
+	SetTimeUse SetTimeUse
 	TimeDivice TimeDevice `json:"timedev"`   //Настройки времени
 	StatDefine StatDefine `json:"defstatis"` // Описание настройки сбора статистики
 	PointSet   PointSet   `json:"pointset"`  //Точки сбора статистики
@@ -28,8 +30,12 @@ func NewArrays() *Arrays {
 	r.MonthSets = *NewYearSets()
 	r.NedelSets = *NewNedelSets()
 	r.DaySets = *NewDaySet()
+	r.SetCtrl = *NewSetCtrl()
+	r.SetTimeUse = *NewSetTimeUse()
 	return r
 }
+
+//IsCorrect проверяет правильность массивов
 func (ar *Arrays) IsCorrect() bool {
 	if ar.SetupDK1.IsEmpty() {
 		return false
@@ -80,7 +86,15 @@ func (ar *Arrays) SetArray(nom int, array []int) error {
 			buffer[0] = buffer[4] - 9
 		}
 		return ar.SetDK.FromBuffer(buffer)
-
+	case 23:
+		buffer[0] = 148
+		return ar.SetTimeUse.FromBuffer(buffer)
+	case 20:
+		buffer[0] = 157
+		return ar.SetTimeUse.FromBuffer(buffer)
+	case 35:
+		buffer[0] = 149
+		return ar.SetCtrl.FromBuffer(buffer)
 	}
 	return fmt.Errorf("нет такого массива %d", nom)
 }

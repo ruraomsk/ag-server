@@ -6,6 +6,57 @@ import (
 	"testing"
 )
 
+func Test_SetTimeUseOld(t *testing.T) {
+	buffer148 := []int{148, 0, 23, 28, 0, 9, 1, 40, 9, 1, 40, 9, 2, 40, 9, 2, 40, 9, 4, 30, 9, 4, 30, 130, 10, 0, 2, 12, 0, 1, 0, 0}
+	buffer157 := []int{157, 0, 20, 9, 0, 15, 12, 8, 0, 0, 0, 0, 0}
+	td := binding.NewSetTimeUse()
+	err := td.FromBuffer(buffer148)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	err = td.FromBuffer(buffer157)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out148 := td.ToBuffer(148)
+	out157 := td.ToBuffer(157)
+	if !reflect.DeepEqual(&buffer148, &out148) {
+		t.Errorf("No equal\n%v\n%v", buffer148, out148)
+		return
+	}
+	if !reflect.DeepEqual(&buffer157, &out157) {
+		t.Errorf("No equal\n%v\n%v", buffer157, out157)
+		return
+	}
+}
+func Test_SetTimeUseNew(t *testing.T) {
+	buffer148 := []int{148, 0, 23, 58, 0, 138, 2, 6, 0, 0, 0, 9, 1, 40, 9, 1, 40, 9, 1, 40, 9, 1, 40, 9, 2, 40, 9, 2, 40, 9, 2, 40, 9, 4, 35, 9, 4, 30, 9, 8, 40, 9, 8, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
+	buffer157 := []int{157, 0, 20, 9, 0, 36, 24, 13, 8, 0, 0, 0, 0}
+	td := binding.NewSetTimeUse()
+	err := td.FromBuffer(buffer148)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	err = td.FromBuffer(buffer157)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	out148 := td.ToBuffer(148)
+	out157 := td.ToBuffer(157)
+	if !reflect.DeepEqual(&buffer148, &out148) {
+		t.Errorf("No equal\n%v\n%v", buffer148, out148)
+		return
+	}
+	if !reflect.DeepEqual(&buffer157, &out157) {
+		t.Errorf("No equal\n%v\n%v", buffer157, out157)
+		return
+	}
+}
+
 func Test_Ctrl(t *testing.T) {
 	buffer := []int{149, 0, 24, 35, 1, 0, 0, 5, 30, 0, 30, 7, 0, 40, 15, 9, 0, 15, 5, 16, 0, 40, 5, 19, 0, 0, 15, 21, 0, 0, 0, 24, 0, 0, 0, 0, 0, 255, 255}
 

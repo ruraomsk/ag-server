@@ -291,6 +291,34 @@ func loadCross(region int, nfile string) error {
 				err = state.Arrays.SetDK.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
+					// return err
+
+				}
+				continue
+			}
+			if sint[0] == 148 {
+				// Массив настройки времен внешних входов
+				err = state.Arrays.SetTimeUse.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 157 {
+				// Массив настройки времен внешних входов
+				err = state.Arrays.SetTimeUse.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
+					return err
+				}
+				continue
+			}
+			if sint[0] == 149 {
+				//Массив контроля входов
+				err = state.Arrays.SetCtrl.FromBuffer(sint)
+				if err != nil {
+					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err
 				}
 				continue

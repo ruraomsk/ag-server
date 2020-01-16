@@ -1,6 +1,9 @@
 package binding
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 //SetCtrl массив контроля входов
 type SetCtrl struct {
@@ -20,6 +23,11 @@ type CtrlStage struct {
 	End    StageTime `json:"end"`    //Время конца контроля
 	TVPLen int       `json:"lenTVP"` //Длительность секунд контроля ТВП
 	MGRLen int       `json:"lenMGR"` //Длительность секунд контроля МГР
+}
+
+//Compare сравнивание истина если равны
+func (s *CtrlStage) Compare(ss *CtrlStage) bool {
+	return reflect.DeepEqual(s, ss)
 }
 
 //NewSetCtrl создает новый набор контроля входов
