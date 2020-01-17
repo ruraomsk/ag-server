@@ -85,6 +85,10 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 		// }
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
+		if dev.ID == 4966932 {
+			//Real!!
+			continue
+		}
 		dev.Controller = getController(dev.ID, rq, ans)
 		if dev.Controller == nil {
 			logger.Error.Printf("нет такого ID на перекрестках %d", dev.ID)

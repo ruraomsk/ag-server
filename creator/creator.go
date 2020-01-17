@@ -301,7 +301,7 @@ func loadCross(region int, nfile string) error {
 				err = state.Arrays.SetTimeUse.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
-					return err
+					// return err
 				}
 				continue
 			}

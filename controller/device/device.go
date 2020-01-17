@@ -44,9 +44,6 @@ type Device struct {
 	context      *extcon.ExtContext
 	LogInts      []LogInt
 	Random       bool
-	StatDefine   binding.StatDefine `json:"defstatis"` // Описание настройки сбора статистики
-	PointSet     binding.PointSet   `json:"pointset"`  //Точки сбора статистики
-	UseInput     binding.UseInput   `json:"useinput"`  //Назначение входов для сбора статистики
 	PK           int                `json:"pk"`        //Номер плана координации
 	CK           int                `json:"ck"`        //Номер суточной карты
 	NK           int                `json:"nk"`        //Номер недельной карты
@@ -163,16 +160,16 @@ func (d *Device) StartDevice() {
 			}
 		case <-timer.C:
 			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
-				//Возможно сделать несиправности
-				if d.randomChange() {
-					// logger.Info.Println("Изменено устройство ", d.ID)
-				}
 				err = d.sendKeepAlive()
 				if err != nil {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())
 					return
 				}
+			} else {
+				//Один шаг работы устройства
+				d.oneStep()
 			}
+
 		case <-d.context.Done():
 			logger.Info.Printf("id %d завершает работу...", d.ID)
 			return

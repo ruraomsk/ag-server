@@ -36,12 +36,53 @@ func NewArrays() *Arrays {
 }
 
 //IsCorrect проверяет правильность массивов
-func (ar *Arrays) IsCorrect() bool {
+func (ar *Arrays) IsCorrect() error {
 	if ar.SetupDK1.IsEmpty() {
-		return false
+		return fmt.Errorf("нет настроек ДК1")
 	}
-	// if SetDK.
-	return true
+	for _, ms := range ar.MonthSets.MonthSets {
+		// if ms.IsEmpty() {
+		// 	continue
+		// }
+		for _, d := range ms.Days {
+			if ar.NedelSets.NedelSets[d-1].IsEmpty() {
+				return fmt.Errorf("в месяце %d нет такой недели %d", ms.Number, d)
+			}
+			for _, on := range ar.NedelSets.NedelSets[d-1].Days {
+				find := false
+				for _, od := range ar.DaySets.DaySets {
+					if od.Number == on {
+						find = true
+						break
+					}
+				}
+				if !find {
+					return fmt.Errorf("в месяце %d и неделе %d нет дня %d", ms.Number, d, on)
+				}
+
+			}
+		}
+	}
+	find := false
+	find2 := false
+	for i := 1; i < 13; i++ {
+		if !ar.SetDK.IsEmpty(1, i) {
+			find = true
+		}
+		if ar.SetupDK2.ExtNum != 0 {
+			if !ar.SetDK.IsEmpty(2, i) {
+				find2 = true
+			}
+
+		}
+	}
+	if !find {
+		return fmt.Errorf("нет планов координации для ДК1")
+	}
+	if ar.SetupDK2.ExtNum != 0 && !find2 {
+		return fmt.Errorf("нет планов координации для ДК2")
+	}
+	return nil
 }
 
 //SetArray принимает массивы привязки на устройтсве
