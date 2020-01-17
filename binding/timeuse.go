@@ -75,8 +75,14 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 		if buffer[0] != 148 {
 			return fmt.Errorf("несовпал номер массива на сервере и номер массива")
 		}
+		if len(buffer) < 32 {
+			return fmt.Errorf("слишком маленький массив")
+		}
 		if len(buffer) == 32 {
 			s.Uses = s.Uses[0:8]
+		}
+		if len(buffer) == 38 {
+			s.Uses = s.Uses[0:10]
 		}
 		pos := 5
 		for i := 0; i < len(s.Uses); i++ {
@@ -130,6 +136,9 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 					j = i + 2
 				} else {
 					j = i - 6
+					if j < 0 {
+						j = 0
+					}
 				}
 			}
 			s.Uses[j].Type = tp
@@ -180,7 +189,7 @@ func (s *SetTimeUse) ToBuffer(num int) []int {
 	r[2] = 23
 	r[3] = len(s.Uses)*3 + 4
 	pos := 5
-	if len(s.Uses) > 8 {
+	if len(s.Uses) > 12 {
 		for i := 0; i < len(s.Uses); i++ {
 			r = makeElem(r, pos, s.Uses[i])
 			pos += 3

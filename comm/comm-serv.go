@@ -420,21 +420,21 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 }
 func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
 	// hss := make([]transport.HeaderServer, 0)
+	dd.addNumber()
 	var ms transport.SubMessage
 	//Сообщение об отключении управления
-	hs := transport.CreateHeaderServer(0, 0)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
 	// hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	//Собственно массив привязки
-	dd.addNumber()
 	// hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
 	// mss = make([]transport.SubMessage, 0)
 	ms.SetArray(comArray.Number, comArray.Elems)
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	// hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	//Сообщение о включении управления
 	// hs = transport.CreateHeaderServer(0, 0)

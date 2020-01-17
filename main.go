@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"runtime"
+	"strings"
+	"time"
+
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/controller"
 	"github.com/ruraomsk/ag-server/creator"
@@ -10,10 +15,6 @@ import (
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
-	"os"
-	"runtime"
-	"strings"
-	"time"
 )
 
 var err error
