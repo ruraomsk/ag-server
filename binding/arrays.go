@@ -86,11 +86,13 @@ func (ar *Arrays) IsCorrect() error {
 }
 
 //SetArray принимает массивы привязки на устройтсве
-func (ar *Arrays) SetArray(nom int, array []int) error {
-	buffer := make([]int, array[0]+4)
+func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
+	buffer := make([]int, len(array)+5)
 	buffer[2] = nom
+	buffer[3] = len(array) + 1
+	buffer[4] = nelem
 	for i := 0; i < len(array); i++ {
-		buffer[3] = array[i]
+		buffer[5+i] = array[i]
 	}
 	switch nom {
 	case 14:
@@ -105,10 +107,11 @@ func (ar *Arrays) SetArray(nom int, array []int) error {
 	case 21:
 		buffer[0] = 21
 		return ar.TimeDivice.FromBuffer(buffer)
-	case 40:
-		buffer[0] = 40
-		return ar.SetupDK1.FromBuffer(buffer)
-	case 41:
+	case 7:
+		if nelem == 1 {
+			buffer[0] = 40
+			return ar.SetupDK1.FromBuffer(buffer)
+		}
 		buffer[0] = 41
 		return ar.SetupDK2.FromBuffer(buffer)
 	case 8:

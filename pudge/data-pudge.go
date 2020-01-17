@@ -352,13 +352,13 @@ func SetDefault(c *Controller, key string) {
 	c.LastOperation = time.Unix(0, 0)
 	c.TexRezim = 1
 	c.Base = true
-	c.PK = 1
-	c.CK = 2
-	c.NK = 3
+	c.PK = 0
+	c.CK = 0
+	c.NK = 0
 	var cc StatusCommandDU
-	cc.IsPK = true
-	cc.IsPKS = true
-	cc.IsNK = true
+	cc.IsPK = false
+	cc.IsPKS = false
+	cc.IsNK = false
 	c.StatusCommandDU = cc
 	var dk DK
 	dk.RDK = 1
