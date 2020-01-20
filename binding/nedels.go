@@ -2,6 +2,7 @@ package binding
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/logger"
 	"reflect"
 )
 
@@ -21,6 +22,11 @@ func (ns *NedelSets) FromBuffer(buffer []int) error {
 	if err != nil {
 		return err
 	}
+	if n.Number < 1 {
+		logger.Error.Printf("number <1 %v", buffer)
+		return fmt.Errorf("number <1 %v", buffer)
+	}
+
 	ns.NedelSets[n.Number-1] = n
 	return nil
 }

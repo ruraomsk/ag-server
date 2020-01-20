@@ -29,7 +29,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	for _, r := range croses {
 		go oneCross(r)
 	}
-	timer := extcon.SetTimerClock(time.Duration(1 * time.Minute))
+	timer := extcon.SetTimerClock(time.Duration(5 * time.Second))
 	select {
 	case <-timer.C:
 		listCross := pudge.GetCrosses()
@@ -100,55 +100,80 @@ main:
 		}
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)
-		time.Sleep(time.Duration(1 * time.Minute))
+		pudge.SetController(dev)
+		time.Sleep(time.Duration(10 * time.Second))
 	}
 }
 func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 	r := make([]pudge.ArrayPriv, 0)
-	buffer := cr.Arrays.StatDefine.ToBuffer()
+	buffer := cr.Arrays.StatDefine.ToBuffer() //
 	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.PointSet.ToBuffer()
+	buffer = cr.Arrays.PointSet.ToBuffer() //
 	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.UseInput.ToBuffer()
+	buffer = cr.Arrays.UseInput.ToBuffer() //
 	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.TimeDivice.ToBuffer()
-	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.SetupDK1.ToBuffer()
-	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.SetupDK2.ToBuffer()
-	r = appBuffer(r, buffer)
-	for _, ns := range cr.Arrays.NedelSets.NedelSets {
+	if !cr.Arrays.TimeDivice.IsEmpty() {
+		buffer = cr.Arrays.TimeDivice.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.SetupDK1.IsEmpty() {
+		buffer = cr.Arrays.SetupDK1.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.SetupDK2.IsEmpty() {
+		buffer = cr.Arrays.SetupDK2.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.SetCtrl.IsEmpty() {
+		buffer = cr.Arrays.SetCtrl.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.SetTimeUse.IsEmpty() {
+		buffer = cr.Arrays.SetTimeUse.ToBuffer(157) //
+		r = appBuffer(r, buffer)
+		buffer = cr.Arrays.SetTimeUse.ToBuffer(148) //
+		r = appBuffer(r, buffer)
+	}
+	for i := 1; i < 13; i++ {
+		if !cr.Arrays.SetDK.IsEmpty(1, i) {
+			buffer = cr.Arrays.SetDK.DK1[i-1].ToBuffer() //
+			r = appBuffer(r, buffer)
+		}
+		if !cr.Arrays.SetDK.IsEmpty(2, i) {
+			buffer = cr.Arrays.SetDK.DK2[i-1].ToBuffer() //
+			r = appBuffer(r, buffer)
+		}
+	}
+	for _, ns := range cr.Arrays.NedelSets.NedelSets { //
 		if !ns.IsEmpty() {
 			buffer = ns.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
-	for _, ss := range cr.Arrays.DaySets.DaySets {
+	for _, ss := range cr.Arrays.DaySets.DaySets { //
 		if !ss.IsEmpty() {
 			buffer = ss.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
-	for _, ys := range cr.Arrays.MonthSets.MonthSets {
+	for _, ys := range cr.Arrays.MonthSets.MonthSets { //
 		if !ys.IsEmpty() {
 			buffer = ys.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
+
 	return r
 }
 func appBuffer(res []pudge.ArrayPriv, buffer []int) []pudge.ArrayPriv {
-	if notZerro(buffer) {
-		res = append(res, makePriv(buffer))
-	}
-	return res
+	return append(res, makePriv(buffer))
 }
 func makePriv(buffer []int) pudge.ArrayPriv {
 	r := new(pudge.ArrayPriv)
 	r.Array = make([]int, 0)
 	r.Number = buffer[2]
-	r.NElem = buffer[4]
-	for i := 5; i < len(buffer); i++ {
+	r.NElem = buffer[4] & 0x7f
+	for i := 3; i < len(buffer); i++ {
 		r.Array = append(r.Array, buffer[i])
 	}
 	return *r
@@ -173,6 +198,10 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
+	// if cmd.Number == 133 {
+	// logger.Debug.Printf("send %v", cmd)
+	// }
 	// logger.Info.Printf("послали массив на %d", dev.ID)
 	ch <- *cmd
+	// pudge.SetController(dev)
 }

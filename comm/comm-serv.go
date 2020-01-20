@@ -432,7 +432,7 @@ func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer
 	//Собственно массив привязки
 	// hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
 	// mss = make([]transport.SubMessage, 0)
-	ms.SetArray(comArray.Number, comArray.Elems)
+	ms.SetArray(comArray.Number, comArray.NElem, comArray.Elems)
 	mss = append(mss, ms)
 	// hs.UpackMessages(mss)
 	// hss = append(hss, hs)

@@ -2,6 +2,8 @@ package binding
 
 import "fmt"
 
+import "github.com/ruraomsk/ag-server/logger"
+
 //Arrays масиссивы привязок
 type Arrays struct {
 	SetupDK1   SetupDK
@@ -38,7 +40,8 @@ func NewArrays() *Arrays {
 //IsCorrect проверяет правильность массивов
 func (ar *Arrays) IsCorrect() error {
 	if ar.SetupDK1.IsEmpty() {
-		return fmt.Errorf("нет настроек ДК1")
+		logger.Error.Printf("нет настроек ДК1 ")
+		// return fmt.Errorf("нет настроек ДК1")
 	}
 	for _, ms := range ar.MonthSets.MonthSets {
 		// if ms.IsEmpty() {
@@ -77,22 +80,22 @@ func (ar *Arrays) IsCorrect() error {
 		}
 	}
 	if !find {
-		return fmt.Errorf("нет планов координации для ДК1")
+		return fmt.Errorf("нет планов координации для ДК1 ")
 	}
 	if ar.SetupDK2.ExtNum != 0 && !find2 {
-		return fmt.Errorf("нет планов координации для ДК2")
+		return fmt.Errorf("нет планов координации для ДК2 ")
 	}
 	return nil
 }
 
 //SetArray принимает массивы привязки на устройтсве
 func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
-	buffer := make([]int, len(array)+5)
+	buffer := make([]int, len(array)+3)
 	buffer[2] = nom
-	buffer[3] = len(array) + 1
-	buffer[4] = nelem
+	// buffer[3] = len(array)
+	// buffer[4] = nelem
 	for i := 0; i < len(array); i++ {
-		buffer[5+i] = array[i]
+		buffer[3+i] = array[i]
 	}
 	switch nom {
 	case 14:
@@ -124,10 +127,10 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 		buffer[0] = 84 + buffer[4]
 		return ar.MonthSets.FromBuffer(buffer)
 	case 133:
-		if buffer[4] <= 12 {
-			buffer[0] = 99 + buffer[4]
+		if nelem <= 12 {
+			buffer[0] = 99 + nelem
 		} else {
-			buffer[0] = buffer[4] - 9
+			buffer[0] = nelem - 9
 		}
 		return ar.SetDK.FromBuffer(buffer)
 	case 23:
@@ -136,7 +139,7 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 	case 20:
 		buffer[0] = 157
 		return ar.SetTimeUse.FromBuffer(buffer)
-	case 35:
+	case 24:
 		buffer[0] = 149
 		return ar.SetCtrl.FromBuffer(buffer)
 	}

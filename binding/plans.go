@@ -2,6 +2,7 @@ package binding
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/logger"
 	"reflect"
 )
 
@@ -74,6 +75,7 @@ func NewSetPk(dk int, pk int) SetPk {
 
 //IsEmpty если план координации для данного ДК нулеыой то истина
 func (sd *SetDK) IsEmpty(dk, pk int) bool {
+
 	if dk == 1 {
 		return isEmpty(sd.DK1, pk)
 	}
@@ -84,11 +86,11 @@ func (sd *SetDK) IsEmpty(dk, pk int) bool {
 }
 func isEmpty(set []SetPk, p int) bool {
 	pk := set[p-1]
-	if pk.Tc != 0 || pk.Sdvig != 0 || pk.TypePU != 0 {
-		return false
-	}
+	// if pk.Tc != 0 || pk.Sdvig != 0 || pk.TypePU != 0 {
+	// 	return false
+	// }
 	for _, st := range pk.Stages {
-		if st.Nline != 0 || st.Start != 0 || st.Number != 0 || st.Tf != 0 || st.Len != 0 {
+		if st.Start != 0 || st.Number != 0 || st.Tf != 0 || st.Len != 0 {
 			return false
 		}
 	}
@@ -107,6 +109,10 @@ func (st *SetPk) ToBuffer() []int {
 	r[4] = st.Pk
 	if st.DK == 2 {
 		r[4] += 128
+	}
+	if st.Tc == 0 {
+		logger.Error.Printf("Время цикла =0 %v", st)
+		st.Tc = 30
 	}
 	r[5] = st.Tc
 	r[6] = 256 % st.Tc
@@ -233,7 +239,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		return fmt.Errorf("несовпал номер массива на сервере и номер массива")
 	}
 	if buffer[0] < 100 || buffer[0] > 131 {
-		return fmt.Errorf("неверный номер массива")
+		return fmt.Errorf("неверный номер массива %d", buffer[0])
 	}
 	st.Pk = buffer[4] & 0x7f
 	if buffer[4]&0x80 != 0 {
@@ -308,7 +314,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 					ss[n].Tf = 9
 				} else {
 					if !mgr {
-						return fmt.Errorf("есть фаза ноль но нет признака мгр ")
+						logger.Error.Printf("есть фаза ноль но нет признака мгр ")
 					}
 					ss[n].Tf = 1
 				}

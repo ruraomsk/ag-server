@@ -191,17 +191,17 @@ func (s *SubMessage) Get0x35Server() (int, bool) {
 }
 
 //GetArray возвращает номер и массив от сервера
-func (s *SubMessage) GetArray() (int, []int) {
+func (s *SubMessage) GetArray() (int, int, []int) {
 	res := []int{-1}
 	if s.Type == 0 {
 		//Это не команда это массив привязки
-		return -1, res
+		return -1, 0, res
 	}
-	res = make([]int, len(s.Message))
-	for i := 0; i < len(s.Message); i++ {
-		res[i] = int(s.Message[i])
+	res = make([]int, len(s.Message)-1)
+	for i := 1; i < len(s.Message); i++ {
+		res[i-1] = int(s.Message[i])
 	}
-	return int(s.Type), res
+	return int(s.Type), int(s.Message[0]), res
 }
 
 //Set0x01Server записывает субсообщение для команды с номером в имени
@@ -369,10 +369,11 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 }
 
 //SetArray возвращает номер и массив от сервера
-func (s *SubMessage) SetArray(num int, array []int) {
+func (s *SubMessage) SetArray(num int, nelem int, array []int) {
 	s.Type = uint8(num)
-	s.Message = make([]uint8, len(array))
-	for i := 0; i < len(s.Message); i++ {
-		s.Message[i] = uint8(array[i])
+	s.Message = make([]uint8, len(array)+1)
+	s.Message[0] = uint8(nelem)
+	for i := 1; i < len(s.Message); i++ {
+		s.Message[i] = uint8(array[i-1])
 	}
 }

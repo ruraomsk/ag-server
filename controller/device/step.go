@@ -8,7 +8,14 @@ func (dev *Device) oneStep() {
 	//Выполняем работу устройства
 	if dev.Controller.Base {
 		//Устройство в базовой настройке проверим можно ли переходить на массивы?
+		if len(dev.Controller.Arrays) == 0 {
+			return
+		}
 		for _, ar := range dev.Controller.Arrays {
+			// if ar.NElem < 1 {
+			// 	logger.Error.Printf("id %d elem <1 %v", dev.ID, ar)
+			// 	return
+			// }
 			err := dev.Arrays.SetArray(ar.Number, ar.NElem, ar.Array)
 			if err != nil {
 				logger.Error.Printf("массив %v %s", ar, err.Error())
@@ -17,11 +24,13 @@ func (dev *Device) oneStep() {
 		}
 		err := dev.Arrays.IsCorrect()
 		if err != nil {
-			logger.Error.Println(err.Error())
+			logger.Error.Printf("id %d %s", dev.ID, err.Error())
 			return
 		}
 		dev.Controller.Base = false
+		logger.Debug.Printf("id %d перешел в режим", dev.ID)
 	}
+
 	month := time.Now().Month()
 	day := time.Now().Day()
 	w := time.Now().Weekday()

@@ -44,10 +44,10 @@ type Device struct {
 	context      *extcon.ExtContext
 	LogInts      []LogInt
 	Random       bool
-	PK           int                `json:"pk"`        //Номер плана координации
-	CK           int                `json:"ck"`        //Номер суточной карты
-	NK           int                `json:"nk"`        //Номер недельной карты
-	Statistics   []pudge.Statistic  `json:"statis"`    //Накопленная статистика
+	PK           int               `json:"pk"`     //Номер плана координации
+	CK           int               `json:"ck"`     //Номер суточной карты
+	NK           int               `json:"nk"`     //Номер недельной карты
+	Statistics   []pudge.Statistic `json:"statis"` //Накопленная статистика
 	Arrays       binding.Arrays
 	hout         chan transport.HeaderDevice
 	hin          chan transport.HeaderServer
@@ -117,6 +117,7 @@ func (d *Device) StartDevice() {
 	d.Status = false
 	d.StatusDevice = true
 	d.LogInts = make([]LogInt, 0)
+	d.Arrays = *binding.NewArrays()
 	soc, err := net.Dial("tcp", setup.Set.Controller.IP+":"+strconv.Itoa(setup.Set.Controller.Port))
 	if err != nil {
 		logger.Error.Printf("Ошибка соединения с портом %s", err.Error())
@@ -204,10 +205,13 @@ func (d *Device) updateDevice() {
 		if ms.Type != 0 {
 			//Прислали массив привязки
 			// logger.Info.Printf("Прислали массив привязки %d", d.ID)
-			num, array := ms.GetArray()
+			num, elem, array := ms.GetArray()
+			// if num == 133 {
+			// 	logger.Debug.Printf("%d %d %v", num, elem, array)
+			// }
 			flag := false
 			for n, ar := range d.Controller.Arrays {
-				if ar.Number == num && ar.NElem == array[1] {
+				if ar.Number == num && ar.NElem == (elem&0x7f) {
 					flag = true
 					d.Controller.Arrays[n].Array = array
 					break
@@ -216,7 +220,7 @@ func (d *Device) updateDevice() {
 			if !flag {
 				arr := new(pudge.ArrayPriv)
 				arr.Number = num
-				arr.NElem = array[1]
+				arr.NElem = elem & 0x7f
 				arr.Array = array
 				d.Controller.Arrays = append(d.Controller.Arrays, *arr)
 			}
@@ -296,7 +300,7 @@ func (d *Device) makeAndSendAnsware() error {
 			i++
 			for _, ar := range d.Controller.Arrays {
 				if ar.Number == d.needAns[i] {
-					ms.SetArray(ar.Number, ar.Array)
+					ms.SetArray(ar.Number, ar.NElem, ar.Array)
 					break
 				}
 			}
