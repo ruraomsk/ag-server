@@ -8,7 +8,7 @@ import (
 
 //NedelSets все недельные планы
 type NedelSets struct {
-	NedelSets []*OneNedel `json:"nsets"`
+	NedelSets []OneNedel `json:"nsets"`
 }
 
 //Compare сравнивание истина если равны
@@ -27,16 +27,16 @@ func (ns *NedelSets) FromBuffer(buffer []int) error {
 		return fmt.Errorf("number <1 %v", buffer)
 	}
 
-	ns.NedelSets[n.Number-1] = n
+	ns.NedelSets[n.Number-1] = *n
 	return nil
 }
 
 //NewNedelSets создает новый набор недельных карт
 func NewNedelSets() *NedelSets {
 	r := new(NedelSets)
-	r.NedelSets = make([]*OneNedel, 12)
+	r.NedelSets = make([]OneNedel, 12)
 	for index := 0; index < len(r.NedelSets); index++ {
-		r.NedelSets[index] = newOneNedel(index + 1)
+		r.NedelSets[index] = *newOneNedel(index + 1)
 	}
 	return r
 }

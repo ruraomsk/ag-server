@@ -67,24 +67,24 @@ func (ar *Arrays) IsCorrect() error {
 		}
 	}
 	find := false
-	find2 := false
+	// find2 := false
 	for i := 1; i < 13; i++ {
 		if !ar.SetDK.IsEmpty(1, i) {
 			find = true
 		}
-		if ar.SetupDK2.ExtNum != 0 {
-			if !ar.SetDK.IsEmpty(2, i) {
-				find2 = true
-			}
+		// if ar.SetupDK2.ExtNum != 0 {
+		// 	if !ar.SetDK.IsEmpty(2, i) {
+		// 		find2 = true
+		// 	}
 
-		}
+		// }
 	}
 	if !find {
 		return fmt.Errorf("нет планов координации для ДК1 ")
 	}
-	if ar.SetupDK2.ExtNum != 0 && !find2 {
-		return fmt.Errorf("нет планов координации для ДК2 ")
-	}
+	// if ar.SetupDK2.ExtNum != 0 && !find2 {
+	// 	return fmt.Errorf("нет планов координации для ДК2 ")
+	// }
 	return nil
 }
 

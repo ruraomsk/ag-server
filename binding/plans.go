@@ -225,7 +225,7 @@ func (sd *SetDK) FromBuffer(buffer []int) error {
 	if st.DK == 1 {
 		sd.DK1[st.Pk-1] = st
 	} else {
-		sd.DK2[st.Pk-1] = st
+		sd.DK2[(st.Pk&0x7f)-1] = st
 	}
 	return nil
 }
@@ -241,7 +241,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	if buffer[0] < 100 || buffer[0] > 131 {
 		return fmt.Errorf("неверный номер массива %d", buffer[0])
 	}
-	st.Pk = buffer[4] & 0x7f
+	st.Pk = buffer[4]
 	if buffer[4]&0x80 != 0 {
 		st.DK = 2
 	} else {

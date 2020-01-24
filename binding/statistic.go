@@ -7,7 +7,6 @@ import (
 
 //StatDefine настройка сбора статистики
 type StatDefine struct {
-	Number int     `json:"num"` //Номер элемента массива 0 всегда
 	Levels []Level `json:"lvs"` //Два уровня сбора статистики
 }
 
@@ -19,9 +18,18 @@ type Level struct {
 	Count  int `json:"count"`  //Число направлений
 }
 
+//IsEmpty вернет истину если массив пустой
+func (sd *StatDefine) IsEmpty() bool {
+	for _, s := range sd.Levels {
+		if s.TypeSt != 0 || s.Period != 0 || s.Ninput != 0 || s.Count != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 //PointSet Точки сбора статистики
 type PointSet struct {
-	Number int     `json:"num"` //Номер элемента массива 0 всегда
 	Points []Point `json:"pts"` //Описание точек сбора статистики
 
 }
@@ -32,15 +40,34 @@ type Point struct {
 	TypeSt   int `json:"typst"` //Признак статистики
 }
 
+//IsEmpty вернет истину если массив пустой
+func (ps *PointSet) IsEmpty() bool {
+	for _, s := range ps.Points {
+		if s.TypeSt != 0 || s.NumPoint != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 //UseInput назначение входов для сбора статистики
 type UseInput struct {
-	Number int    `json:"num"`  //Номер элемента массива 0 всегда
-	Used   []bool `json:"used"` //Признаки использования входа для сбора статистики
+	Used []bool `json:"used"` //Признаки использования входа для сбора статистики
+}
+
+//IsEmpty вернет истину если массив пустой
+func (ui *UseInput) IsEmpty() bool {
+	for _, s := range ui.Used {
+		if s {
+			return false
+		}
+	}
+	return true
 }
 
 //Compare сравнивание истина если равны
-func (st *StatDefine) Compare(ss *StatDefine) bool {
-	return reflect.DeepEqual(st, ss)
+func (sd *StatDefine) Compare(ss *StatDefine) bool {
+	return reflect.DeepEqual(sd, ss)
 }
 
 //Compare сравнивание истина если равны
@@ -49,8 +76,8 @@ func (ps *PointSet) Compare(ss *PointSet) bool {
 }
 
 //Compare сравнивание истина если равны
-func (us *UseInput) Compare(ss *UseInput) bool {
-	return reflect.DeepEqual(us, ss)
+func (ui *UseInput) Compare(ss *UseInput) bool {
+	return reflect.DeepEqual(ui, ss)
 }
 
 //NewStatDefine создание новой
@@ -75,14 +102,14 @@ func NewUseInput() *UseInput {
 }
 
 //ToBuffer сохранить в буфер
-func (st *StatDefine) ToBuffer() []int {
+func (sd *StatDefine) ToBuffer() []int {
 	buffer := make([]int, 13)
 	buffer[0] = 14
 	buffer[2] = 14
 	buffer[3] = 9
-	buffer[4] = st.Number
+	buffer[4] = 0
 	pos := 5
-	for _, l := range st.Levels {
+	for _, l := range sd.Levels {
 		buffer[pos] = l.TypeSt
 		pos++
 		buffer[pos] = l.Period
@@ -98,7 +125,7 @@ func (ps *PointSet) ToBuffer() []int {
 	buffer[0] = 15
 	buffer[2] = 15
 	buffer[3] = (len(ps.Points) * 2) + 1
-	buffer[4] = ps.Number
+	buffer[4] = 0
 	pos := 5
 	for _, l := range ps.Points {
 		buffer[pos] = l.NumPoint
@@ -110,14 +137,14 @@ func (ps *PointSet) ToBuffer() []int {
 }
 
 //ToBuffer сохранить в буфер
-func (us *UseInput) ToBuffer() []int {
-	buffer := make([]int, len(us.Used)+5)
+func (ui *UseInput) ToBuffer() []int {
+	buffer := make([]int, len(ui.Used)+5)
 	buffer[0] = 16
 	buffer[2] = 16
-	buffer[3] = len(us.Used) + 1
-	buffer[4] = us.Number
+	buffer[3] = len(ui.Used) + 1
+	buffer[4] = 0
 	pos := 5
-	for _, l := range us.Used {
+	for _, l := range ui.Used {
 		buffer[pos] = 0
 		if l {
 			buffer[pos] = 1
@@ -129,7 +156,7 @@ func (us *UseInput) ToBuffer() []int {
 }
 
 //FromBuffer заполнить из буфера
-func (st *StatDefine) FromBuffer(buffer []int) error {
+func (sd *StatDefine) FromBuffer(buffer []int) error {
 	if len(buffer) != 13 {
 		return fmt.Errorf("неверная длина массива")
 	}
@@ -140,12 +167,12 @@ func (st *StatDefine) FromBuffer(buffer []int) error {
 		return fmt.Errorf("неверный номер массива")
 	}
 	pos := 5
-	for n := range st.Levels {
-		st.Levels[n].TypeSt = buffer[pos]
+	for n := range sd.Levels {
+		sd.Levels[n].TypeSt = buffer[pos]
 		pos++
-		st.Levels[n].Period = buffer[pos]
+		sd.Levels[n].Period = buffer[pos]
 		pos++
-		st.Levels[n].Count = buffer[pos]
+		sd.Levels[n].Count = buffer[pos]
 	}
 	return nil
 }
@@ -173,7 +200,7 @@ func (ps *PointSet) FromBuffer(buffer []int) error {
 }
 
 //FromBuffer заполнить из буфера
-func (us *UseInput) FromBuffer(buffer []int) error {
+func (ui *UseInput) FromBuffer(buffer []int) error {
 	// if len(buffer) != 13 {
 	// 	return fmt.Errorf("неверная длина массива")
 	// }
@@ -184,11 +211,11 @@ func (us *UseInput) FromBuffer(buffer []int) error {
 		return fmt.Errorf("неверный номер массива")
 	}
 	pos := 5
-	us.Used = make([]bool, buffer[3]-1)
-	for n := range us.Used {
-		us.Used[n] = false
+	ui.Used = make([]bool, buffer[3]-1)
+	for n := range ui.Used {
+		ui.Used[n] = false
 		if buffer[pos] == 1 {
-			us.Used[n] = true
+			ui.Used[n] = true
 		}
 		pos++
 	}

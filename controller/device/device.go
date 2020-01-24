@@ -206,12 +206,12 @@ func (d *Device) updateDevice() {
 			//Прислали массив привязки
 			// logger.Info.Printf("Прислали массив привязки %d", d.ID)
 			num, elem, array := ms.GetArray()
-			// if num == 133 {
-			// 	logger.Debug.Printf("%d %d %v", num, elem, array)
-			// }
+			if d.ID == 222222 {
+				logger.Debug.Printf("привязка %d %d %d %v", d.ID, num, elem, array)
+			}
 			flag := false
 			for n, ar := range d.Controller.Arrays {
-				if ar.Number == num && ar.NElem == (elem&0x7f) {
+				if ar.Number == num && ar.NElem == elem {
 					flag = true
 					d.Controller.Arrays[n].Array = array
 					break
@@ -220,7 +220,7 @@ func (d *Device) updateDevice() {
 			if !flag {
 				arr := new(pudge.ArrayPriv)
 				arr.Number = num
-				arr.NElem = elem & 0x7f
+				arr.NElem = elem
 				arr.Array = array
 				d.Controller.Arrays = append(d.Controller.Arrays, *arr)
 			}

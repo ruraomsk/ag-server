@@ -61,13 +61,13 @@ main:
 		dev, is := pudge.GetController(cr.IDevice)
 		if !is {
 			//Контроллер не выходил на связь проверим через минуту
-			logger.Info.Printf("контроллер не на связи %v", reg)
+			logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
 			time.Sleep(time.Duration(1 * time.Minute))
 			continue
 		}
 		if !dev.IsConnected() {
 			//Контроллер не на связи проверим через минуту
-			logger.Info.Printf("контроллер в ауте %v", reg)
+			logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
 			time.Sleep(time.Duration(1 * time.Minute))
 			continue
 		}
@@ -106,59 +106,66 @@ main:
 }
 func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 	r := make([]pudge.ArrayPriv, 0)
-	buffer := cr.Arrays.StatDefine.ToBuffer() //
-	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.PointSet.ToBuffer() //
-	r = appBuffer(r, buffer)
-	buffer = cr.Arrays.UseInput.ToBuffer() //
-	r = appBuffer(r, buffer)
+	if !cr.Arrays.StatDefine.IsEmpty() {
+		buffer := cr.Arrays.StatDefine.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.PointSet.IsEmpty() {
+		buffer := cr.Arrays.PointSet.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !cr.Arrays.UseInput.IsEmpty() {
+		buffer := cr.Arrays.UseInput.ToBuffer() //
+		r = appBuffer(r, buffer)
+
+	}
 	if !cr.Arrays.TimeDivice.IsEmpty() {
-		buffer = cr.Arrays.TimeDivice.ToBuffer() //
+		buffer := cr.Arrays.TimeDivice.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
 	if !cr.Arrays.SetupDK1.IsEmpty() {
-		buffer = cr.Arrays.SetupDK1.ToBuffer() //
+		buffer := cr.Arrays.SetupDK1.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
 	if !cr.Arrays.SetupDK2.IsEmpty() {
-		buffer = cr.Arrays.SetupDK2.ToBuffer() //
+		buffer := cr.Arrays.SetupDK2.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
 	if !cr.Arrays.SetCtrl.IsEmpty() {
-		buffer = cr.Arrays.SetCtrl.ToBuffer() //
+		buffer := cr.Arrays.SetCtrl.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
 	if !cr.Arrays.SetTimeUse.IsEmpty() {
-		buffer = cr.Arrays.SetTimeUse.ToBuffer(157) //
+		buffer := cr.Arrays.SetTimeUse.ToBuffer(157) //
 		r = appBuffer(r, buffer)
 		buffer = cr.Arrays.SetTimeUse.ToBuffer(148) //
 		r = appBuffer(r, buffer)
 	}
 	for i := 1; i < 13; i++ {
 		if !cr.Arrays.SetDK.IsEmpty(1, i) {
-			buffer = cr.Arrays.SetDK.DK1[i-1].ToBuffer() //
+			buffer := cr.Arrays.SetDK.DK1[i-1].ToBuffer() //
 			r = appBuffer(r, buffer)
 		}
 		if !cr.Arrays.SetDK.IsEmpty(2, i) {
-			buffer = cr.Arrays.SetDK.DK2[i-1].ToBuffer() //
+			buffer := cr.Arrays.SetDK.DK2[i-1].ToBuffer() //
 			r = appBuffer(r, buffer)
 		}
 	}
 	for _, ns := range cr.Arrays.NedelSets.NedelSets { //
 		if !ns.IsEmpty() {
-			buffer = ns.ToBuffer()
+			buffer := ns.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
 	for _, ss := range cr.Arrays.DaySets.DaySets { //
 		if !ss.IsEmpty() {
-			buffer = ss.ToBuffer()
+			buffer := ss.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
 	for _, ys := range cr.Arrays.MonthSets.MonthSets { //
 		if !ys.IsEmpty() {
-			buffer = ys.ToBuffer()
+			buffer := ys.ToBuffer()
 			r = appBuffer(r, buffer)
 		}
 	}
@@ -172,7 +179,7 @@ func makePriv(buffer []int) pudge.ArrayPriv {
 	r := new(pudge.ArrayPriv)
 	r.Array = make([]int, 0)
 	r.Number = buffer[2]
-	r.NElem = buffer[4] & 0x7f
+	r.NElem = buffer[4]
 	for i := 3; i < len(buffer); i++ {
 		r.Array = append(r.Array, buffer[i])
 	}
@@ -198,10 +205,10 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
-	// if cmd.Number == 133 {
-	// logger.Debug.Printf("send %v", cmd)
-	// }
-	// logger.Info.Printf("послали массив на %d", dev.ID)
+	if cmd.ID == 222222 {
+		logger.Debug.Printf("send %v", cmd)
+	}
+	// logger.Info.Printf("послали массив на %v", cmd)
 	ch <- *cmd
 	// pudge.SetController(dev)
 }

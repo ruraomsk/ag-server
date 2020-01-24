@@ -23,7 +23,7 @@ func (dev *Device) oneStep() {
 			}
 		}
 		err := dev.Arrays.IsCorrect()
-		if err != nil {
+		if err != nil && dev.ID == 222222 {
 			logger.Error.Printf("id %d %s", dev.ID, err.Error())
 			return
 		}
