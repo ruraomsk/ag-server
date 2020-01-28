@@ -2,7 +2,6 @@ package binding
 
 import (
 	"fmt"
-	"github.com/ruraomsk/ag-server/logger"
 	"reflect"
 )
 
@@ -22,11 +21,6 @@ func (ns *NedelSets) FromBuffer(buffer []int) error {
 	if err != nil {
 		return err
 	}
-	if n.Number < 1 {
-		logger.Error.Printf("number <1 %v", buffer)
-		return fmt.Errorf("number <1 %v", buffer)
-	}
-
 	ns.NedelSets[n.Number-1] = *n
 	return nil
 }
@@ -92,7 +86,7 @@ func nedelFromBuffer(buffer []int) (*OneNedel, error) {
 	if buffer[0]-44 <= 0 || buffer[0]-44 > 12 {
 		return nil, fmt.Errorf("неверный номер массива")
 	}
-	nm := newOneNedel(buffer[0] - 44)
+	nm := newOneNedel(buffer[4])
 	for index := 0; index < len(nm.Days); index++ {
 		nm.Days[index] = buffer[5+index]
 	}

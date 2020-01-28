@@ -2,10 +2,10 @@ package pudge
 
 import (
 	"encoding/json"
+	"strconv"
+
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/setup"
-	"strconv"
-	"time"
 )
 
 func loadDBase() error {
@@ -96,10 +96,10 @@ func saveControllers() error {
 	defer mutex.Unlock()
 	count := 0
 	for _, c := range controllers {
-		if c.StatusConnection == Connected && time.Now().Sub(c.LastOperation) > setup.Set.Server.KeepAlive {
-			c.StatusConnection = Undefine
-			c.WriteToDB = true
-		}
+		// if c.StatusConnection == Connected && time.Now().Sub(c.LastOperation) > setup.Set.Server.KeepAlive {
+		// 	c.StatusConnection = Undefine
+		// 	c.WriteToDB = true
+		// }
 		if len(c.Name) == 0 {
 			c.Name = getNameCross(c.ID)
 			c.WriteToDB = true

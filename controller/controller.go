@@ -49,6 +49,7 @@ func getController(id int, rq chan int, ans chan string) *pudge.Controller {
 		return ctrl
 	}
 	ctrl = c
+	ctrl.Base = true
 	return ctrl
 }
 

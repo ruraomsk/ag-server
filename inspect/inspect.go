@@ -22,7 +22,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	for _, r := range listCross {
 		_, is := pudge.GetCross(r.Region, r.Area, r.ID)
 		if !is {
-			logger.Error.Printf("Нет такого перекестка %d %d ", r.Region, r.ID)
+			logger.Error.Printf("Нет такого перекрестка %d %d ", r.Region, r.ID)
 		}
 		croses[r.ToKey()] = r
 	}
@@ -205,9 +205,9 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
-	if cmd.ID == 222222 {
-		logger.Debug.Printf("send %v", cmd)
-	}
+	// if cmd.ID == 222222 {
+	// 	logger.Debug.Printf("send %v", cmd)
+	// }
 	// logger.Info.Printf("послали массив на %v", cmd)
 	ch <- *cmd
 	// pudge.SetController(dev)

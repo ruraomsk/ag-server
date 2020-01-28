@@ -206,9 +206,9 @@ func (d *Device) updateDevice() {
 			//Прислали массив привязки
 			// logger.Info.Printf("Прислали массив привязки %d", d.ID)
 			num, elem, array := ms.GetArray()
-			if d.ID == 222222 {
-				logger.Debug.Printf("привязка %d %d %d %v", d.ID, num, elem, array)
-			}
+			// if d.ID == 222222 {
+			// 	logger.Debug.Printf("привязка %d %d %d %v", d.ID, num, elem, array)
+			// }
 			flag := false
 			for n, ar := range d.Controller.Arrays {
 				if ar.Number == num && ar.NElem == elem {
@@ -285,6 +285,7 @@ func (d *Device) makeAndSendAnsware() error {
 			continue
 		}
 		if d.needAns[i] == -1 {
+			d.HeadDevice.Number = 11
 			//Нужно ответить на запрос о состоянии устройства
 			ms.Set0x0FDevice(d.Controller)
 			mss = append(mss, ms)

@@ -130,7 +130,7 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 		if nelem <= 12 {
 			buffer[0] = 99 + nelem
 		} else {
-			buffer[0] = nelem - 9
+			buffer[0] = (nelem & 0x7f) + 119
 		}
 		return ar.SetDK.FromBuffer(buffer)
 	case 23:
