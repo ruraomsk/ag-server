@@ -86,7 +86,7 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 		// }
 		dev := new(device.Device)
 		rows.Scan(&dev.ID)
-		if dev.ID == 4966932 {
+		if dev.ID == 496932 {
 			//Real!!
 			continue
 		}

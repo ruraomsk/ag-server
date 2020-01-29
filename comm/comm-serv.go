@@ -76,14 +76,26 @@ func newConnect(soc net.Conn, stop chan int) {
 	*/
 	ctrl := new(pudge.Controller)
 	var err error
-	hout := make(chan transport.HeaderServer)
-	hin := make(chan transport.HeaderDevice)
+	hout := make(chan transport.HeaderServer, 10)
+	hin := make(chan transport.HeaderDevice, 10)
 	defer soc.Close()
-	defer close(hout)
-	defer close(hin)
-	go transport.GetMessagesFromDevice(soc, hin)
-	go transport.SendMessagesToDevice(soc, hout)
+	// defer close(hout)
+	// defer close(hin)
+	var statusIn, statusOut bool
+	statusIn = true
+	statusOut = true
+	go transport.GetMessagesFromDevice(soc, hin, &statusIn)
+	go transport.SendMessagesToDevice(soc, hout, &statusOut)
+	// time.Sleep(1 * time.Second)
+
 	hDev := <-hin
+	if !statusIn {
+		logger.Error.Printf("not in ")
+		return
+	}
+	if hDev.ID == 496932 {
+		logger.Info.Printf("in %v", hDev)
+	}
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -101,6 +113,10 @@ func newConnect(soc net.Conn, stop chan int) {
 			flag = true
 			m.Get0x10Device(ctrl)
 		}
+		if m.Type == 0x12 {
+			flag = true
+			m.Get0x12Device(ctrl)
+		}
 	}
 	if !flag {
 		//В сообщении соединении нет 0x10 или 0x1D значит рвем связь
@@ -113,18 +129,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	//Обновим состояние в pudge
 	ctrl.StatusConnection = pudge.Connected
 	ctrl.LastOperation = time.Now()
-	pudge.SetController(ctrl)
-	//Подтвердим что клоиент прописан
-	hs := transport.CreateHeaderServer(0, 0)
-	mss := make([]transport.SubMessage, 0)
-	var ms transport.SubMessage
-	// ms.Set0x00Device()
-	// mss = append(mss, ms)
-	hs.UpackMessages(mss)
-	hout <- hs
-	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
-	//теперь есть новый и ему можно завершиться
-	//Ждем сообщения о состоянии устройства
 	dd := new(device)
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
@@ -136,14 +140,32 @@ func newConnect(soc net.Conn, stop chan int) {
 	mutex.Unlock()
 	updateController(ctrl, &hDev)
 	pudge.SetController(ctrl)
-	time.Sleep(5 * time.Second)
-	//Запросим состояние устройства
-	hs = transport.CreateHeaderServer(0, 0)
-	mss = make([]transport.SubMessage, 0)
-	ms.Set0x03Server()
-	mss = append(mss, ms)
+	//Подтвердим что клиент прописан
+	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	mss := make([]transport.SubMessage, 0)
+	// var ms transport.SubMessage
+	// ms.Set0x00Device()
+	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
+	if hDev.ID == 496932 {
+		logger.Info.Printf("out %v", hs)
+	}
+	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
+	//теперь есть новый и ему можно завершиться
+	//Ждем сообщения о состоянии устройства
+	//Запросим состояние устройства
+	// hs = transport.CreateHeaderServer(0, int(hDev.Code))
+	// mss = make([]transport.SubMessage, 0)
+	// ms.Set0x03Server()
+	// mss = append(mss, ms)
+	// hs.UpackMessages(mss)
+	// if !statusOut {
+	// 	logger.Error.Printf("not out ")
+	// 	return
+	// }
+	// hout <- hs
+	// logger.Info.Printf("out %v", hs)
 	//С этого момента начинается основной цикл работы
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -166,17 +188,35 @@ func newConnect(soc net.Conn, stop chan int) {
 	   Отключить&quot;, далее массивы привязки, объединенные в сообщения, по завершению
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
-	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
+	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
 		case hDev = <-hin:
+			if !statusIn || !statusOut {
+				logger.Error.Printf("not in or out ")
+				return
+			}
+			if hDev.ID == 496932 {
+				logger.Info.Printf("ingo %v", hDev)
+			}
+
 			hs, need := updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
 				hout <- hs
+				if hDev.ID == 496932 {
+					logger.Info.Printf("outrepl %v", hs)
+				}
+
+				// logger.Info.Printf("outResponce %v", hs)
+
 			}
 		case <-timer.C:
-			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead {
+			if !statusIn || !statusOut {
+				logger.Error.Printf("not in or out ")
+				return
+			}
+			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead || !statusIn {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = pudge.NotConnected
@@ -194,10 +234,18 @@ func newConnect(soc net.Conn, stop chan int) {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.id, err.Error())
 				continue
 			}
+			if !statusOut {
+				logger.Error.Printf("not out ")
+				return
+			}
 			hout <- hs
+			// logger.Info.Printf("outARM %v", hs)
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
+			if hDev.ID == 496932 {
+				logger.Info.Printf("inarray %v", comArray)
+			}
 			is := false
 			for n, ap := range ctrl.Arrays {
 				if ap.Number == comArray.Number && ap.NElem == comArray.NElem {
@@ -217,7 +265,16 @@ func newConnect(soc net.Conn, stop chan int) {
 			hs := makeArrayToDevice(dd, comArray)
 			// logger.Info.Printf("ready send array %d", ctrl.ID)
 			// for _, h := range hss {
+			if !statusOut {
+				logger.Error.Printf("not out ")
+				return
+			}
 			hout <- hs
+			if hDev.ID == 496932 {
+				logger.Info.Printf("outarray %v", hs)
+			}
+
+			// logger.Info.Printf("outArray %v", hs)
 			// 	time.Sleep(1 * time.Second)
 			// }
 			// logger.Info.Printf("send array sucsses %d", ctrl.ID)
@@ -351,7 +408,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		}
 	}
 	pudge.SetController(c)
-	hs := transport.CreateHeaderServer(0, 0)
+	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	if hDev.Number != 0 {
 		mss := make([]transport.SubMessage, 0)
 		var ms transport.SubMessage
@@ -374,6 +431,7 @@ func getController(id int) (*pudge.Controller, error) {
 		}
 
 		pudge.SetDefault(ctrl, strKey)
+		// pudge.SetController(ctrl)
 		return ctrl, nil
 	}
 	ctrl = c

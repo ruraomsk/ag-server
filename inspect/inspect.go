@@ -16,7 +16,7 @@ var croses map[string]pudge.Region
 //Тут производится анализ правильности заполнения файлов привязки в контроллере
 //и если не совпадает с перекрестком то записывается в контроллер
 func Start(context *extcon.ExtContext, stop chan int) {
-	time.Sleep(1 * time.Minute)
+	// time.Sleep(1 * time.Minute)
 	listCross := pudge.GetCrosses()
 	croses = make(map[string]pudge.Region)
 	for _, r := range listCross {
@@ -51,7 +51,7 @@ func oneCross(reg pudge.Region) {
 	// logger.Info.Printf("запустили инспектора %v", reg)
 main:
 	for {
-		time.Sleep(time.Duration(1 * time.Second))
+		time.Sleep(time.Duration(5 * time.Second))
 		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
@@ -62,19 +62,19 @@ main:
 		if !is {
 			//Контроллер не выходил на связь проверим через минуту
 			logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
-			time.Sleep(time.Duration(1 * time.Minute))
+			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
 		if !dev.IsConnected() {
 			//Контроллер не на связи проверим через минуту
 			logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
-			time.Sleep(time.Duration(1 * time.Minute))
+			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
 		_, is = comm.GetChanArray(dev.ID)
 		if !is {
 			logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
-			time.Sleep(time.Duration(1 * time.Minute))
+			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
 
