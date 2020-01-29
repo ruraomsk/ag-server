@@ -93,16 +93,17 @@ func setStatusCross() {
 			cr.NK = cc.NK
 			cr.WriteToDB = true
 		}
-		if !reflect.DeepEqual(&cr.Statistics, cc.Statistics) {
+		if !reflect.DeepEqual(&cr.Statistics, &cc.Statistics) {
+			// logger.Debug.Printf("statis")
 			cr.Statistics = make([]Statistic, 0)
 			for _, s := range cc.Statistics {
 				cr.Statistics = append(cr.Statistics, s)
 			}
 			cr.WriteToDB = true
 		}
-		if cr.WriteToDB {
-			reg := Region{cr.Region, cr.Area, cr.ID}
-			crosses[reg.ToKey()] = cr
-		}
+		// if cr.WriteToDB {
+		// 	reg := Region{cr.Region, cr.Area, cr.ID}
+		// 	crosses[reg.ToKey()] = cr
+		// }
 	}
 }

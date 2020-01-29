@@ -320,7 +320,7 @@ func (d *Device) makeAndSendAnsware() error {
 func (d *Device) sendKeepAlive() error {
 	// d.Mutex.Lock()
 	// defer d.Mutex.Unlock()
-	code := 0
+	code := 1
 	if d.Controller.Base {
 		code = 0xac
 	}

@@ -63,7 +63,7 @@ func loadCrosees() error {
 		c.IDevice = idevice
 		c.Name = describ
 		c.StatusDevice = 17
-		c.WriteToDB = true
+		c.WriteToDB = false
 		reg := Region{Region: region, Area: area, ID: id}
 		crosses[reg.ToKey()] = c
 	}
@@ -102,6 +102,7 @@ func saveControllers() error {
 		// }
 		if len(c.Name) == 0 {
 			c.Name = getNameCross(c.ID)
+
 			c.WriteToDB = true
 		}
 		if !c.WriteToDB {
@@ -115,9 +116,9 @@ func saveControllers() error {
 			break
 		}
 		c.WriteToDB = false
-		controllers[c.ID] = c
+		// controllers[c.ID] = c
 	}
-	// logger.Info.Println("controllers ", count)
+	logger.Info.Println("controllers ", count)
 	return nil
 }
 func saveCrosees() error {
@@ -137,8 +138,8 @@ func saveCrosees() error {
 			break
 		}
 		c.WriteToDB = false
-		reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
-		crosses[reg.ToKey()] = c
+		// reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
+		// crosses[reg.ToKey()] = c
 		count++
 	}
 	// logger.Info.Println("save cross ", count)
