@@ -93,9 +93,9 @@ func newConnect(soc net.Conn, stop chan int) {
 		logger.Error.Printf("not in ")
 		return
 	}
-	if hDev.ID == 496932 {
-		logger.Info.Printf("in %v", hDev)
-	}
+	// if hDev.ID == 496932 {
+	// 	logger.Info.Printf("in %v", hDev)
+	// }
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -148,9 +148,9 @@ func newConnect(soc net.Conn, stop chan int) {
 	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
-	if hDev.ID == 496932 {
-		logger.Info.Printf("out %v", hs)
-	}
+	// if hDev.ID == 496932 {
+	// 	logger.Info.Printf("out %v", hs)
+	// }
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -196,17 +196,17 @@ func newConnect(soc net.Conn, stop chan int) {
 				logger.Error.Printf("not in or out ")
 				return
 			}
-			if hDev.ID == 496932 {
-				logger.Info.Printf("ingo %v", hDev)
-			}
+			// if hDev.ID == 496932 {
+			// 	logger.Info.Printf("ingo %v", hDev)
+			// }
 
 			hs, need := updateController(ctrl, &hDev)
 			pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
 				hout <- hs
-				if hDev.ID == 496932 {
-					logger.Info.Printf("outrepl %v", hs)
-				}
+				// if hDev.ID == 496932 {
+				// 	logger.Info.Printf("outrepl %v", hs)
+				// }
 
 				// logger.Info.Printf("outResponce %v", hs)
 
@@ -243,9 +243,9 @@ func newConnect(soc net.Conn, stop chan int) {
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
-			if hDev.ID == 496932 {
-				logger.Info.Printf("inarray %v", comArray)
-			}
+			// if hDev.ID == 496932 {
+			// 	logger.Info.Printf("inarray %v", comArray)
+			// }
 			is := false
 			for n, ap := range ctrl.Arrays {
 				if ap.Number == comArray.Number && ap.NElem == comArray.NElem {
@@ -270,9 +270,9 @@ func newConnect(soc net.Conn, stop chan int) {
 				return
 			}
 			hout <- hs
-			if hDev.ID == 496932 {
-				logger.Info.Printf("outarray %v", hs)
-			}
+			// if hDev.ID == 496932 {
+			// 	logger.Info.Printf("outarray %v", hs)
+			// }
 
 			// logger.Info.Printf("outArray %v", hs)
 			// 	time.Sleep(1 * time.Second)
@@ -293,6 +293,14 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	c.LastOperation = time.Now()
 	c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
+	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	if hDev.Number != 0 {
+		mss := make([]transport.SubMessage, 0)
+		var ms transport.SubMessage
+		ms.Set0x01Server(int(hDev.Number))
+		mss = append(mss, ms)
+		hs.UpackMessages(mss)
+	}
 	for _, mes := range dmess {
 		switch mes.Type {
 		case 0x00:
@@ -405,17 +413,10 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			}
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
+			return hs, false
 		}
 	}
 	pudge.SetController(c)
-	hs := transport.CreateHeaderServer(0, int(hDev.Code))
-	if hDev.Number != 0 {
-		mss := make([]transport.SubMessage, 0)
-		var ms transport.SubMessage
-		ms.Set0x01Server(int(hDev.Number))
-		mss = append(mss, ms)
-		hs.UpackMessages(mss)
-	}
 	return hs, need
 }
 func getController(id int) (*pudge.Controller, error) {

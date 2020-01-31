@@ -23,7 +23,7 @@ func (dev *Device) oneStep() {
 	}
 	if dev.Controller.Base {
 		dev.Controller.Base = false
-		logger.Debug.Printf("id %d перешел в режим", dev.ID)
+		// logger.Debug.Printf("id %d перешел в режим", dev.ID)
 	}
 
 	month := time.Now().Month()

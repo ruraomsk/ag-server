@@ -100,7 +100,7 @@ main:
 		}
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)
-		pudge.SetController(dev)
+		// pudge.SetController(dev)
 		time.Sleep(time.Duration(10 * time.Second))
 	}
 }
