@@ -2,16 +2,16 @@ package binding
 
 import (
 	"fmt"
-	"github.com/ruraomsk/ag-server/logger"
 	"reflect"
+
+	"github.com/ruraomsk/ag-server/logger"
 )
 
 //Планы координации
 
 //SetDK наборы планов координации для обеих ДК перекрестка
 type SetDK struct {
-	DK1 []SetPk `json:"dk1"` // Наборы для ДК1
-	DK2 []SetPk `json:"dk2"` // Наборы для ДК2
+	DK []SetPk `json:"dk"` // Наборы для ДК1
 }
 
 //Compare сравнивание истина если равны
@@ -55,19 +55,17 @@ type Stage struct {
 //NewSetDK создание нового набора планов координации
 func NewSetDK() *SetDK {
 	r := new(SetDK)
-	r.DK1 = make([]SetPk, 12)
-	r.DK2 = make([]SetPk, 12)
-	for n := range r.DK1 {
-		r.DK1[n] = NewSetPk(1, n+1)
-		r.DK2[n] = NewSetPk(2, n+1)
+	r.DK = make([]SetPk, 12)
+	for n := range r.DK {
+		r.DK[n] = NewSetPk(n + 1)
 	}
 	return r
 }
 
 //NewSetPk новый план
-func NewSetPk(dk int, pk int) SetPk {
+func NewSetPk(pk int) SetPk {
 	r := new(SetPk)
-	r.DK = dk
+	r.DK = 1
 	r.Pk = pk
 	r.Stages = make([]Stage, 12)
 	return *r
@@ -77,10 +75,7 @@ func NewSetPk(dk int, pk int) SetPk {
 func (sd *SetDK) IsEmpty(dk, pk int) bool {
 
 	if dk == 1 {
-		return isEmpty(sd.DK1, pk)
-	}
-	if dk == 2 {
-		return isEmpty(sd.DK2, pk)
+		return isEmpty(sd.DK, pk)
 	}
 	return true
 }
@@ -217,17 +212,14 @@ func (st *SetPk) ToBuffer() []int {
 
 //FromBuffer создает план координации из буфера возвращает ошибку
 func (sd *SetDK) FromBuffer(buffer []int) error {
-	st := NewSetPk(1, 1)
+	st := NewSetPk(1)
 	err := st.FromBuffer(buffer)
 	if err != nil {
 		return err
 	}
 	if buffer[0] <= 112 {
 		st.DK = 1
-		sd.DK1[st.Pk-1] = st
-	} else {
-		st.DK = 2
-		sd.DK2[(st.Pk&0x7f)-1] = st
+		sd.DK[st.Pk-1] = st
 	}
 	return nil
 }
@@ -240,7 +232,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	if buffer[2] != 133 {
 		return fmt.Errorf("несовпал номер массива на сервере и номер массива")
 	}
-	if buffer[0] < 100 || buffer[0] > 131 {
+	if buffer[0] < 100 || buffer[0] > 111 {
 		return fmt.Errorf("неверный номер массива %d", buffer[0])
 	}
 	st.Pk = buffer[4] & 0x7f

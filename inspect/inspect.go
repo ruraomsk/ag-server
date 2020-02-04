@@ -138,11 +138,7 @@ func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 	}
 	for i := 1; i < 13; i++ {
 		if !cr.Arrays.SetDK.IsEmpty(1, i) {
-			buffer := cr.Arrays.SetDK.DK1[i-1].ToBuffer() //
-			r = appBuffer(r, buffer)
-		}
-		if !cr.Arrays.SetDK.IsEmpty(2, i) {
-			buffer := cr.Arrays.SetDK.DK2[i-1].ToBuffer() //
+			buffer := cr.Arrays.SetDK.DK[i-1].ToBuffer() //
 			r = appBuffer(r, buffer)
 		}
 	}

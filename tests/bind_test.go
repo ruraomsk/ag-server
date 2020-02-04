@@ -207,7 +207,7 @@ func Test_SetupDK(t *testing.T) {
 	}
 }
 func setPk(t *testing.T, buffer []int) bool {
-	st := binding.NewSetPk(1, 1)
+	st := binding.NewSetPk(1)
 	err := st.FromBuffer(buffer)
 	if err != nil {
 		t.Error(err.Error())
