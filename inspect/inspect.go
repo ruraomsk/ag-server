@@ -1,14 +1,13 @@
 package inspect
 
-import "github.com/ruraomsk/ag-server/extcon"
+import (
+	"time"
 
-import "github.com/ruraomsk/ag-server/pudge"
-
-import "github.com/ruraomsk/ag-server/logger"
-
-import "time"
-
-import "github.com/ruraomsk/ag-server/comm"
+	"github.com/ruraomsk/ag-server/comm"
+	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/pudge"
+)
 
 var croses map[string]pudge.Region
 
@@ -51,7 +50,7 @@ func oneCross(reg pudge.Region) {
 	// logger.Info.Printf("запустили инспектора %v", reg)
 main:
 	for {
-		time.Sleep(time.Duration(5 * time.Second))
+		time.Sleep(time.Duration(1 * time.Second))
 		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
@@ -123,12 +122,8 @@ func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 		buffer := cr.Arrays.TimeDivice.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
-	if !cr.Arrays.SetupDK1.IsEmpty() {
-		buffer := cr.Arrays.SetupDK1.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.SetupDK2.IsEmpty() {
-		buffer := cr.Arrays.SetupDK2.ToBuffer() //
+	if !cr.Arrays.SetupDK.IsEmpty() {
+		buffer := cr.Arrays.SetupDK.ToBuffer() //
 		r = appBuffer(r, buffer)
 	}
 	if !cr.Arrays.SetCtrl.IsEmpty() {

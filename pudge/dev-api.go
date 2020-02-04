@@ -118,7 +118,7 @@ func (d *DK) Make(buffer []byte, pos int) {
 }
 func (cc *Controller) calcStatus() int {
 	rezim := cc.TexRezim
-	faza := cc.DK1.FDK
+	faza := cc.DK.FDK
 	err := cc.coderr()
 	dev := cc.codeDevice()
 	lamp := cc.lamps()
@@ -223,29 +223,28 @@ func (cc *Controller) calcStatus() int {
 	return 33
 }
 func (cc *Controller) coderr() int {
-	// if cc.DK2.
-	if cc.DK1.EDK != 0 {
-		return cc.DK1.EDK
+	if cc.DK.EDK != 0 {
+		return cc.DK.EDK
 	}
-	if cc.DK1.PDK {
+	if cc.DK.PDK {
 		return 1
 	}
 	return 0
 }
 
 func (cc *Controller) lamps() int {
-	if cc.DK1.LDK == 0 && cc.DK2.LDK == 0 {
+	if cc.DK.LDK == 0 {
 		return 0
 	}
 	return 1
 }
 func (cc *Controller) doors() int {
-	if !cc.DK1.ODK && !cc.DK2.ODK {
+	if !cc.DK.ODK {
 		return 0
 	}
 	return 1
 }
 func (cc *Controller) codeDevice() int {
 
-	return 0
+	return cc.DK.DDK
 }

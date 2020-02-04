@@ -2,8 +2,9 @@ package transport
 
 import (
 	"fmt"
-	"github.com/ruraomsk/ag-server/pudge"
 	"time"
+
+	"github.com/ruraomsk/ag-server/pudge"
 )
 
 //Set0x00Device записывает субсообщение для команды с номером в имени
@@ -103,8 +104,7 @@ func (s *SubMessage) Get0x0FDevice(c *pudge.Controller) error {
 	c.CK = int(s.Message[3])
 	c.NK = int(s.Message[4])
 	c.StatusCommandDU.Set(s.Message[5])
-	c.DK1.Set(s.Message, 6)
-	c.DK2.Set(s.Message, 14)
+	c.DK.Set(s.Message, 6)
 	return nil
 }
 
@@ -121,8 +121,7 @@ func (s *SubMessage) Set0x0FDevice(c *pudge.Controller) error {
 	s.Message[3] = uint8(c.CK)
 	s.Message[4] = uint8(c.NK)
 	s.Message[5] = c.StatusCommandDU.Make()
-	c.DK1.Make(s.Message, 6)
-	c.DK2.Make(s.Message, 14)
+	c.DK.Make(s.Message, 6)
 	return nil
 }
 
@@ -139,8 +138,7 @@ func (s *SubMessage) Set0x12Device(c *pudge.Controller) error {
 	s.Message[3] = uint8(c.CK)
 	s.Message[4] = uint8(c.NK)
 	s.Message[5] = c.StatusCommandDU.Make()
-	c.DK1.Make(s.Message, 6)
-	c.DK2.Make(s.Message, 14)
+	c.DK.Make(s.Message, 6)
 	s.Message[22] = uint8(c.TMax)
 	return nil
 }
@@ -159,8 +157,7 @@ func (s *SubMessage) Get0x12Device(c *pudge.Controller) error {
 	c.CK = int(s.Message[3])
 	c.NK = int(s.Message[4])
 	c.StatusCommandDU.Set(s.Message[5])
-	c.DK1.Set(s.Message, 6)
-	c.DK2.Set(s.Message, 14)
+	c.DK.Set(s.Message, 6)
 	c.TMax = int(s.Message[22])
 	return nil
 }

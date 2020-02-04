@@ -1,8 +1,10 @@
 package device
 
-import "github.com/ruraomsk/ag-server/logger"
+import (
+	"time"
 
-import "time"
+	"github.com/ruraomsk/ag-server/logger"
+)
 
 func (dev *Device) oneStep() {
 	//Выполняем работу устройства
@@ -58,4 +60,9 @@ func (dev *Device) oneStep() {
 	dev.Controller.PK = dev.PK
 	dev.Controller.CK = dev.CK
 	dev.Controller.NK = dev.NK
+	dev.Controller.StatusCommandDU.IsDUDK1 = true
+	dev.Controller.StatusCommandDU.IsNK = true
+	dev.Controller.StatusCommandDU.IsPK = true
+	dev.Controller.StatusCommandDU.IsPKS = true
+	dev.Controller.TexRezim = 8
 }

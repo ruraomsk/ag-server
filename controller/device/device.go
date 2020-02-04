@@ -36,7 +36,6 @@ type Device struct {
 	HeadDevice   transport.HeaderDevice
 	HeadServer   transport.HeaderServer
 	dk1          bool //Управление по ДК1
-	dk2          bool //Управление по ДК2
 	flag         bool //если изменили из GUI
 	Soc          net.Conn
 	Mutex        sync.Mutex
@@ -84,9 +83,7 @@ func (d *Device) ToList() []string {
 	result = append(result, r)
 	r = "УСДК включен;" + strconv.FormatBool(d.StatusDevice)
 	result = append(result, r)
-	r = "Управление по ДК1;" + strconv.FormatBool(d.dk1)
-	result = append(result, r)
-	r = "Управление по ДК2;" + strconv.FormatBool(d.dk2)
+	r = "Управление по ДК;" + strconv.FormatBool(d.dk1)
 	result = append(result, r)
 	return result
 }
@@ -241,7 +238,6 @@ func (d *Device) updateDevice() {
 			//Запрос на смену фаз
 			bb := ms.Get0x04Server()
 			d.dk1 = bb[0]
-			d.dk2 = bb[1]
 		case 0x05:
 			//Запрос смена плана координации
 			d.Controller.PK = ms.Get0x05Server()
@@ -253,10 +249,10 @@ func (d *Device) updateDevice() {
 			d.Controller.NK = ms.Get0x06Server()
 		case 0x09:
 			//Режим работы ДК1
-			d.Controller.DK1.RDK = ms.Get0x09Server()
-		case 0x0A:
-			//Режим работы ДК2
-			d.Controller.DK2.RDK = ms.Get0x0AServer()
+			d.Controller.DK.RDK = ms.Get0x09Server()
+		// case 0x0A:
+		// 	//Режим работы ДК2
+		// 	d.Controller.DK.RDK = ms.Get0x0AServer()
 		case 0x0B:
 			//Передача массива привязки
 			ii := ms.Get0x0BServer()

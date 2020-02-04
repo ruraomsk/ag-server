@@ -14,12 +14,13 @@ package pudge
 */
 
 import (
-	"github.com/ruraomsk/ag-server/binding"
-	"github.com/ruraomsk/ag-server/logger"
 	"math/rand"
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/ruraomsk/ag-server/binding"
+	"github.com/ruraomsk/ag-server/logger"
 )
 
 //Region указатель на номер перекрестка
@@ -275,9 +276,8 @@ type Cross struct {
 	IDevice      int            `json:"idevice"` // Назначенное на перекресток устройство
 	ConType      string         `json:"contype"` //Тип соединения устройства
 	NumDev       int            `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
-	Double       int            `json:"double"`  //назначение на второй ДК
 	Name         string         `json:"name"`
-	Fone         string         `json:"fone"`   //Телефон
+	Phone        string         `json:"phone"`  //Телефон
 	StatusDevice int            `json:"status"` // Статус устройства
 	WriteToDB    bool           `json:"-"`      //Если истина то еще не записана в БД
 	PK           int            `json:"pk"`     //Номер плана координации
@@ -302,13 +302,12 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 
 //Controller внутренне представление контроллера
 type Controller struct {
-	ID               int              `json:"id"`     // Уникальный номер контроллера
-	Name             string           `json:"name"`   //Имя перекрестка если привязан
-	StatusConnection StatusConnection `json:"scon"`   // Статус соединения
-	LastOperation    time.Time        `json:"ltime"`  // Время последней операции обмена с устройством
-	Double           int              `json:"double"` //назначение на второй ДК
-	WriteToDB        bool             `json:"-"`      //Если истина то еще не записана в БД
-	TexRezim         int              `json:"rezim"`  //Технологический режим
+	ID               int              `json:"id"`    // Уникальный номер контроллера
+	Name             string           `json:"name"`  //Имя перекрестка если привязан
+	StatusConnection StatusConnection `json:"scon"`  // Статус соединения
+	LastOperation    time.Time        `json:"ltime"` // Время последней операции обмена с устройством
+	WriteToDB        bool             `json:"-"`     //Если истина то еще не записана в БД
+	TexRezim         int              `json:"rezim"` //Технологический режим
 	// 1 2 Ручное управление
 	// 3 Зеленая улица
 	// 4 Диспетчерское управление
@@ -320,8 +319,7 @@ type Controller struct {
 	CK              int  `json:"ck"`   //Номер суточной карты
 	NK              int  `json:"nk"`   //Номер недельной карты
 	StatusCommandDU StatusCommandDU
-	DK1             DK
-	DK2             DK
+	DK              DK
 	TMax            int `json:"tmax"` //Максимальное время ожидания ответа от сервера в секундах
 	Model           Model
 	Error           ErrorDevice
@@ -345,7 +343,6 @@ func SetDefault(c *Controller, key string) {
 	if !is {
 		logger.Error.Fatalf("нет такого %s", key)
 	}
-	c.Double = cr.Double
 	c.Name = cr.Name
 	c.ID = cr.IDevice
 
@@ -372,14 +369,11 @@ func SetDefault(c *Controller, key string) {
 	dk.FTUDK = 1
 	dk.TDK = 10
 	dk.TTCDK = 20
-	c.DK1 = dk
-	if c.Double != 0 {
-		c.DK2 = dk
-	}
+	c.DK = dk
 	c.TMax = 0
 	var m Model
-	m.VPCPD = 101
-	m.VPBS = 2
+	m.VPCPD = 3075
+	m.VPBS = 264
 	m.C12 = true
 	m.STP = true
 	m.DKA = true
@@ -407,7 +401,6 @@ func SetDefault(c *Controller, key string) {
 //NewCross создание нового описания перекрестка
 func NewCross() *Cross {
 	r := new(Cross)
-	r.Double = 0
 	r.Statistics = make([]Statistic, 0)
 	r.Arrays = *binding.NewArrays()
 	return r

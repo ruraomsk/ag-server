@@ -6,13 +6,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/ruraomsk/ag-server/pudge"
-	"github.com/ruraomsk/ag-server/setup"
 	"io/ioutil"
 	"strconv"
 	"strings"
 
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/setup"
+
 	"fmt"
+
 	"github.com/ruraomsk/ag-server/logger"
 
 	_ "github.com/lib/pq"
@@ -183,7 +185,6 @@ func loadCross(region int, nfile string) error {
 			state.Area, _ = strconv.Atoi(ss[4])
 			state.SubArea, _ = strconv.Atoi(ss[5])
 			state.NumDev, _ = strconv.Atoi(ss[2])
-			state.Double, _ = strconv.Atoi(ss[7])
 			state.ConType = ss[3][0:2]
 			state.IDevice, _ = strconv.Atoi(ss[3][2:])
 			continue
@@ -200,7 +201,7 @@ func loadCross(region int, nfile string) error {
 		}
 		if strings.HasPrefix(str, "@N,") {
 			//Телефон
-			state.Fone = str[3:]
+			state.Phone = str[3:]
 			continue
 		}
 		if strings.HasPrefix(str, "@k1,") {
@@ -244,15 +245,7 @@ func loadCross(region int, nfile string) error {
 				continue
 			}
 			if sint[0] == 40 {
-				err = state.Arrays.SetupDK1.FromBuffer(sint)
-				if err != nil {
-					logger.Error.Printf("в строке %s %s", str, err.Error())
-					return err
-				}
-				continue
-			}
-			if sint[0] == 41 {
-				err = state.Arrays.SetupDK2.FromBuffer(sint)
+				err = state.Arrays.SetupDK.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err

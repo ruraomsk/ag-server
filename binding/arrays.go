@@ -1,13 +1,14 @@
 package binding
 
-import "fmt"
+import (
+	"fmt"
 
-import "github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/logger"
+)
 
 //Arrays масиссивы привязок
 type Arrays struct {
-	SetupDK1   SetupDK
-	SetupDK2   SetupDK
+	SetupDK    SetupDK
 	SetDK      SetDK
 	MonthSets  MonthSets
 	NedelSets  NedelSets
@@ -26,8 +27,7 @@ func NewArrays() *Arrays {
 	r.StatDefine = *NewStatDefine()
 	r.PointSet = *NewPointSet()
 	r.UseInput = *NewUseInput()
-	r.SetupDK1 = *NewSetupDK()
-	r.SetupDK2 = *NewSetupDK()
+	r.SetupDK = *NewSetupDK()
 	r.SetDK = *NewSetDK()
 	r.MonthSets = *NewYearSets()
 	r.NedelSets = *NewNedelSets()
@@ -39,7 +39,7 @@ func NewArrays() *Arrays {
 
 //IsCorrect проверяет правильность массивов
 func (ar *Arrays) IsCorrect() error {
-	if ar.SetupDK1.IsEmpty() {
+	if ar.SetupDK.IsEmpty() {
 		logger.Error.Printf("нет настроек ДК1 ")
 		// return fmt.Errorf("нет настроек ДК1")
 	}
@@ -113,10 +113,8 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 	case 7:
 		if nelem == 1 {
 			buffer[0] = 40
-			return ar.SetupDK1.FromBuffer(buffer)
+			return ar.SetupDK.FromBuffer(buffer)
 		}
-		buffer[0] = 41
-		return ar.SetupDK2.FromBuffer(buffer)
 	case 8:
 		buffer[0] = 44 + buffer[4]
 		return ar.NedelSets.FromBuffer(buffer)

@@ -110,13 +110,9 @@ func (s *StatusCommandDU) ToList(result []string) []string {
 	result = append(result, r)
 	r = "Назначена недельная карта;" + strconv.FormatBool(s.IsNK)
 	result = append(result, r)
-	r = "На 1 ДК есть команда ДУ;" + strconv.FormatBool(s.IsDUDK1)
+	r = "На  ДК есть команда ДУ;" + strconv.FormatBool(s.IsDUDK1)
 	result = append(result, r)
-	r = "На 2 ДК есть команда ДУ;" + strconv.FormatBool(s.IsDUDK2)
-	result = append(result, r)
-	r = "Есть запрос на передачу фаз по 1 ДК СФДК;" + strconv.FormatBool(s.IsReqSFDK1)
-	result = append(result, r)
-	r = "Есть запрос на передачу фаз по 2 ДК СФДК;" + strconv.FormatBool(s.IsReqSFDK2)
+	r = "Есть запрос на передачу фаз по ДК СФДК;" + strconv.FormatBool(s.IsReqSFDK1)
 	result = append(result, r)
 	return result
 }
@@ -136,12 +132,9 @@ func (c *Controller) ToList() []string {
 	result = append(result, r)
 	r = "Максимальное время ожидания от сервера;" + strconv.Itoa(c.TMax)
 	result = append(result, r)
-	r = "ДК1; "
+	r = "ДК; "
 	result = append(result, r)
-	result = c.DK1.ToList(result)
-	r = "ДК2; "
-	result = append(result, r)
-	result = c.DK2.ToList(result)
+	result = c.DK.ToList(result)
 	r = "МОДЕЛЬ УСТРОЙСТВА; "
 	result = append(result, r)
 	result = c.Model.ToList(result)
