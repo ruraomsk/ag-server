@@ -40,7 +40,7 @@ func NewArrays() *Arrays {
 //IsCorrect проверяет правильность массивов
 func (ar *Arrays) IsCorrect() error {
 	if ar.SetupDK.IsEmpty() {
-		logger.Error.Printf("нет настроек ДК1 ")
+		logger.Error.Printf("нет настроек ДК ")
 		// return fmt.Errorf("нет настроек ДК1")
 	}
 	for _, ms := range ar.MonthSets.MonthSets {
@@ -80,7 +80,7 @@ func (ar *Arrays) IsCorrect() error {
 		// }
 	}
 	if !find {
-		return fmt.Errorf("нет планов координации для ДК1 ")
+		return fmt.Errorf("нет планов координации для ДК ")
 	}
 	// if ar.SetupDK2.ExtNum != 0 && !find2 {
 	// 	return fmt.Errorf("нет планов координации для ДК2 ")
@@ -125,11 +125,7 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 		buffer[0] = 84 + buffer[4]
 		return ar.MonthSets.FromBuffer(buffer)
 	case 133:
-		if nelem <= 12 {
-			buffer[0] = 99 + nelem
-		} else {
-			buffer[0] = (nelem & 0x7f) + 119
-		}
+		buffer[0] = 99 + nelem
 		return ar.SetDK.FromBuffer(buffer)
 	case 23:
 		buffer[0] = 148

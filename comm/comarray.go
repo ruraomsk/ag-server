@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"net"
-	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/setup"
 	"strconv"
+
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/setup"
 )
 
 func listenArmCommand() {
@@ -68,7 +70,7 @@ func workerCommand(soc net.Conn) {
 }
 func workerArray(soc net.Conn) {
 	defer soc.Close()
-	var array CommandArray
+	var state pudge.Cross
 	reader := bufio.NewReader(soc)
 	for {
 		a, err := reader.ReadString(0)
@@ -76,17 +78,22 @@ func workerArray(soc net.Conn) {
 			logger.Error.Println("При чтении привязки от сервера АРМ ", err.Error())
 			return
 		}
-		err = json.Unmarshal([]byte(a), &array)
+		err = json.Unmarshal([]byte(a), &state)
 		if err != nil {
 			logger.Error.Println("При конвератации привязки сервера АРМ ", err.Error())
 			continue
 		}
-		dev, is := devs[array.ID]
+		_, is := devs[state.IDevice]
 		if !is {
-			logger.Error.Printf("Команда привязки сервера АРМ нет такого id %d", array.ID)
+			logger.Error.Printf("Команда привязки сервера АРМ нет такого id %d", state.IDevice)
 			continue
 		}
-		dev.CommandArray <- array
+		_, is = pudge.GetCross(state.Region, state.Area, state.ID)
+		if !is {
+			//Перекрестка нет нужно создать
+			logger.Info.Printf("Добавлен перекресток %d %d %d", state.Region, state.Area, state.ID)
+		}
+		pudge.SetCross(&state)
 	}
 
 }

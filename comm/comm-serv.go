@@ -2,15 +2,16 @@ package comm
 
 import (
 	"fmt"
+	"net"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"github.com/ruraomsk/ag-server/transport"
-	"net"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var devs map[int]*device
@@ -41,7 +42,7 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 	// //Запускаем слушателя для команд от АРМ
 	// go listenArmCommand()
 	// //Запускаем слушателя для массивов привязки от АРМ
-	// go listenArmArray()
+	go listenArmArray()
 	count := 0
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))

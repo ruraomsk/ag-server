@@ -327,6 +327,7 @@ func loadCross(region int, nfile string) error {
 	return nil
 }
 func saveState(state *pudge.Cross, dgis string) error {
+	state.Dgis = dgis
 	b, err := json.Marshal(&state)
 	if err != nil {
 		logger.Error.Printf("%s\n", err.Error())

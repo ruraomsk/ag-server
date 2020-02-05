@@ -274,6 +274,7 @@ type Cross struct {
 	SubArea      int            `json:"subarea"` //подрайон
 	ID           int            `json:"id"`      //Номер перекрестка
 	IDevice      int            `json:"idevice"` // Назначенное на перекресток устройство
+	Dgis         string         `json:"dgis"`    //Координаты перекрестка
 	ConType      string         `json:"contype"` //Тип соединения устройства
 	NumDev       int            `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
 	Name         string         `json:"name"`

@@ -83,8 +83,27 @@ func SetCross(c *Cross) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
-	c.WriteToDB = true
-	crosses[reg.ToKey()] = c
+	insert := false
+	_, is := crosses[reg.ToKey()]
+	if !is {
+		insert = true
+		c.WriteToDB = false
+		crosses[reg.ToKey()] = c
+	}
+	if insert {
+		js, _ := json.Marshal(c)
+		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(%d,%d,%d,%d,point(%s),'%s',%d,'%s');",
+			c.Region, c.Area, c.SubArea, c.ID, c.Dgis, c.Name, c.IDevice, string(js))
+		_, err = conCross.Exec(w)
+
+		if err != nil {
+			logger.Error.Printf("Error %s  %s\n", w, err.Error())
+			return
+		}
+	} else {
+		c.WriteToDB = true
+		crosses[reg.ToKey()] = c
+	}
 	return
 }
 
@@ -98,10 +117,9 @@ func SetController(c *Controller) {
 		insert = true
 		controllers[c.ID] = c
 	}
-	js, _ := json.Marshal(c)
 	if insert {
+		js, _ := json.Marshal(c)
 		c.WriteToDB = false
-		controllers[c.ID] = c
 		w := "insert into " + setup.Set.Pudge.TableSave + " (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
 		_, err := conDBSave.Exec(w)
 		if err != nil {
