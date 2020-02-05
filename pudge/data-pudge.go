@@ -349,50 +349,10 @@ func SetDefault(c *Controller, key string) {
 	c.LastOperation = time.Unix(0, 0)
 	c.TexRezim = 1
 	c.Base = true
-	c.PK = 0
-	c.CK = 0
-	c.NK = 0
-	var cc StatusCommandDU
-	cc.IsPK = false
-	cc.IsPKS = false
-	cc.IsNK = false
-	c.StatusCommandDU = cc
-	var dk DK
-	dk.RDK = 1
-	dk.FDK = 1
-	dk.DDK = 2
-	dk.EDK = 0
-	dk.PDK = false
-	dk.EEDK = 0
-	dk.ODK = false
-	dk.LDK = 0
-	dk.FTUDK = 1
-	dk.TDK = 10
-	dk.TTCDK = 20
-	c.DK = dk
-	c.TMax = 0
 	var m Model
 	m.VPCPD = 3075
 	m.VPBS = 264
-	m.C12 = true
-	m.STP = true
-	m.DKA = true
-	m.DTA = true
 	c.Model = m
-	var er ErrorDevice
-	er.V220DK1 = false
-	er.V220DK2 = false
-	er.RTC = false
-	er.TVP1 = false
-	er.TVP2 = false
-	er.FRAM = false
-	c.Error = er
-	var gps GPS
-	gps.Ok = true
-	c.GPS = gps
-	var input Input
-	input.V1 = false
-	c.Input = input
 	c.Statistics = make([]Statistic, 0)
 	c.Arrays = make([]ArrayPriv, 0)
 	c.LogLines = make([]LogLine, 0)

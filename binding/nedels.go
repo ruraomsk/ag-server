@@ -5,44 +5,44 @@ import (
 	"reflect"
 )
 
-//NedelSets все недельные планы
-type NedelSets struct {
-	NedelSets []OneNedel `json:"nsets"`
+//WeekSets все недельные планы
+type WeekSets struct {
+	WeekSets []OneWeek `json:"wsets"`
 }
 
 //Compare сравнивание истина если равны
-func (ns *NedelSets) Compare(nn *NedelSets) bool {
+func (ns *WeekSets) Compare(nn *WeekSets) bool {
 	return reflect.DeepEqual(ns, nn)
 }
 
 //FromBuffer загружает недельный массив из буфера
-func (ns *NedelSets) FromBuffer(buffer []int) error {
-	n, err := nedelFromBuffer(buffer)
+func (ns *WeekSets) FromBuffer(buffer []int) error {
+	n, err := weekFromBuffer(buffer)
 	if err != nil {
 		return err
 	}
-	ns.NedelSets[n.Number-1] = *n
+	ns.WeekSets[n.Number-1] = *n
 	return nil
 }
 
 //NewNedelSets создает новый набор недельных карт
-func NewNedelSets() *NedelSets {
-	r := new(NedelSets)
-	r.NedelSets = make([]OneNedel, 12)
-	for index := 0; index < len(r.NedelSets); index++ {
-		r.NedelSets[index] = *newOneNedel(index + 1)
+func NewWeekSets() *WeekSets {
+	r := new(WeekSets)
+	r.WeekSets = make([]OneWeek, 12)
+	for index := 0; index < len(r.WeekSets); index++ {
+		r.WeekSets[index] = *newOneWeek(index + 1)
 	}
 	return r
 }
 
-//OneNedel Одна строка недельных планов
-type OneNedel struct {
+//OneWeek Одна строка недельных планов
+type OneWeek struct {
 	Number int   `json:"num"`
 	Days   []int `json:"days"`
 }
 
-func newOneNedel(number int) *OneNedel {
-	r := new(OneNedel)
+func newOneWeek(number int) *OneWeek {
+	r := new(OneWeek)
 	r.Number = number
 	r.Days = make([]int, 7)
 	for index := 0; index < len(r.Days); index++ {
@@ -52,7 +52,7 @@ func newOneNedel(number int) *OneNedel {
 }
 
 //IsEmpty возвращает истину если данный недельный массив пустой
-func (nm *OneNedel) IsEmpty() bool {
+func (nm *OneWeek) IsEmpty() bool {
 	for _, d := range nm.Days {
 		if d != 0 {
 			return false
@@ -62,7 +62,7 @@ func (nm *OneNedel) IsEmpty() bool {
 }
 
 //ToBuffer переводит из недельного массива в буфер кодов
-func (nm *OneNedel) ToBuffer() []int {
+func (nm *OneWeek) ToBuffer() []int {
 	r := make([]int, 12)
 	r[0] = nm.Number + 44
 	r[1] = 0
@@ -76,7 +76,7 @@ func (nm *OneNedel) ToBuffer() []int {
 }
 
 //nedelFromBuffer переводит из массива кодов в недельный массив
-func nedelFromBuffer(buffer []int) (*OneNedel, error) {
+func weekFromBuffer(buffer []int) (*OneWeek, error) {
 	if len(buffer) != 12 {
 		return nil, fmt.Errorf("неверная длина массива")
 	}
@@ -86,7 +86,7 @@ func nedelFromBuffer(buffer []int) (*OneNedel, error) {
 	if buffer[0]-44 <= 0 || buffer[0]-44 > 12 {
 		return nil, fmt.Errorf("неверный номер массива")
 	}
-	nm := newOneNedel(buffer[4])
+	nm := newOneWeek(buffer[4])
 	for index := 0; index < len(nm.Days); index++ {
 		nm.Days[index] = buffer[5+index]
 	}

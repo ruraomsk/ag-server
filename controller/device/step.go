@@ -32,7 +32,7 @@ func (dev *Device) oneStep() {
 	day := time.Now().Day()
 	w := time.Now().Weekday()
 	n := dev.Arrays.MonthSets.MonthSets[month-1].Days[day-1]
-	nn := dev.Arrays.NedelSets.NedelSets[n-1].Days[w-1]
+	nn := dev.Arrays.WeekSets.WeekSets[n-1].Days[w-1]
 	find := false
 	for _, sk := range dev.Arrays.DaySets.DaySets {
 		if sk.Number == nn {
@@ -55,7 +55,7 @@ func (dev *Device) oneStep() {
 		}
 	}
 	if !find {
-		logger.Error.Printf("id %d не найдена суточная карта n=%d nn=%d w=%d %v", dev.ID, n, nn, w, dev.Arrays.NedelSets)
+		logger.Error.Printf("id %d не найдена суточная карта n=%d nn=%d w=%d %v", dev.ID, n, nn, w, dev.Arrays.WeekSets)
 	}
 	dev.Controller.PK = dev.PK
 	dev.Controller.CK = dev.CK
@@ -65,4 +65,7 @@ func (dev *Device) oneStep() {
 	dev.Controller.StatusCommandDU.IsPK = true
 	dev.Controller.StatusCommandDU.IsPKS = true
 	dev.Controller.TexRezim = 8
+	dev.Controller.DK.DDK = 11
+	dev.Controller.DK.FDK = 1
+	dev.Controller.DK.RDK = 11
 }

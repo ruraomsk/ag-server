@@ -254,7 +254,7 @@ func loadCross(region int, nfile string) error {
 			}
 			if sint[0] >= 45 && sint[0] <= 56 {
 				//Недельные массивы
-				err = state.Arrays.NedelSets.FromBuffer(sint)
+				err = state.Arrays.WeekSets.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					return err

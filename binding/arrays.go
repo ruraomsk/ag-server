@@ -11,7 +11,7 @@ type Arrays struct {
 	SetupDK    SetupDK
 	SetDK      SetDK
 	MonthSets  MonthSets
-	NedelSets  NedelSets
+	WeekSets   WeekSets
 	DaySets    DaySets
 	SetCtrl    SetCtrl
 	SetTimeUse SetTimeUse
@@ -30,7 +30,7 @@ func NewArrays() *Arrays {
 	r.SetupDK = *NewSetupDK()
 	r.SetDK = *NewSetDK()
 	r.MonthSets = *NewYearSets()
-	r.NedelSets = *NewNedelSets()
+	r.WeekSets = *NewWeekSets()
 	r.DaySets = *NewDaySet()
 	r.SetCtrl = *NewSetCtrl()
 	r.SetTimeUse = *NewSetTimeUse()
@@ -48,10 +48,10 @@ func (ar *Arrays) IsCorrect() error {
 		// 	continue
 		// }
 		for _, d := range ms.Days {
-			if ar.NedelSets.NedelSets[d-1].IsEmpty() {
+			if ar.WeekSets.WeekSets[d-1].IsEmpty() {
 				return fmt.Errorf("в месяце %d нет такой недели %d", ms.Number, d)
 			}
-			for _, on := range ar.NedelSets.NedelSets[d-1].Days {
+			for _, on := range ar.WeekSets.WeekSets[d-1].Days {
 				find := false
 				for _, od := range ar.DaySets.DaySets {
 					if od.Number == on {
@@ -117,7 +117,7 @@ func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 		}
 	case 8:
 		buffer[0] = 44 + buffer[4]
-		return ar.NedelSets.FromBuffer(buffer)
+		return ar.WeekSets.FromBuffer(buffer)
 	case 137:
 		buffer[0] = 64 + buffer[4]
 		return ar.DaySets.FromBuffer(buffer)

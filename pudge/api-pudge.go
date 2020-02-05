@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/setup"
-	"math/rand"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/setup"
 
 	_ "github.com/lib/pq"
 )
@@ -117,7 +117,6 @@ func SetController(c *Controller) {
 //Start главная процедура управления состоянием котроллеров
 func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan string) {
 	// Создаем каналы и переменные
-	rand.Seed(int64(1234))
 	Works = false
 	defer mutex.Unlock()
 	controllers = make(map[int]*Controller)
@@ -163,7 +162,6 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 			if time.Now().Sub(tim) > time.Duration(setup.Set.Pudge.StepSave)*time.Second {
 				logger.Info.Println("Добавьте время для обновления БД")
 			}
-			// logger.Info.Println("timer")
 			setStatusCross()
 			saveDBase()
 		case <-context.Done():

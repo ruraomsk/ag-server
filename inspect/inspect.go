@@ -142,7 +142,7 @@ func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 			r = appBuffer(r, buffer)
 		}
 	}
-	for _, ns := range cr.Arrays.NedelSets.NedelSets { //
+	for _, ns := range cr.Arrays.WeekSets.WeekSets { //
 		if !ns.IsEmpty() {
 			buffer := ns.ToBuffer()
 			r = appBuffer(r, buffer)
