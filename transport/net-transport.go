@@ -1,10 +1,11 @@
 package transport
 
 import (
-	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/setup"
 	"net"
 	"time"
+
+	"github.com/ruraomsk/ag-server/logger"
+	"github.com/ruraomsk/ag-server/setup"
 )
 
 //GetMessagesFromDevice принять сообщение
@@ -77,7 +78,7 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 		buf2 := make([]byte, buf[12]+2)
 		n, err = socket.Read(buf2)
 		if err == nil && n != len(buf2) {
-			logger.Error.Printf("при чтении сообщения от сервера %s %s", socket.RemoteAddr().String(), err.Error())
+			logger.Error.Printf("при чтении сообщения от сервера %s прочитано неверно", socket.RemoteAddr().String())
 			return
 		}
 		if err != nil {

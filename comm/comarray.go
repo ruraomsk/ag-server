@@ -71,9 +71,10 @@ func workerCommand(soc net.Conn) {
 func workerArray(soc net.Conn) {
 	defer soc.Close()
 	var state pudge.Cross
+	logger.Info.Printf("Новый клиент массивов %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	for {
-		a, err := reader.ReadString(0)
+		a, err := reader.ReadString('\n')
 		if err != nil {
 			logger.Error.Println("При чтении привязки от сервера АРМ ", err.Error())
 			return
@@ -93,6 +94,7 @@ func workerArray(soc net.Conn) {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.Region, state.Area, state.ID)
 		}
+		// logger.Info.Printf("Write status %v", state)
 		pudge.SetCross(&state)
 	}
 

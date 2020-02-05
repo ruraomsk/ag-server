@@ -10,7 +10,7 @@ type SetupDK struct {
 	DKNum    int  `json:"dkn"`     //Номер ДК
 	TMaxF    int  `json:"tmaxf"`   //Максимальное время ожидания смены фаз
 	TMinF    int  `json:"tminf"`   //Минимальное время ожидания смены фаз
-	TmaxTmin int  `json:"tmaimax"` // Максимальное время ожидания включения фазы
+	TmaxTmin int  `json:"tminmax"` // Максимальное время ожидания включения фазы
 	DKType   int  `json:"dktype"`  //Тип ДК
 	ExtNum   int  `json:"extn"`    //Внешний номер ДК
 	Tprom    int  `json:"tprom"`   //Максимальное время промежуточного такта
