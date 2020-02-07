@@ -67,6 +67,7 @@ main:
 				flagError = 1
 				count++
 			}
+
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}

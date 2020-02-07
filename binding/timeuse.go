@@ -128,7 +128,7 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 				}
 				mask = mask << 1
 			}
-			strings.TrimSuffix(fazes, ",")
+			fazes = strings.TrimSuffix(fazes, ",")
 			j := 0
 			if len(s.Uses) > 8 {
 				j = i
@@ -230,6 +230,9 @@ func makeElem(r []int, pos int, ss Use) []int {
 			continue
 		}
 		f, _ := strconv.Atoi(ff)
+		if f == 0 {
+			continue
+		}
 		f--
 		r[pos+1] |= 1 << f
 	}

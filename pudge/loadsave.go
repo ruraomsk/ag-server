@@ -62,8 +62,9 @@ func loadCrosees() error {
 		c.ID = id
 		c.IDevice = idevice
 		c.Name = describ
-		c.StatusDevice = 17
-		c.WriteToDB = false
+		c.StatusDevice = 18
+		c.WriteToDB = true
+
 		reg := Region{Region: region, Area: area, ID: id}
 		crosses[reg.ToKey()] = c
 	}
@@ -85,7 +86,7 @@ func loadControllers() error {
 		if err != nil {
 			return err
 		}
-		c.WriteToDB = false
+		c.WriteToDB = true
 		c.StatusConnection = NotConnected
 		controllers[id] = c
 	}

@@ -214,6 +214,8 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 		case <-timer.C:
 			if !statusIn || !statusOut {
+				ctrl.StatusConnection = pudge.NotConnected
+				pudge.SetController(ctrl)
 				logger.Error.Printf("not in or out ")
 				return
 			}

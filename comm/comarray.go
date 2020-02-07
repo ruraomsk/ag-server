@@ -13,7 +13,6 @@ import (
 
 func listenArmCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortCommand))
-
 	if err != nil {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
@@ -48,6 +47,7 @@ func listenArmArray() {
 func workerCommand(soc net.Conn) {
 	defer soc.Close()
 	var command CommandARM
+	logger.Info.Printf("Новый клиент комманд %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	for {
 		c, err := reader.ReadString('\n')
@@ -65,6 +65,7 @@ func workerCommand(soc net.Conn) {
 			logger.Error.Printf("Команда сервера АРМ нет такого id %d", command.ID)
 			continue
 		}
+		logger.Info.Println("Команда %v", command)
 		dev.CommandARM <- command
 	}
 }

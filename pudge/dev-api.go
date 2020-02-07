@@ -123,6 +123,13 @@ func (cc *Controller) calcStatus() int {
 	dev := cc.codeDevice()
 	lamp := cc.lamps()
 	door := cc.doors()
+	// if cc.LastOperation
+	if !cc.IsConnected() {
+		return 18
+	}
+	if cc.Base {
+		return 23
+	}
 	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) && lamp == 0 && door == 0 {
 		//Координированное управление 1
 		return 1
