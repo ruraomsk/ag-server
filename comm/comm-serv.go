@@ -39,8 +39,8 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 		time.Sleep(1 * time.Second)
 	}
 
-	// //Запускаем слушателя для команд от АРМ
-	// go listenArmCommand()
+	//Запускаем слушателя для команд от АРМ
+	go listenArmCommand()
 	// //Запускаем слушателя для массивов привязки от АРМ
 	go listenArmArray()
 	count := 0
@@ -472,7 +472,7 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 		//Диспетчерское управление ДК2
 		ms.Set0x0AServer(comARM.Params)
 	default:
-		return hs, fmt.Errorf("Неверная команда от АРМ для %d user %d %x ", dd.id, comARM.UserID, comARM.Command)
+		return hs, fmt.Errorf("Неверная команда от АРМ для %d  %x ", dd.id, comARM.Command)
 	}
 	mss = append(mss, ms)
 	hs.UpackMessages(mss)

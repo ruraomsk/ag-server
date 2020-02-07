@@ -7,7 +7,6 @@ import (
 //CommandARM Команды от Сервера АРМ
 type CommandARM struct {
 	ID      int `json:"id"`
-	UserID  int `json:"user"`
 	Command int `json:"cmd"`
 	Params  int `json:"param"`
 }

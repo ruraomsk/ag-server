@@ -47,6 +47,8 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	}
 }
 func oneCross(reg pudge.Region) {
+	flagError := 0
+	count := 0
 	// logger.Info.Printf("запустили инспектора %v", reg)
 main:
 	for {
@@ -60,13 +62,21 @@ main:
 		dev, is := pudge.GetController(cr.IDevice)
 		if !is {
 			//Контроллер не выходил на связь проверим через минуту
-			logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
+			if flagError != 1 || count%100 == 0 {
+				logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
+				flagError = 1
+				count++
+			}
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
 		if !dev.IsConnected() {
 			//Контроллер не на связи проверим через минуту
-			logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
+			if flagError != 2 || count%100 == 0 {
+				logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
+				flagError = 2
+				count++
+			}
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
@@ -101,6 +111,8 @@ main:
 		// logger.Info.Printf("все совпало %v", reg)
 		// pudge.SetController(dev)
 		time.Sleep(time.Duration(10 * time.Second))
+		flagError = 0
+		count = 0
 	}
 }
 func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {

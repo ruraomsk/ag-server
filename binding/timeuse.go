@@ -124,10 +124,11 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 			mask := 1
 			for j := 1; j < 9; j++ {
 				if buffer[pos+1]&mask != 0 {
-					fazes += strconv.Itoa(j) + " "
+					fazes += strconv.Itoa(j) + ","
 				}
 				mask = mask << 1
 			}
+			strings.TrimSuffix(fazes, ",")
 			j := 0
 			if len(s.Uses) > 8 {
 				j = i
@@ -223,7 +224,7 @@ func makeElem(r []int, pos int, ss Use) []int {
 	if ss.Tvps == 2 {
 		r[pos] |= 2
 	}
-	fs := strings.Split(ss.Fazes, " ")
+	fs := strings.Split(ss.Fazes, ",")
 	for _, ff := range fs {
 		if len(ff) == 0 {
 			continue

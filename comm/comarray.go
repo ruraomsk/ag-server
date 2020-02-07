@@ -50,7 +50,7 @@ func workerCommand(soc net.Conn) {
 	var command CommandARM
 	reader := bufio.NewReader(soc)
 	for {
-		c, err := reader.ReadString(0)
+		c, err := reader.ReadString('\n')
 		if err != nil {
 			logger.Error.Println("При чтении команд сервера АРМ ", err.Error())
 			return
