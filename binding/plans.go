@@ -26,7 +26,7 @@ type SetPk struct {
 	TypePU     int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
 	RazLen     bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
 	Tc         int     `json:"tc"`         //Время цикла программы
-	Shift      int     `json:"Shift"`      //Сдвиг начала цикла
+	Shift      int     `json:"shift"`      //Сдвиг начала цикла
 	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
 	LastNumber int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
 	TwoT       bool    `json:"twot"`       //Признак 2Т
