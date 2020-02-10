@@ -26,7 +26,7 @@ type SetPk struct {
 	TypePU     int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
 	RazLen     bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
 	Tc         int     `json:"tc"`         //Время цикла программы
-	shift      int     `json:"shift"`      //Сдвиг начала цикла
+	Shift      int     `json:"Shift"`      //Сдвиг начала цикла
 	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
 	LastNumber int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
 	TwoT       bool    `json:"twot"`       //Признак 2Т
@@ -81,7 +81,7 @@ func (sd *SetDK) IsEmpty(dk, pk int) bool {
 }
 func isEmpty(set []SetPk, p int) bool {
 	pk := set[p-1]
-	// if pk.Tc != 0 || pk.shift != 0 || pk.TypePU != 0 {
+	// if pk.Tc != 0 || pk.Shift != 0 || pk.TypePU != 0 {
 	// 	return false
 	// }
 	for _, st := range pk.Stages {
@@ -128,7 +128,7 @@ func (st *SetPk) ToBuffer() []int {
 		l++
 	}
 	r[8] = 192 + l
-	if st.shift != 0 {
+	if st.Shift != 0 {
 		r[9] += 16 //Есть переход фаз
 		r[8]++
 	}
@@ -148,7 +148,7 @@ func (st *SetPk) ToBuffer() []int {
 		r[9] += 8
 	}
 	pos := 10
-	if st.shift != 0 {
+	if st.Shift != 0 {
 		//Есть сдвиг формируем запись сдвига
 		//Находим последнюю фазу
 		r[pos] = st.LastNumber
@@ -171,7 +171,7 @@ func (st *SetPk) ToBuffer() []int {
 			r[pos] += 16 //  7 - Зам
 		}
 		pos++
-		r[pos] = st.shift
+		r[pos] = st.Shift
 		pos++
 	}
 	for _, s := range st.Stages {
@@ -242,10 +242,10 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		st.DK = 1
 	}
 	st.Tc = buffer[5]
-	shift := false
+	Shift := false
 	if buffer[9]&16 != 0 {
 		//есть переход фаз нужно читать сдвиг
-		shift = true
+		Shift = true
 	}
 	if buffer[9]&128 != 0 {
 		st.TypePU = 1
@@ -318,25 +318,25 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		ss[n].Len = buffer[pos]
 		pos++
 	}
-	if shift {
-		st.shift = -1
+	if Shift {
+		st.Shift = -1
 		//Если есть сдвиг то первая фаза не простая задает сдвиг
 		for _, s := range ss {
 			if s.Tf != 0 {
-				st.shift = s.Len
+				st.Shift = s.Len
 				break
 			}
 		}
-		if st.shift < 0 {
+		if st.Shift < 0 {
 			//Все фазы простые берем первую
-			st.shift = ss[0].Len
+			st.Shift = ss[0].Len
 		}
 	}
 	//Перекатываем в Stage
-	start := st.shift
+	start := st.Shift
 	j := 0
 	for n := range ss {
-		if shift && n == 0 {
+		if Shift && n == 0 {
 			st.LastType = ss[n].Tf
 			st.LastNumber = ss[n].Number
 			continue
