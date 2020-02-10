@@ -140,6 +140,9 @@ func newConnect(soc net.Conn, stop chan int) {
 	devs[dd.id] = dd
 	mutex.Unlock()
 	updateController(ctrl, &hDev)
+	if ctrl.Base {
+		ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+	}
 	pudge.SetController(ctrl)
 	//Подтвердим что клиент прописан
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
@@ -194,14 +197,19 @@ func newConnect(soc net.Conn, stop chan int) {
 		select {
 		case hDev = <-hin:
 			if !statusIn || !statusOut {
-				logger.Error.Printf("not in or out ")
+				ctrl.StatusConnection = pudge.NotConnected
+				pudge.SetController(ctrl)
+				logger.Error.Printf("Устройство %d связь потеряна", dd.id)
 				return
 			}
 			// if hDev.ID == 496932 {
 			// 	logger.Info.Printf("ingo %v", hDev)
 			// }
-
+			lastBase := ctrl.Base
 			hs, need := updateController(ctrl, &hDev)
+			if ctrl.Base && !lastBase {
+				ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+			}
 			pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
 				hout <- hs
@@ -216,7 +224,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			if !statusIn || !statusOut {
 				ctrl.StatusConnection = pudge.NotConnected
 				pudge.SetController(ctrl)
-				logger.Error.Printf("not in or out ")
+				logger.Error.Printf("Устройство %d связь потеряна", dd.id)
 				return
 			}
 			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead || !statusIn {
@@ -294,7 +302,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
-	c.StatusConnection = pudge.Connected
+	// c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	if hDev.Number != 0 {

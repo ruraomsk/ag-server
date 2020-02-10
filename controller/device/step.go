@@ -32,6 +32,10 @@ func (dev *Device) oneStep() {
 	day := time.Now().Day()
 	w := time.Now().Weekday()
 	n := dev.Arrays.MonthSets.MonthSets[month-1].Days[day-1]
+	if w == 0 || n == 0 {
+		logger.Error.Printf("n=%d w=%d", n, w)
+		return
+	}
 	nn := dev.Arrays.WeekSets.WeekSets[n-1].Days[w-1]
 	find := false
 	for _, sk := range dev.Arrays.DaySets.DaySets {
