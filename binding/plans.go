@@ -68,6 +68,9 @@ func NewSetPk(pk int) SetPk {
 	r.DK = 1
 	r.Pk = pk
 	r.Stages = make([]Stage, 12)
+	for n := range r.Stages {
+		r.Stages[n].Nline = n + 1
+	}
 	return *r
 }
 
@@ -347,7 +350,13 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		st.Stages[j].Tf = ss[n].Tf
 		st.Stages[j].Len = ss[n].Len
 		start += ss[n].Len
+		if st.Stages[j].Tf == 0 && st.Stages[j].Len == 0 && st.Stages[j].Number == 0 {
+			st.Stages[j].Start = 0
+		}
 		j++
+	}
+	if Shift {
+		st.Stages[11].Nline = 12
 	}
 	return nil
 }

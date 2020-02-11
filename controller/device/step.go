@@ -20,12 +20,12 @@ func (dev *Device) oneStep() {
 	}
 	err := dev.Arrays.IsCorrect()
 	if err != nil {
-		logger.Error.Printf("id %d %s", dev.ID, err.Error())
+		// logger.Error.Printf("id %d %s", dev.ID, err.Error())
 		return
 	}
 	if dev.Controller.Base {
 		dev.Controller.Base = false
-		// logger.Debug.Printf("id %d перешел в режим", dev.ID)
+		logger.Debug.Printf("id %d перешел в режим управления", dev.ID)
 	}
 
 	month := time.Now().Month()

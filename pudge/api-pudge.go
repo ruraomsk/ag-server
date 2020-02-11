@@ -33,6 +33,10 @@ func GetCross(region, area, id int) (Cross, bool) {
 	defer mutex.Unlock()
 	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
+	if !is {
+		cc := new(Cross)
+		return *cc, is
+	}
 	return *c, is
 }
 
@@ -54,6 +58,21 @@ func getNameCross(idevice int) string {
 		}
 	}
 	return ""
+}
+
+//DeleteCross Удаляет перекресток
+func DeleteCross(region, area, id int) {
+	mutex.Lock()
+	reg := Region{Region: region, Area: area, ID: id}
+	delete(crosses, reg.ToKey())
+	mutex.Unlock()
+	w := fmt.Sprintf("DELETE FROM public.\"cross\" WHERE region=%d and area=%d and id=%d;", region, area, id)
+	_, err = conCross.Exec(w)
+
+	if err != nil {
+		logger.Error.Printf("Error %s  %s\n", w, err.Error())
+	}
+	return
 }
 
 //GetController возвращает копию Контроллера

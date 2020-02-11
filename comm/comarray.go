@@ -85,6 +85,18 @@ func workerArray(soc net.Conn) {
 			logger.Error.Println("При конвератации привязки сервера АРМ ", err.Error())
 			continue
 		}
+		if state.IDevice < 0 {
+			//Удаление перекрестка
+			_, is := pudge.GetCross(state.Region, state.Area, state.ID)
+			if !is {
+				//Перекрестка нет
+				logger.Info.Printf("Попытка удаления удаленного перекрестка %d %d %d", state.Region, state.Area, state.ID)
+				continue
+			}
+			logger.Debug.Printf("Удаление перекрестка %d %d %d", state.Region, state.Area, state.ID)
+			pudge.DeleteCross(state.Region, state.Area, state.ID)
+			continue
+		}
 		_, is := devs[state.IDevice]
 		if !is {
 			logger.Error.Printf("Команда привязки сервера АРМ нет такого id %d", state.IDevice)
