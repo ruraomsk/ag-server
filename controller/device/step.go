@@ -8,6 +8,9 @@ import (
 
 func (dev *Device) oneStep() {
 	//Выполняем работу устройства
+	if dev.ExtCtrl {
+		return
+	}
 	if len(dev.Controller.Arrays) == 0 {
 		return
 	}
@@ -25,7 +28,7 @@ func (dev *Device) oneStep() {
 	}
 	if dev.Controller.Base {
 		dev.Controller.Base = false
-		logger.Debug.Printf("id %d перешел в режим управления", dev.ID)
+		logger.Info.Printf("id %d перешел в режим управления", dev.ID)
 	}
 
 	month := time.Now().Month()

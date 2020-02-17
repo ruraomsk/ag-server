@@ -346,7 +346,9 @@ func SetDefault(c *Controller, key string) {
 	}
 	c.Name = cr.Name
 	c.ID = cr.IDevice
-
+	c.NK = 1
+	c.PK = 1
+	c.CK = 1
 	c.LastOperation = time.Unix(0, 0)
 	c.TexRezim = 1
 	c.Base = true

@@ -43,6 +43,7 @@ type Device struct {
 	context      *extcon.ExtContext
 	LogInts      []LogInt
 	Random       bool
+	ExtCtrl      bool              //Внешнее управление
 	PK           int               `json:"pk"`     //Номер плана координации
 	CK           int               `json:"ck"`     //Номер суточной карты
 	NK           int               `json:"nk"`     //Номер недельной карты
@@ -238,18 +239,44 @@ func (d *Device) updateDevice() {
 			//Запрос на смену фаз
 			bb := ms.Get0x04Server()
 			d.dk1 = bb[0]
+			d.needAns = append(d.needAns, -1)
 		case 0x05:
 			//Запрос смена плана координации
-			d.Controller.PK = ms.Get0x05Server()
+			if ms.Get0x05Server() == 0 {
+				d.ExtCtrl = false
+			} else {
+				d.Controller.PK = ms.Get0x05Server()
+				d.PK = d.Controller.PK
+				d.ExtCtrl = true
+			}
+			d.needAns = append(d.needAns, -1)
 		case 0x06:
 			//Смена суточной карты
-			d.Controller.CK = ms.Get0x06Server()
+			if ms.Get0x06Server() == 0 {
+				d.ExtCtrl = false
+			} else {
+				d.Controller.CK = ms.Get0x06Server()
+				d.CK = d.Controller.CK
+				d.ExtCtrl = true
+
+			}
+			d.needAns = append(d.needAns, -1)
 		case 0x07:
 			//Смена недельной карты
-			d.Controller.NK = ms.Get0x06Server()
+			if ms.Get0x06Server() == 0 {
+				d.ExtCtrl = false
+
+			} else {
+				d.Controller.NK = ms.Get0x06Server()
+				d.NK = d.Controller.NK
+				d.ExtCtrl = true
+			}
+			logger.Debug.Printf("id %d nk=%d", d.ID, d.CK)
+			d.needAns = append(d.needAns, -1)
 		case 0x09:
 			//Режим работы ДК1
 			d.Controller.DK.RDK = ms.Get0x09Server()
+			d.needAns = append(d.needAns, -1)
 		// case 0x0A:
 		// 	//Режим работы ДК2
 		// 	d.Controller.DK.RDK = ms.Get0x0AServer()

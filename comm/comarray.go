@@ -65,8 +65,16 @@ func workerCommand(soc net.Conn) {
 			logger.Error.Printf("Команда сервера АРМ нет такого id %d", command.ID)
 			continue
 		}
-		logger.Info.Println("Команда %v", command)
-		dev.CommandARM <- command
+		logger.Info.Printf("Команда %v", command)
+		if command.Command == 1 {
+			//Принудительная отправка всех массивов
+			ctrl, _ := pudge.GetController(command.ID)
+			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+			pudge.SetController(ctrl)
+			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
+		} else {
+			dev.CommandARM <- command
+		}
 	}
 }
 func workerArray(soc net.Conn) {

@@ -3,15 +3,16 @@ package controller
 import (
 	"database/sql"
 	"fmt"
+	"runtime"
+	"sync"
+	"time"
+
 	"github.com/ruraomsk/ag-server/controller/device"
 	"github.com/ruraomsk/ag-server/controller/gui"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
-	"runtime"
-	"sync"
-	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -50,6 +51,10 @@ func getController(id int, rq chan int, ans chan string) *pudge.Controller {
 	}
 	ctrl = c
 	ctrl.Base = true
+	ctrl.CK = 1
+	ctrl.NK = 1
+	ctrl.PK = 1
+
 	return ctrl
 }
 
@@ -95,6 +100,9 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 			logger.Error.Printf("нет такого ID на перекрестках %d", dev.ID)
 			continue
 		}
+		dev.CK = 1
+		dev.NK = 1
+		dev.PK = 1
 		device.Devs[dev.ID] = dev
 		go dev.StartDevice()
 		count++

@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/ruraomsk/ag-server/pudge"
-	"github.com/ruraomsk/ag-server/transport"
 	"testing"
 	"time"
+
+	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/transport"
 )
 
 var sb transport.SubMessage
@@ -129,5 +130,17 @@ func Test_0x1CD(t *testing.T) {
 	if a1 != 111 {
 		t.Errorf("Ошибка %d ", a1)
 
+	}
+}
+func Test_0x0FD(t *testing.T) {
+	c := new(pudge.Controller)
+	c.PK = 1
+	c.NK = 2
+	c.CK = 3
+	sb.Set0x0FDevice(c)
+	cc := new(pudge.Controller)
+	sb.Get0x0FDevice(cc)
+	if !c.Compare(cc) {
+		t.Errorf("Не равно \n%v \n%v", c, cc)
 	}
 }

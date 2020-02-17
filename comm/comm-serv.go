@@ -422,6 +422,12 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
 			}
+		case 0x1B:
+			//Состояние ПСБ V1 перелается с адресом отправителя 0x7F
+			//Ничего пока не делаем
+		case 0x1C:
+			//Состояние подтверждения перелается с адресом отправителя 0x7F
+			//Ничего пока не делаем
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
 			return hs, false
