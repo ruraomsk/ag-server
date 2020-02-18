@@ -55,6 +55,10 @@ func workerCommand(soc net.Conn) {
 			logger.Error.Println("При чтении команд сервера АРМ ", err.Error())
 			return
 		}
+		if c[0:1] == "0" {
+			// logger.Info.Println("Keep alive")
+			continue
+		}
 		err = json.Unmarshal([]byte(c), &command)
 		if err != nil {
 			logger.Error.Println("При конвератации команд сервера АРМ ", err.Error())
@@ -88,6 +92,10 @@ func workerArray(soc net.Conn) {
 			logger.Error.Println("При чтении привязки от сервера АРМ ", err.Error())
 			return
 		}
+		if a[0:1] == "0" {
+			// logger.Info.Println("Keep alive")
+			continue
+		}
 		err = json.Unmarshal([]byte(a), &state)
 		if err != nil {
 			logger.Error.Println("При конвератации привязки сервера АРМ ", err.Error())
@@ -105,12 +113,12 @@ func workerArray(soc net.Conn) {
 			pudge.DeleteCross(state.Region, state.Area, state.ID)
 			continue
 		}
-		_, is := devs[state.IDevice]
-		if !is {
-			logger.Error.Printf("Команда привязки сервера АРМ нет такого id %d", state.IDevice)
-			continue
-		}
-		_, is = pudge.GetCross(state.Region, state.Area, state.ID)
+		// _, is := devs[state.IDevice]
+		// if !is {
+		// 	logger.Error.Printf("Команда привязки сервера АРМ нет такого id %d", state.IDevice)
+		// 	continue
+		// }
+		_, is := pudge.GetCross(state.Region, state.Area, state.ID)
 		if !is {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.Region, state.Area, state.ID)

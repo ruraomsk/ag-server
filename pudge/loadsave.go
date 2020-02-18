@@ -132,7 +132,7 @@ func saveCrosees() error {
 		}
 		js, _ := json.Marshal(c)
 		_, err = conCross.Exec("update  " + setup.Set.Pudge.TableCross +
-			" set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "' where region=" +
+			" set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "',describ='" + c.Name + "',dgis='" + c.Dgis + "' where region=" +
 			strconv.Itoa(c.Region) + " and id=" + strconv.Itoa(c.ID) + " and area=" + strconv.Itoa(c.Area) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to cross %s", err.Error())
