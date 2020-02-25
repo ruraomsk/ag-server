@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-//TimeDevice все месячные планы
+//TimeDevice Описание времени устройства
 type TimeDevice struct {
 	TimeZone int  `json:"tz"`     //Смещение от Гринвича
 	Summer   bool `json:"summer"` // Есть ди переход на летнее время
@@ -16,14 +16,14 @@ func (td *TimeDevice) Compare(tt *TimeDevice) bool {
 	return reflect.DeepEqual(td, tt)
 }
 
-//NewTimeDevice создает новый набор месячных карт
+//NewTimeDevice создает новое описание времени устройства
 func NewTimeDevice() *TimeDevice {
 	r := new(TimeDevice)
 	r.TimeZone = 6
 	return r
 }
 
-//FromBuffer переводит из массива кодов в структуру1
+//FromBuffer переводит из массива кодов в структуру
 func (td *TimeDevice) FromBuffer(buffer []int) error {
 	if len(buffer) != 9 {
 		return fmt.Errorf("неверная длина массива")
@@ -50,7 +50,7 @@ func (td *TimeDevice) IsEmpty() bool {
 	return true
 }
 
-//ToBuffer переводит из недельного массива в буфер кодов
+//ToBuffer переводит из структуры в буфер кодов
 func (td *TimeDevice) ToBuffer() []int {
 	r := make([]int, 9)
 	r[0] = 21

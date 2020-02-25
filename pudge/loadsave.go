@@ -88,6 +88,10 @@ func loadControllers() error {
 		}
 		c.WriteToDB = true
 		c.StatusConnection = NotConnected
+		_, is := controllers[id]
+		if is {
+			logger.Error.Printf("Дубликатный id  устройства %d", id)
+		}
 		controllers[id] = c
 	}
 	return nil

@@ -1,5 +1,8 @@
 package inspect
 
+//Тут производится анализ правильности заполнения файлов привязки в контроллере
+//и если не совпадает с перекрестком то записывается в контроллер
+
 import (
 	"time"
 
@@ -12,8 +15,6 @@ import (
 var croses map[string]pudge.Region
 
 //Start главный модуль инспектора
-//Тут производится анализ правильности заполнения файлов привязки в контроллере
-//и если не совпадает с перекрестком то записывается в контроллер
 func Start(context *extcon.ExtContext, stop chan int) {
 	// time.Sleep(1 * time.Minute)
 	listCross := pudge.GetCrosses()

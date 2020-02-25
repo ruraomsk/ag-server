@@ -122,6 +122,7 @@ func workerArray(soc net.Conn) {
 		if !is {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.Region, state.Area, state.ID)
+			state.StatusDevice = 18
 		}
 		// logger.Info.Printf("Write status %v", state)
 		pudge.SetCross(&state)

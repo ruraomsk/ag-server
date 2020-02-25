@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-//DaySets все недельные планы
+//DaySets все суточные планы
 type DaySets struct {
 	DaySets []*OneDay `json:"daysets"`
 }

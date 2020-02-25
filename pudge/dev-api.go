@@ -128,7 +128,7 @@ func (cc *Controller) calcStatus() int {
 		return 18
 	}
 	if cc.Base {
-		return 23
+		return 22
 	}
 	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) && lamp == 0 && door == 0 {
 		//Координированное управление 1
