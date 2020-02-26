@@ -349,7 +349,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		st.Stages[j].Number = ss[n].Number
 		st.Stages[j].Tf = ss[n].Tf
 		st.Stages[j].Stop = ss[n].Stop
-		start += ss[n].Stop
+		start = ss[n].Stop
 		if st.Stages[j].Tf == 0 && st.Stages[j].Stop == 0 && st.Stages[j].Number == 0 {
 			st.Stages[j].Start = 0
 		}
