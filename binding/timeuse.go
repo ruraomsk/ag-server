@@ -49,7 +49,7 @@ func NewSetTimeUse() *SetTimeUse {
 	return r
 }
 func (u *Use) isEmpty() bool {
-	if u.Type != 0 || u.Tvps != 0 || u.Dk != 0 || int(u.Long*10) != 0 || len(u.Fazes) != 0 {
+	if u.Type != 0 || u.Tvps != 0 || int(u.Long*10) != 0 || len(u.Fazes) != 0 {
 		return false
 	}
 	return true
@@ -88,7 +88,7 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 		for i := 0; i < len(s.Uses); i++ {
 			tp := 0
 			tvps := 0
-			dk := 0
+			dk := 1
 			if buffer[pos]&1 != 0 {
 				tp = 1
 				tvps = 3
@@ -119,7 +119,9 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 					}
 				}
 			}
-
+			if dk == 2 {
+				dk = 1
+			}
 			fazes := ""
 			mask := 1
 			for j := 1; j < 9; j++ {

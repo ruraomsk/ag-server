@@ -40,6 +40,13 @@ func main() {
 			}
 			return
 		}
+		if strings.Contains(os.Args[1], "save") {
+			err = creator.SaveAll(path)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			return
+		}
 	}
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")
