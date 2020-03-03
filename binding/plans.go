@@ -24,7 +24,7 @@ type SetPk struct {
 	DK         int     `json:"dk"`         //Номер ДК
 	Pk         int     `json:"pk"`         //Номер программы от 1 до 12
 	TypePU     int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
-	RazStop    bool    `json:"razStop"`    //Признак наличия разнодлительных фаз
+	RazLen     bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
 	Tc         int     `json:"tc"`         //Время цикла программы
 	Shift      int     `json:"shift"`      //Сдвиг начала цикла
 	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
@@ -141,7 +141,7 @@ func (st *SetPk) ToBuffer() []int {
 	if mgr {
 		r[9] += 64 //Среди фаз есть МГР
 	}
-	if st.RazStop {
+	if st.RazLen {
 		r[9] += 32
 	}
 	if st.TwoT {
@@ -258,9 +258,9 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		mgr = true //Среди фаз есть МГР
 	}
 	if buffer[9]&32 != 0 {
-		st.RazStop = true
+		st.RazLen = true
 	} else {
-		st.RazStop = false
+		st.RazLen = false
 	}
 	if buffer[9]&2 != 0 {
 		st.TwoT = true
