@@ -206,6 +206,7 @@ func loadCross(region int, nfile string) error {
 		}
 		if strings.HasPrefix(str, "@k1,") {
 			//Массив
+			str = strings.ReplaceAll(str, " ", "")
 			ss := strings.Split(str, ",")
 			sint := make([]int, 0)
 			for i := 1; i < len(ss); i++ {
