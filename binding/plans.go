@@ -117,6 +117,7 @@ func (st *SetPk) ToBuffer() []int {
 	r[7] = (256 * 256) % st.Tc
 	l := 0
 	mgr := false
+	mdk := false
 	plus := false
 	for _, s := range st.Stages {
 		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
@@ -128,6 +129,10 @@ func (st *SetPk) ToBuffer() []int {
 		if s.Tf == 1 {
 			mgr = true
 		}
+		if s.Tf == 8 {
+			mdk = true
+		}
+
 		l++
 	}
 	r[8] = 192 + l
@@ -149,6 +154,9 @@ func (st *SetPk) ToBuffer() []int {
 	}
 	if plus {
 		r[9] += 8
+	}
+	if mdk && !st.RazLen {
+		r[9] = 0
 	}
 	pos := 10
 	if st.Shift != 0 {
@@ -201,10 +209,12 @@ func (st *SetPk) ToBuffer() []int {
 			r[pos] += 16 //  7 - Зам
 		}
 		if s.Tf == 8 {
-			r[pos] += 45 //МДК
+			// if r[9] != 0 {
+			// 	r[pos] += 45 //МДК
+			// }
 		}
 		if s.Tf == 9 {
-			// r[pos] += 45 // 9 - ВДК
+			r[pos] += 32 // 9 - ВДК
 		}
 		pos++
 		r[pos] = s.Stop
@@ -238,6 +248,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	if buffer[0] < 100 || buffer[0] > 111 {
 		return fmt.Errorf("неверный номер массива %d", buffer[0])
 	}
+	// mdk:=false
 	st.Pk = buffer[4] & 0x7f
 	if buffer[4]&0x80 != 0 {
 		st.DK = 2
@@ -267,6 +278,9 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	} else {
 		st.TwoT = false
 	}
+	// if buffer[9]==0 {
+	// 	mdk=true
+	// }
 	plus := false
 	if buffer[9]&8 != 0 {
 		plus = true
@@ -276,6 +290,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	for n := range ss {
 		ss[n].Nline = n + 1
 	}
+	first := true
 	for n := range ss {
 		if buffer[pos] == 0 && buffer[pos+1] == 0 {
 			break
@@ -303,11 +318,15 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		if m == 16 {
 			ss[n].Tf = 7 //  7 - Зам
 		}
+		if m == 32 {
+			ss[n].Tf = 9 //9 ВДК
+		}
 		if ss[n].Number == 0 {
-			if buffer[9] == 0 {
+			if (buffer[9] == 0 && first) || (buffer[9] == 32 && first) {
 				ss[n].Tf = 8
+				first = false
 			} else {
-				if buffer[9] == 32 {
+				if buffer[9] == 32 && !first {
 					ss[n].Tf = 9
 				} else {
 					if !mgr {
@@ -352,6 +371,9 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		start = ss[n].Stop
 		if st.Stages[j].Tf == 0 && st.Stages[j].Stop == 0 && st.Stages[j].Number == 0 {
 			st.Stages[j].Start = 0
+		}
+		if st.Stages[j].Tf == 5 || st.Stages[j].Tf == 6 || st.Stages[j].Tf == 7 {
+			st.Stages[j].Start = st.Stages[j-1].Start
 		}
 		j++
 	}
