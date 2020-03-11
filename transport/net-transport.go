@@ -4,9 +4,13 @@ import (
 	"net"
 	"time"
 
+	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/setup"
 )
+
+// StoStoped глобальная перенная если истина то надо бросать работу
+var Stoped = false
 
 //GetMessagesFromDevice принять сообщение
 func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool) {
@@ -14,10 +18,16 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 	*status = true
 	var h HeaderDevice
 	for {
+		if Stoped {
+			return
+		}
 		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
 		socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
+		if Stoped {
+			return
+		}
 		if err == nil && n != len(buf) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
 			hcan <- h
@@ -32,6 +42,9 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 		}
 		buf2 := make([]byte, buf[18]+2)
 		n, err = socket.Read(buf2)
+		if Stoped {
+			return
+		}
 		if err == nil && n != len(buf2) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf2))
 			hcan <- h
@@ -55,6 +68,9 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 		}
 		// logger.Info.Printf("in %v", h)
 		hcan <- h
+		if Stoped {
+			return
+		}
 	}
 }
 
@@ -63,10 +79,16 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 	defer socket.Close()
 	var hs HeaderServer
 	for {
+		if Stoped {
+			return
+		}
 		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
 		// socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
+		if Stoped {
+			return
+		}
 		if err == nil && n != len(buf) {
 			logger.Error.Printf("при чтении сообщения от сервера %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
 			return
@@ -77,6 +99,9 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 		}
 		buf2 := make([]byte, buf[12]+2)
 		n, err = socket.Read(buf2)
+		if Stoped {
+			return
+		}
 		if err == nil && n != len(buf2) {
 			logger.Error.Printf("при чтении сообщения от сервера %s прочитано неверно", socket.RemoteAddr().String())
 			return
@@ -100,12 +125,21 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, status *bool) {
 	defer socket.Close()
 	*status = true
+	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
+		case <-timer.C:
+			if Stoped {
+				return
+			}
+
 		case hs := <-hout:
 			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
 			buffer := hs.MakeBuffer()
 			n, err := socket.Write(buffer)
+			if Stoped {
+				return
+			}
 			if err != nil {
 				logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
 				*status = false
@@ -125,12 +159,23 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, status *bool)
 //SendMessagesToServer передать сообщение на устройство
 func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice) {
 	defer socket.Close()
+	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
+		case <-timer.C:
+			if Stoped {
+				return
+			}
 		case hd := <-hout:
+			if Stoped {
+				return
+			}
 			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
 			buffer := hd.MakeBuffer()
 			n, err := socket.Write(buffer)
+			if Stoped {
+				return
+			}
 			if err != nil {
 				logger.Error.Printf("при передаче на сервер  %s %s", socket.RemoteAddr().String(), err.Error())
 				return

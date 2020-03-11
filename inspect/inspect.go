@@ -13,6 +13,7 @@ import (
 )
 
 var croses map[string]pudge.Region
+var Stoped = false
 
 //Start главный модуль инспектора
 func Start(context *extcon.ExtContext, stop chan int) {
@@ -42,6 +43,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			}
 		}
 	case <-context.Done():
+		Stoped = true
 		return
 	case <-stop:
 		return
@@ -54,6 +56,9 @@ func oneCross(reg pudge.Region) {
 main:
 	for {
 		time.Sleep(time.Duration(1 * time.Second))
+		if Stoped {
+			return
+		}
 		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
@@ -70,6 +75,9 @@ main:
 			}
 
 			time.Sleep(time.Duration(10 * time.Second))
+			if Stoped {
+				return
+			}
 			continue
 		}
 		if !dev.IsConnected() {
@@ -80,39 +88,71 @@ main:
 				count++
 			}
 			time.Sleep(time.Duration(10 * time.Second))
+			if Stoped {
+				return
+			}
 			continue
+		}
+		if dev.Local {
+			//Беда у нас в прошлый обмен связь порвалась в опасном месте
+			//Необходимо перепослать все массивы привязки
+			dev.Arrays = make([]pudge.ArrayPriv, 0)
+			dev.Local = false
+			pudge.SetController(dev)
 		}
 		_, is = comm.GetChanArray(dev.ID)
 		if !is {
 			logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
 			time.Sleep(time.Duration(10 * time.Second))
+			if Stoped {
+				return
+			}
 			continue
 		}
 
 		//Построим массивы как надо для перекрестка
 		crossarrays := makeArrays(cr)
 		// logger.Info.Printf("массивы создали %v", reg)
-
+		sending := make([]pudge.ArrayPriv, 0)
 		for _, ac := range crossarrays {
 			found := false
 			for _, d := range dev.Arrays {
 				if d.Number == ac.Number && d.NElem == ac.NElem {
 					if !d.Compare(&ac) {
-						sendArray(dev, ac)
+						sending = append(sending, ac)
 						continue main
 					}
 					found = true
+
 				}
 			}
 			if !found {
-				sendArray(dev, ac)
+				sending = append(sending, ac)
+				if Stoped {
+					return
+				}
 				continue main
 			}
+		}
+		if len(sending) != 0 {
+			dev.Local = true
+			pudge.SetController(dev)
+			sendLocalOn(dev)
+
+			for _, ac := range sending {
+				sendArray(dev, ac)
+			}
+			sendLocalOff(dev)
+			dev.Local = false
+			pudge.SetController(dev)
 		}
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)
 		// pudge.SetController(dev)
 		time.Sleep(time.Duration(10 * time.Second))
+		if Stoped {
+			return
+		}
 		flagError = 0
 		count = 0
 	}
@@ -198,6 +238,28 @@ func notZerro(buffer []int) bool {
 	}
 	return false
 }
+func sendLocalOn(dev *pudge.Controller) {
+	ch, is := comm.GetChanArray(dev.ID)
+	if !is {
+		logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
+		return
+	}
+	cmd := new(comm.CommandArray)
+	cmd.ID = 0
+	cmd.Number = 0
+	ch <- *cmd
+}
+func sendLocalOff(dev *pudge.Controller) {
+	ch, is := comm.GetChanArray(dev.ID)
+	if !is {
+		logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
+		return
+	}
+	cmd := new(comm.CommandArray)
+	cmd.ID = 0
+	cmd.Number = 1
+	ch <- *cmd
+}
 func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	//Спросить у коммуникационного сервера канал для отправки сообщения
 	ch, is := comm.GetChanArray(dev.ID)
@@ -210,10 +272,5 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
-	// if cmd.ID == 222222 {
-	// 	logger.Debug.Printf("send %v", cmd)
-	// }
-	// logger.Info.Printf("послали массив на %v", cmd)
 	ch <- *cmd
-	// pudge.SetController(dev)
 }

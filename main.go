@@ -21,7 +21,11 @@ var err error
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	path, err := os.UserHomeDir()
+	if runtime.GOOS != "linux" {
+		path = "D:/asud"
+	}
 	if err != nil {
 		fmt.Println("Error opening system ", err.Error())
 		return
@@ -61,9 +65,13 @@ func main() {
 	ans := make(chan string)
 	go pudge.Start(p, stop, rq, ans)
 	go comm.StartListen(stop, rq, ans)
-	time.Sleep(5 * time.Second)
-	c, _ := extcon.NewContext("controller")
-	go controller.Start(c, rq, ans)
+	if len(os.Args) > 1 {
+		if strings.Contains(os.Args[1], "simul") {
+			time.Sleep(5 * time.Second)
+			c, _ := extcon.NewContext("controller")
+			go controller.Start(c, rq, ans)
+		}
+	}
 	i, _ := extcon.NewContext("inspector")
 	go inspect.Start(i, stop)
 

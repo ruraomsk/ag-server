@@ -7,7 +7,7 @@
 		"dbname": "agserv"
 	},
 	"Server": {
-		"port": 2000,
+		"port": 1093,
 		"read_timeout": 1000000000,
 		"write_timeout": 1000000000,
 		"time_keep_alive": 120000000000
@@ -19,7 +19,7 @@
 		"cross": "public.cross"
 	},
 	"CommServer": {
-		"port": 2000,
+		"port": 1093,
 		"portc": 2001,
 		"porta": 2002,
 		"read_timeout": 300000000000,
@@ -30,7 +30,7 @@
 	},
 	"Controller": {
 		"ip": "localhost",
-		"port": 2000,
+		"port": 1093,
 		"step": 10,
 		"guiport": 8080,
 		"random": true,

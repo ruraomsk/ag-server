@@ -236,6 +236,7 @@ func newConnect(soc net.Conn, stop chan int) {
 				return
 			}
 		case <-dd.context.Done():
+			transport.Stoped = true
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 			return
 		case comARM := <-dd.CommandARM:
@@ -257,6 +258,19 @@ func newConnect(soc net.Conn, stop chan int) {
 			// if hDev.ID == 496932 {
 			// 	logger.Info.Printf("inarray %v", comArray)
 			// }
+			if comArray.ID == 0 && comArray.Number == 0 {
+				//Команда перейти в локальный режим
+				hs := makeLocalOn(dd)
+				hout <- hs
+				break
+			}
+			if comArray.ID == 0 && comArray.Number == 1 {
+				//Команда выйти из локального режима
+				hs := makeLocalOff(dd)
+				hout <- hs
+				break
+			}
+
 			is := false
 			for n, ap := range ctrl.Arrays {
 				if ap.Number == comArray.Number && ap.NElem == comArray.NElem {
@@ -494,8 +508,7 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 	hs.UpackMessages(mss)
 	return hs, nil
 }
-func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
-	// hss := make([]transport.HeaderServer, 0)
+func makeLocalOn(dd *device) transport.HeaderServer {
 	dd.addNumber()
 	var ms transport.SubMessage
 	//Сообщение об отключении управления
@@ -503,6 +516,33 @@ func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	// hss = append(hss, hs)
+	return hs
+
+}
+func makeLocalOff(dd *device) transport.HeaderServer {
+	dd.addNumber()
+	var ms transport.SubMessage
+	//Сообщение об отключении управления
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	mss := make([]transport.SubMessage, 0)
+	ms.Set0x02Server(true)
+	mss = append(mss, ms)
+	hs.UpackMessages(mss)
+	// hss = append(hss, hs)
+	return hs
+
+}
+func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
+	// hss := make([]transport.HeaderServer, 0)
+	dd.addNumber()
+	var ms transport.SubMessage
+	//Сообщение об отключении управления
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	mss := make([]transport.SubMessage, 0)
+	// ms.Set0x02Server(false)
+	// mss = append(mss, ms)
 	// hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	//Собственно массив привязки
@@ -515,8 +555,8 @@ func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer
 	//Сообщение о включении управления
 	// hs = transport.CreateHeaderServer(0, 0)
 	// mss = make([]transport.SubMessage, 0)
-	ms.Set0x02Server(true)
-	mss = append(mss, ms)
+	// ms.Set0x02Server(true)
+	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	return hs

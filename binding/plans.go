@@ -373,7 +373,11 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 			st.Stages[j].Start = 0
 		}
 		if st.Stages[j].Tf == 5 || st.Stages[j].Tf == 6 || st.Stages[j].Tf == 7 {
-			st.Stages[j].Start = st.Stages[j-1].Start
+			if j > 0 {
+				st.Stages[j].Start = st.Stages[j-1].Start
+			} else {
+				st.Stages[j].Start = start
+			}
 		}
 		j++
 	}
