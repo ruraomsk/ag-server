@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/setup"
 )
 
 func loadDBase() error {
@@ -36,7 +35,7 @@ func saveDBase() error {
 func loadCrosees() error {
 	mutex.Lock()
 	defer mutex.Unlock()
-	rows, err := conCross.Query("Select region,area,id,idevice,describ,state from " + setup.Set.Pudge.TableCross + ";")
+	rows, err := conCross.Query("Select region,area,id,idevice,describ,state from public.cross;")
 	if err != nil {
 		return err
 	}
@@ -73,7 +72,7 @@ func loadCrosees() error {
 func loadControllers() error {
 	mutex.Lock()
 	defer mutex.Unlock()
-	rows, err := conDBSave.Query("Select * from " + setup.Set.Pudge.TableSave + ";")
+	rows, err := conDBSave.Query("Select * from devices;")
 	var id int
 	var js []byte
 	for rows.Next() {
@@ -101,10 +100,6 @@ func saveControllers() error {
 	defer mutex.Unlock()
 	count := 0
 	for _, c := range controllers {
-		// if c.StatusConnection == Connected && time.Now().Sub(c.LastOperation) > setup.Set.Server.KeepAlive {
-		// 	c.StatusConnection = Undefine
-		// 	c.WriteToDB = true
-		// }
 		if len(c.Name) == 0 {
 			c.Name = getNameCross(c.ID)
 
@@ -115,7 +110,7 @@ func saveControllers() error {
 		}
 		count++
 		js, _ := json.Marshal(c)
-		_, err = conDBSave.Exec("update  " + setup.Set.Pudge.TableSave + " set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
+		_, err = conDBSave.Exec("update  devices set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to controller %s", err.Error())
 			break
@@ -135,8 +130,7 @@ func saveCrosees() error {
 			continue
 		}
 		js, _ := json.Marshal(c)
-		_, err = conCross.Exec("update  " + setup.Set.Pudge.TableCross +
-			" set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "',describ='" + c.Name + "',dgis='" + c.Dgis + "' where region=" +
+		_, err = conCross.Exec("update  public.cross set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "',describ='" + c.Name + "',dgis='" + c.Dgis + "' where region=" +
 			strconv.Itoa(c.Region) + " and id=" + strconv.Itoa(c.ID) + " and area=" + strconv.Itoa(c.Area) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to cross %s", err.Error())

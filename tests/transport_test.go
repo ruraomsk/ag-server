@@ -147,7 +147,7 @@ func Test_MakeSet(t *testing.T) {
 	cc.NK = 5
 	cc.StatusCommandDU.IsPK = true
 	cc.StatusCommandDU.IsDUDK2 = true
-	cc.DK.RDK = 3
+	cc.DK.RDK = 9
 	cc.DK.FDK = 2
 	cc.DK.DDK = 1
 	cc.DK.EDK = 4

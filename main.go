@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/controller"
 	"github.com/ruraomsk/ag-server/creator"
@@ -19,23 +20,23 @@ import (
 
 var err error
 
+//Секция инициализации программы
+func init() {
+	setup.Set = new(setup.Setup)
+	if _, err := toml.DecodeFile("config.toml", &setup.Set); err != nil {
+		fmt.Println("Can't load config file - ", err.Error())
+	}
+
+}
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	path, err := os.UserHomeDir()
-	if runtime.GOOS != "linux" {
-		path = "D:/asud"
-	}
-	if err != nil {
-		fmt.Println("Error opening system ", err.Error())
-		return
-	}
+	path := setup.Set.Home
 	err = logger.Init(path + "/log/ag-server")
 	if err != nil {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return
 	}
-	err = setup.LoadSetUp(path + "/setup/setup_ag.json")
 	if len(os.Args) > 1 {
 		if strings.Contains(os.Args[1], "create") {
 			err = creator.Start(path)
@@ -54,10 +55,6 @@ func main() {
 	}
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")
-	if err != nil {
-		fmt.Printf("Ошибки в настройке %s", err.Error())
-		return
-	}
 	stop := make(chan int)
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("pudge")
@@ -78,6 +75,5 @@ func main() {
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 
-	setup.WriteSetUp()
 	fmt.Println("\nExit ag-server working...")
 }

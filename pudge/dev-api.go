@@ -61,7 +61,7 @@ func (s *StatusCommandDU) Set(command uint8) {
 
 //Set устанавлиявает поля
 func (d *DK) Set(buffer []byte, pos int) {
-	d.RDK = int(buffer[pos] & 0x7)
+	d.RDK = int(buffer[pos] & 0xf)
 	d.FDK = int(buffer[pos]&0x70) >> 4
 	pos++
 	d.DDK = int(buffer[pos] & 0x7)
@@ -116,13 +116,29 @@ func (d *DK) Make(buffer []byte, pos int) {
 	pos++
 	buffer[pos] = uint8(d.TTCDK)
 }
+
+// var lrezim int
+// var lfaza int
+// var lerr int
+// var ldev int
+// var llamp int
+// var ldoor int
+
 func (cc *Controller) calcStatus() int {
-	rezim := cc.TexRezim
+	rezim := cc.DK.RDK
 	faza := cc.DK.FDK
 	err := cc.coderr()
 	dev := cc.codeDevice()
 	lamp := cc.lamps()
 	door := cc.doors()
+	// if lrezim != rezim || lfaza != faza || lerr != err || ldev != dev || llamp != lamp || ldoor != door {
+	// 	logger.Info.Printf("rezim=%d faza=%d err=%d dev=%d lamp=%d door=%d", rezim, faza, err, dev, lamp, door)
+	// 	lrezim = rezim
+	// 	lfaza = faza
+	// 	ldev = dev
+	// 	llamp = lamp
+	// 	ldoor = door
+	// }
 	// if cc.LastOperation
 	if !cc.IsConnected() {
 		return 18
@@ -252,6 +268,5 @@ func (cc *Controller) doors() int {
 	return 1
 }
 func (cc *Controller) codeDevice() int {
-
 	return cc.DK.DDK
 }

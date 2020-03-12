@@ -59,7 +59,7 @@ func StartListen(stop chan int, rq chan int, ans chan string) {
 			continue
 		}
 		count++
-		if count%10 == 0 {
+		if count%5 == 0 {
 			logger.Info.Println("Входящих соединений", count)
 		}
 		go newConnect(socket, stop)
@@ -77,23 +77,16 @@ func newConnect(soc net.Conn, stop chan int) {
 	*/
 	ctrl := new(pudge.Controller)
 	var err error
-	hout := make(chan transport.HeaderServer, 10)
-	hin := make(chan transport.HeaderDevice, 10)
+	hout := make(chan transport.HeaderServer, 100)
+	hin := make(chan transport.HeaderDevice, 100)
 	defer soc.Close()
-	// defer close(hout)
-	// defer close(hin)
-	var statusIn, statusOut bool
-	statusIn = true
-	statusOut = true
-	go transport.GetMessagesFromDevice(soc, hin, &statusIn)
-	go transport.SendMessagesToDevice(soc, hout, &statusOut)
+	readTout := time.Duration(setup.Set.CommServer.TimeOutRead * int64(time.Second))
+	writeTout := time.Duration(setup.Set.CommServer.TimeOutWrite * int64(time.Second))
+	go transport.GetMessagesFromDevice(soc, hin, &readTout)
+	go transport.SendMessagesToDevice(soc, hout, &writeTout)
 	// time.Sleep(1 * time.Second)
 
 	hDev := <-hin
-	if !statusIn {
-		logger.Error.Printf("not in ")
-		return
-	}
 	// if hDev.ID == 496932 {
 	// 	logger.Info.Printf("in %v", hDev)
 	// }
@@ -102,6 +95,18 @@ func newConnect(soc net.Conn, stop chan int) {
 	if err != nil {
 		logger.Error.Printf("Устройствo %s %s", soc.LocalAddr().String(), err.Error())
 		return
+	}
+	if ctrl.TimeOut != 0 {
+		readTout = time.Duration(ctrl.TimeOut * int64(time.Second))
+	} else {
+		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
+		pudge.SetController(ctrl)
+	}
+	if ctrl.TMax != 0 {
+		writeTout = time.Duration(ctrl.TMax * int64(time.Second))
+	} else {
+		ctrl.TimeOut = setup.Set.CommServer.TimeOutWrite
+		pudge.SetController(ctrl)
 	}
 	dmess := hDev.ParseMessage()
 	flag := false
@@ -196,15 +201,6 @@ func newConnect(soc net.Conn, stop chan int) {
 	for {
 		select {
 		case hDev = <-hin:
-			if !statusIn || !statusOut {
-				ctrl.StatusConnection = pudge.NotConnected
-				pudge.SetController(ctrl)
-				logger.Error.Printf("Устройство %d связь потеряна", dd.id)
-				return
-			}
-			// if hDev.ID == 496932 {
-			// 	logger.Info.Printf("ingo %v", hDev)
-			// }
 			lastBase := ctrl.Base
 			hs, need := updateController(ctrl, &hDev)
 			if ctrl.Base && !lastBase {
@@ -213,28 +209,17 @@ func newConnect(soc net.Conn, stop chan int) {
 			pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
 				hout <- hs
-				// if hDev.ID == 496932 {
-				// 	logger.Info.Printf("outrepl %v", hs)
-				// }
-
-				// logger.Info.Printf("outResponce %v", hs)
-
 			}
 		case <-timer.C:
-			if !statusIn || !statusOut {
-				ctrl.StatusConnection = pudge.NotConnected
-				pudge.SetController(ctrl)
-				logger.Error.Printf("Устройство %d связь потеряна", dd.id)
-				return
-			}
-			if time.Now().Sub(ctrl.LastOperation) > setup.Set.CommServer.TimeOutRead || !statusIn {
+			if time.Now().Sub(ctrl.LastOperation) > readTout {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = pudge.NotConnected
 				pudge.SetController(ctrl)
-				logger.Info.Printf("Устройство %d более положенного не выходит на связь", dd.id)
+				logger.Info.Printf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
 				return
 			}
+
 		case <-dd.context.Done():
 			transport.Stoped = true
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
@@ -246,18 +231,10 @@ func newConnect(soc net.Conn, stop chan int) {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.id, err.Error())
 				continue
 			}
-			if !statusOut {
-				logger.Error.Printf("not out ")
-				return
-			}
 			hout <- hs
-			// logger.Info.Printf("outARM %v", hs)
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
-			// if hDev.ID == 496932 {
-			// 	logger.Info.Printf("inarray %v", comArray)
-			// }
 			if comArray.ID == 0 && comArray.Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
@@ -288,22 +265,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
-			// logger.Info.Printf("ready send array %d", ctrl.ID)
-			// for _, h := range hss {
-			if !statusOut {
-				logger.Error.Printf("not out ")
-				return
-			}
 			hout <- hs
-			// if hDev.ID == 496932 {
-			// 	logger.Info.Printf("outarray %v", hs)
-			// }
-
-			// logger.Info.Printf("outArray %v", hs)
-			// 	time.Sleep(1 * time.Second)
-			// }
-			// logger.Info.Printf("send array sucsses %d", ctrl.ID)
-
 		}
 	}
 
@@ -316,7 +278,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
-	// c.StatusConnection = pudge.Connected
+	c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	if hDev.Number != 0 {

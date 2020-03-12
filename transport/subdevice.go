@@ -158,7 +158,7 @@ func (s *SubMessage) Get0x12Device(c *pudge.Controller) error {
 	c.NK = int(s.Message[4])
 	c.StatusCommandDU.Set(s.Message[5])
 	c.DK.Set(s.Message, 6)
-	c.TMax = int(s.Message[22])
+	c.TMax = int64(s.Message[22])
 	return nil
 }
 

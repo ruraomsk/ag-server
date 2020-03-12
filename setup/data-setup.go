@@ -1,59 +1,43 @@
 package setup
 
-import "time"
+//Set переменная для хранения текущих настроек
+var Set *Setup
 
 //Setup общая структура для настройки всей системы
 type Setup struct {
-	DataBase   DataBase
-	Server     Server
-	Pudge      Pudge
-	CommServer CommServer
-	Controller Controller
-	Location   string `json:"location"` //Локация временной зоны
+	Home       string     `toml:"home"`
+	Location   string     `toml:"location"`  //Локация временной зоны
+	StepPudge  int        `toml:"steppudge"` //Шаг сохранения в секундах
+	DataBase   DataBase   `toml:"dataBase"`
+	CommServer CommServer `toml:"commServer"`
+	Controller Controller `toml:"controller"`
 }
 
 //CommServer настройки для сервера коммуникации
 type CommServer struct {
-	Port        int `json:"port"`  //Стартовый номер порта на прием
-	PortCommand int `json:"portc"` //Порт приема команд от сервера АРМ
-	PortArray   int `json:"porta"` //Порт приема массивов привязки от сервера АРМ
+	Port        int `toml:"port"`  //Стартовый номер порта на прием
+	PortCommand int `toml:"portc"` //Порт приема команд от сервера АРМ
+	PortArray   int `toml:"porta"` //Порт приема массивов привязки от сервера АРМ
 
-	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
-	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
-	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
-}
-
-//Server настройки для сервера армов
-type Server struct {
-	Port         int           `json:"port"`            //Стартовый номер порта на прием
-	TimeOutRead  time.Duration `json:"read_timeout"`    //Таймаут на чтение если данные должны быть получены
-	TimeOutWrite time.Duration `json:"write_timeout"`   //Таймаут на запись если данные должны быть переданы
-	KeepAlive    time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
-
-}
-
-//Pudge настройки подсистемы хранения состояние контроллеров
-type Pudge struct {
-	StepSave   int    `json:"step"`  //Интервал времени в секундах для сохранения состояния контроллеров
-	TableCross string `json:"cross"` //Имя таблицы перекрестков
-	TableSave  string `json:"save"`  //Имя таблицы где храним текущее состояние
+	TimeOutRead  int64 `toml:"read_timeout"`  //Таймаут на чтение если данные должны быть получены
+	TimeOutWrite int64 `toml:"write_timeout"` //Таймаут на запись если данные должны быть переданы
+	ID           int   `toml:"id"`
 }
 
 //DataBase настройки базы данных postresql
 type DataBase struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	DBname   string `json:"dbname"`
+	Host     string `toml:"host"`
+	Port     int    `toml:"port"`
+	User     string `toml:"user"`
+	Password string `toml:"password"`
+	DBname   string `toml:"dbname"`
 }
 
 //Controller настройки имитатора
 type Controller struct {
-	IP        string        `json:"ip"`
-	GuiPort   int           `json:"guiport"`
-	Port      int           `json:"port"`
-	Step      int           `json:"step"`            //Интервал времени в секундах для расчетов
-	KeepAlive time.Duration `json:"time_keep_alive"` //Интервал времени в течении которого должен прийти keepalive от устройства
-	Random    bool          `json:"random"`
+	IP      string `toml:"ip"`
+	GuiPort int    `toml:"guiport"`
+	Port    int    `toml:"port"`
+	Step    int    `toml:"step"` //Интервал времени в секундах для расчетов
+	Random  bool   `toml:"random"`
 }

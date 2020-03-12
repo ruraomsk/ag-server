@@ -6,23 +6,20 @@ import (
 
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
-	"github.com/ruraomsk/ag-server/setup"
 )
 
-// StoStoped глобальная перенная если истина то надо бросать работу
+//Stoped глобальная перенная если истина то надо бросать работу
 var Stoped = false
 
 //GetMessagesFromDevice принять сообщение
-func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool) {
-	defer socket.Close()
-	*status = true
+func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.Duration) {
+	// defer socket.Close()
 	var h HeaderDevice
 	for {
 		if Stoped {
 			return
 		}
-		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
-		socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
+		socket.SetReadDeadline(time.Now().Add(*tout))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
 		if Stoped {
@@ -30,14 +27,10 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 		}
 		if err == nil && n != len(buf) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
-			hcan <- h
-			*status = false
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-			hcan <- h
-			*status = false
 			return
 		}
 		buf2 := make([]byte, buf[18]+2)
@@ -47,26 +40,19 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 		}
 		if err == nil && n != len(buf2) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf2))
-			hcan <- h
-			*status = false
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-			hcan <- h
-			*status = false
 			return
 		}
 		buffer := append(buf, buf2...)
 		err = h.Parse(buffer)
 		if err != nil {
 			logger.Error.Printf("при раскодировании от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-			hcan <- h
-			*status = false
 			return
 
 		}
-		// logger.Info.Printf("in %v", h)
 		hcan <- h
 		if Stoped {
 			return
@@ -75,15 +61,14 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, status *bool
 }
 
 //GetMessagesFromService прием сообщений от сервера
-func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
-	defer socket.Close()
+func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.Duration) {
+	// defer socket.Close()
 	var hs HeaderServer
 	for {
 		if Stoped {
 			return
 		}
-		// socket.SetReadDeadline(time.Now().Add(setup.Set.CommServer.TimeOutRead))
-		// socket.SetReadDeadline(time.Now().Add(time.Duration(5 * time.Minute)))
+		socket.SetReadDeadline(time.Now().Add(*tout))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
 		if Stoped {
@@ -122,9 +107,8 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer) {
 }
 
 //SendMessagesToDevice передать сообщение на устройство
-func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, status *bool) {
-	defer socket.Close()
-	*status = true
+func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Duration) {
+	// defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
@@ -132,9 +116,8 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, status *bool)
 			if Stoped {
 				return
 			}
-
 		case hs := <-hout:
-			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
+			socket.SetWriteDeadline(time.Now().Add(*tout))
 			buffer := hs.MakeBuffer()
 			n, err := socket.Write(buffer)
 			if Stoped {
@@ -142,23 +125,19 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, status *bool)
 			}
 			if err != nil {
 				logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-				*status = false
 				return
 			}
 			if n != len(buffer) {
 				logger.Error.Printf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
-				*status = false
 				return
 			}
-			// logger.Info.Printf("out %v", hs)
-
 		}
 	}
 }
 
 //SendMessagesToServer передать сообщение на устройство
-func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice) {
-	defer socket.Close()
+func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice, tout *time.Duration) {
+	// defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
@@ -170,7 +149,7 @@ func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice) {
 			if Stoped {
 				return
 			}
-			socket.SetWriteDeadline(time.Now().Add(setup.Set.CommServer.TimeOutWrite))
+			socket.SetWriteDeadline(time.Now().Add(*tout))
 			buffer := hd.MakeBuffer()
 			n, err := socket.Write(buffer)
 			if Stoped {

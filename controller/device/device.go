@@ -126,8 +126,11 @@ func (d *Device) StartDevice() {
 	defer close(d.hout)
 	defer close(d.hin)
 	defer d.Close()
-	go transport.GetMessagesFromService(soc, d.hin)
-	go transport.SendMessagesToServer(soc, d.hout)
+	readTout := time.Duration(time.Duration(setup.Set.CommServer.TimeOutRead) * time.Second)
+	writeTout := time.Duration(time.Duration(setup.Set.CommServer.TimeOutWrite) * time.Second)
+
+	go transport.GetMessagesFromService(soc, d.hin, &readTout)
+	go transport.SendMessagesToServer(soc, d.hout, &writeTout)
 	d.Soc = soc
 
 	d.writeFirstMessage()
@@ -158,7 +161,8 @@ func (d *Device) StartDevice() {
 				}
 			}
 		case <-timer.C:
-			if time.Now().Sub(d.Controller.LastOperation) > setup.Set.Server.KeepAlive {
+			keepalive := time.Duration(time.Duration(setup.Set.CommServer.TimeOutRead-60) * time.Second)
+			if time.Now().Sub(d.Controller.LastOperation) > keepalive {
 				err = d.sendKeepAlive()
 				if err != nil {
 					logger.Error.Printf("при передаче keepalive %s", err.Error())

@@ -139,7 +139,7 @@ func SetController(c *Controller) {
 	if insert {
 		js, _ := json.Marshal(c)
 		c.WriteToDB = false
-		w := "insert into " + setup.Set.Pudge.TableSave + " (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
+		w := "insert into devices (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
 		_, err := conDBSave.Exec(w)
 		if err != nil {
 			logger.Error.Printf("For insert to controller %d %s", c.ID, err.Error())
@@ -192,11 +192,11 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 		return
 	}
 	Works = true
-	timer := extcon.SetTimerClock(time.Duration(setup.Set.Pudge.StepSave) * time.Second)
+	timer := extcon.SetTimerClock(time.Duration(setup.Set.StepPudge) * time.Second)
 	for true {
 		select {
 		case tim := <-timer.C:
-			if time.Now().Sub(tim) > time.Duration(setup.Set.Pudge.StepSave)*time.Second {
+			if time.Now().Sub(tim) > time.Duration(setup.Set.StepPudge)*time.Second {
 				logger.Info.Println("Добавьте время для обновления БД")
 			}
 			setStatusCross()

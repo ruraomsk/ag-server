@@ -69,7 +69,7 @@ main:
 		if !is {
 			//Контроллер не выходил на связь проверим через минуту
 			if flagError != 1 || count%100 == 0 {
-				logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
+				// logger.Info.Printf("контроллер не на связи %v %d", reg, cr.IDevice)
 				flagError = 1
 				count++
 			}
@@ -83,7 +83,7 @@ main:
 		if !dev.IsConnected() {
 			//Контроллер не на связи проверим через минуту
 			if flagError != 2 || count%100 == 0 {
-				logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
+				// logger.Info.Printf("контроллер в ауте %v %d", reg, cr.IDevice)
 				flagError = 2
 				count++
 			}
