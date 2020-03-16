@@ -3,7 +3,7 @@ package device
 import (
 	"time"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 )
 
 func (dev *Device) oneStep() {

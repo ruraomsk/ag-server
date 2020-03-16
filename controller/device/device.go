@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/binding"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"github.com/ruraomsk/ag-server/transport"

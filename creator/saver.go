@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 )

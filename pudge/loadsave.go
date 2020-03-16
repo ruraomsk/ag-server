@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 )
 
 func loadDBase() error {
@@ -87,6 +87,7 @@ func loadControllers() error {
 		}
 		c.WriteToDB = true
 		c.StatusConnection = NotConnected
+
 		_, is := controllers[id]
 		if is {
 			logger.Error.Printf("Дубликатный id  устройства %d", id)

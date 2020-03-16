@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 )
 
 //Планы координации

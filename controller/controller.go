@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/controller/device"
 	"github.com/ruraomsk/ag-server/controller/gui"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 

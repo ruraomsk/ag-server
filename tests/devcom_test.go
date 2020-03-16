@@ -137,6 +137,7 @@ func Test_0x0FD(t *testing.T) {
 	c.PK = 1
 	c.NK = 2
 	c.CK = 3
+	c.DK.FDK = 9
 	sb.Set0x0FDevice(c)
 	cc := new(pudge.Controller)
 	sb.Get0x0FDevice(cc)

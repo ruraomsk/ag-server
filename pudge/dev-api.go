@@ -62,24 +62,24 @@ func (s *StatusCommandDU) Set(command uint8) {
 //Set устанавлиявает поля
 func (d *DK) Set(buffer []byte, pos int) {
 	d.RDK = int(buffer[pos] & 0xf)
-	d.FDK = int(buffer[pos]&0x70) >> 4
+	d.FDK = int((buffer[pos] & 0xf0) >> 4)
 	pos++
-	d.DDK = int(buffer[pos] & 0x7)
-	d.EDK = int(buffer[pos]&0x70) >> 4
+	d.DDK = int(buffer[pos] & 0xf)
+	d.EDK = int((buffer[pos] & 0xf0) >> 4)
 	pos++
 	if (buffer[pos] & 0x80) != 0 {
 		d.PDK = true
 	} else {
 		d.PDK = false
 	}
-	d.EEDK = int(buffer[pos] & 0x7)
+	d.EEDK = int(buffer[pos] & 0xf)
 	pos++
 	if (buffer[pos] & 0x80) != 0 {
 		d.ODK = true
 	} else {
 		d.ODK = false
 	}
-	d.LDK = int(buffer[pos] & 0x7)
+	d.LDK = int(buffer[pos] & 0xf)
 	pos++
 	d.FTUDK = int(buffer[pos])
 	pos++
@@ -92,21 +92,21 @@ func (d *DK) Set(buffer []byte, pos int) {
 
 //Make устанавлиявает поля
 func (d *DK) Make(buffer []byte, pos int) {
-	buffer[pos] |= uint8(d.RDK & 0x7)
-	buffer[pos] |= uint8((d.FDK & 0x7) << 4)
+	buffer[pos] |= uint8(d.RDK & 0xf)
+	buffer[pos] |= uint8((d.FDK & 0xf) << 4)
 	pos++
-	buffer[pos] |= uint8(d.DDK & 0x7)
-	buffer[pos] |= uint8((d.EDK & 0x7) << 4)
+	buffer[pos] |= uint8(d.DDK & 0xf)
+	buffer[pos] |= uint8((d.EDK & 0xf) << 4)
 	pos++
 	if d.PDK {
 		buffer[pos] |= 0x80
 	}
-	buffer[pos] |= uint8(d.EEDK & 0x7)
+	buffer[pos] |= uint8(d.EEDK & 0xf)
 	pos++
 	if d.ODK {
 		buffer[pos] |= 0x80
 	}
-	buffer[pos] |= uint8(d.LDK & 0x7)
+	buffer[pos] |= uint8(d.LDK & 0xf)
 	pos++
 	buffer[pos] = uint8(d.FTUDK)
 	pos++
@@ -139,7 +139,6 @@ func (cc *Controller) calcStatus() int {
 	// 	llamp = lamp
 	// 	ldoor = door
 	// }
-	// if cc.LastOperation
 	if !cc.IsConnected() {
 		return 18
 	}
@@ -243,7 +242,7 @@ func (cc *Controller) calcStatus() int {
 		return 23
 	}
 
-	return 1
+	return 18
 }
 func (cc *Controller) coderr() int {
 	if cc.DK.EDK != 0 {

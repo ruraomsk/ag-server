@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"github.com/ruraomsk/ag-server/transport"
@@ -84,12 +84,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	writeTout := time.Duration(setup.Set.CommServer.TimeOutWrite * int64(time.Second))
 	go transport.GetMessagesFromDevice(soc, hin, &readTout)
 	go transport.SendMessagesToDevice(soc, hout, &writeTout)
-	// time.Sleep(1 * time.Second)
-
 	hDev := <-hin
-	// if hDev.ID == 496932 {
-	// 	logger.Info.Printf("in %v", hDev)
-	// }
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -105,7 +100,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	if ctrl.TMax != 0 {
 		writeTout = time.Duration(ctrl.TMax * int64(time.Second))
 	} else {
-		ctrl.TimeOut = setup.Set.CommServer.TimeOutWrite
+		ctrl.TMax = setup.Set.CommServer.TimeOutWrite
 		pudge.SetController(ctrl)
 	}
 	dmess := hDev.ParseMessage()
@@ -152,29 +147,11 @@ func newConnect(soc net.Conn, stop chan int) {
 	//Подтвердим что клиент прописан
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	mss := make([]transport.SubMessage, 0)
-	// var ms transport.SubMessage
-	// ms.Set0x00Device()
-	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
 	hout <- hs
-	// if hDev.ID == 496932 {
-	// 	logger.Info.Printf("out %v", hs)
-	// }
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
-	//Запросим состояние устройства
-	// hs = transport.CreateHeaderServer(0, int(hDev.Code))
-	// mss = make([]transport.SubMessage, 0)
-	// ms.Set0x03Server()
-	// mss = append(mss, ms)
-	// hs.UpackMessages(mss)
-	// if !statusOut {
-	// 	logger.Error.Printf("not out ")
-	// 	return
-	// }
-	// hout <- hs
-	// logger.Info.Printf("out %v", hs)
 	//С этого момента начинается основной цикл работы
 	/*
 	   3. В процессе работы, при изменении состояния ДК или оборудования, клиент отправляет
@@ -497,29 +474,12 @@ func makeLocalOff(dd *device) transport.HeaderServer {
 
 }
 func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
-	// hss := make([]transport.HeaderServer, 0)
 	dd.addNumber()
 	var ms transport.SubMessage
-	//Сообщение об отключении управления
 	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
 	mss := make([]transport.SubMessage, 0)
-	// ms.Set0x02Server(false)
-	// mss = append(mss, ms)
-	// hs.UpackMessages(mss)
-	// hss = append(hss, hs)
-	//Собственно массив привязки
-	// hs = transport.CreateHeaderServer(int(dd.NumServ), 0)
-	// mss = make([]transport.SubMessage, 0)
 	ms.SetArray(comArray.Number, comArray.NElem, comArray.Elems)
 	mss = append(mss, ms)
-	// hs.UpackMessages(mss)
-	// hss = append(hss, hs)
-	//Сообщение о включении управления
-	// hs = transport.CreateHeaderServer(0, 0)
-	// mss = make([]transport.SubMessage, 0)
-	// ms.Set0x02Server(true)
-	// mss = append(mss, ms)
 	hs.UpackMessages(mss)
-	// hss = append(hss, hs)
 	return hs
 }

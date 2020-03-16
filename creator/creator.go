@@ -15,7 +15,7 @@ import (
 
 	"fmt"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 
 	_ "github.com/lib/pq"
 )

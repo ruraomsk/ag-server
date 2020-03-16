@@ -4,8 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 )
 
 //Stoped глобальная перенная если истина то надо бросать работу

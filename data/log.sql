@@ -5,7 +5,6 @@ DROP table if exists public.log;
 CREATE TABLE public.log
 (
     tm timestamp without time zone primary key NOT NULL,
-    flag integer NOT NULL,
     id integer NOT NULL,
     txt jsonb NOT NULL
 )

@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/controller"
 	"github.com/ruraomsk/ag-server/creator"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/inspect"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 )

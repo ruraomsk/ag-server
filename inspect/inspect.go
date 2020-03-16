@@ -6,14 +6,13 @@ package inspect
 import (
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
 )
 
 var croses map[string]pudge.Region
-var Stoped = false
 
 //Start главный модуль инспектора
 func Start(context *extcon.ExtContext, stop chan int) {
@@ -43,7 +42,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			}
 		}
 	case <-context.Done():
-		Stoped = true
 		return
 	case <-stop:
 		return
@@ -53,12 +51,8 @@ func oneCross(reg pudge.Region) {
 	flagError := 0
 	count := 0
 	// logger.Info.Printf("запустили инспектора %v", reg)
-main:
 	for {
 		time.Sleep(time.Duration(1 * time.Second))
-		if Stoped {
-			return
-		}
 		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
@@ -75,9 +69,6 @@ main:
 			}
 
 			time.Sleep(time.Duration(10 * time.Second))
-			if Stoped {
-				return
-			}
 			continue
 		}
 		if !dev.IsConnected() {
@@ -88,9 +79,6 @@ main:
 				count++
 			}
 			time.Sleep(time.Duration(10 * time.Second))
-			if Stoped {
-				return
-			}
 			continue
 		}
 		if dev.Local {
@@ -104,55 +92,52 @@ main:
 		if !is {
 			logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
 			time.Sleep(time.Duration(10 * time.Second))
-			if Stoped {
-				return
-			}
 			continue
 		}
 
 		//Построим массивы как надо для перекрестка
+		// logger.Info.Printf("Проверяем %v", reg)
 		crossarrays := makeArrays(cr)
-		// logger.Info.Printf("массивы создали %v", reg)
 		sending := make([]pudge.ArrayPriv, 0)
 		for _, ac := range crossarrays {
 			found := false
-			for _, d := range dev.Arrays {
+			for i, d := range dev.Arrays {
 				if d.Number == ac.Number && d.NElem == ac.NElem {
-					if !d.Compare(&ac) {
-						sending = append(sending, ac)
-						continue main
-					}
 					found = true
-
+					if !d.Compare(&ac) {
+						// logger.Info.Printf("не совпали\n%v\n%v\n", d, ac)
+						sending = append(sending, ac)
+						dev.Arrays[i] = ac
+					}
 				}
 			}
 			if !found {
+				// logger.Info.Printf("не найден %v", ac)
 				sending = append(sending, ac)
-				if Stoped {
-					return
-				}
-				continue main
+				dev.Arrays = append(dev.Arrays, ac)
 			}
 		}
 		if len(sending) != 0 {
+			// logger.Info.Printf("массивы создали %v", reg)
 			dev.Local = true
 			pudge.SetController(dev)
 			sendLocalOn(dev)
 
 			for _, ac := range sending {
+				// logger.Info.Printf("массив -> %v", ac)
+
 				sendArray(dev, ac)
+				time.Sleep(1000 * time.Millisecond)
 			}
 			sendLocalOff(dev)
 			dev.Local = false
 			pudge.SetController(dev)
+			// logger.Info.Printf("массивы передали %v", reg)
 		}
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)
 		// pudge.SetController(dev)
 		time.Sleep(time.Duration(10 * time.Second))
-		if Stoped {
-			return
-		}
 		flagError = 0
 		count = 0
 	}

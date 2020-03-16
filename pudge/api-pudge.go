@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/setup"
 
 	_ "github.com/lib/pq"
@@ -24,6 +24,8 @@ var Works bool
 
 var conDBSave *sql.DB
 var conCross *sql.DB
+var conLog *sql.DB
+
 var dbinfo string
 var err error
 
@@ -191,6 +193,13 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 		stop <- 1
 		return
 	}
+	conLog, err = sql.Open("postgres", dbinfo)
+	if err != nil {
+		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
+		stop <- 1
+		return
+	}
+	defer conLog.Close()
 	Works = true
 	timer := extcon.SetTimerClock(time.Duration(setup.Set.StepPudge) * time.Second)
 	for true {

@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/binding"
-	"github.com/ruraomsk/ag-server/logger"
 )
 
 //Region указатель на номер перекрестка
@@ -335,6 +335,7 @@ type Controller struct {
 	Statistics      []Statistic
 	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
 	LogLines        []LogLine
+	LastLog         string //Последнее активное сообщение логирования по устройству
 }
 
 //Compare сравнивание истина если равны

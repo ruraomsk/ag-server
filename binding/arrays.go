@@ -3,7 +3,7 @@ package binding
 import (
 	"fmt"
 
-	"github.com/ruraomsk/ag-server/logger"
+	"github.com/JanFant/TLServer/logger"
 )
 
 //Arrays масиссивы привязок
