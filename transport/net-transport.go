@@ -13,7 +13,7 @@ var Stoped = false
 
 //GetMessagesFromDevice принять сообщение
 func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.Duration) {
-	// defer socket.Close()
+	defer socket.Close()
 	var h HeaderDevice
 	for {
 		if Stoped {
@@ -62,7 +62,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 
 //GetMessagesFromService прием сообщений от сервера
 func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.Duration) {
-	// defer socket.Close()
+	defer socket.Close()
 	var hs HeaderServer
 	for {
 		if Stoped {
@@ -108,7 +108,7 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.
 
 //SendMessagesToDevice передать сообщение на устройство
 func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Duration) {
-	// defer socket.Close()
+	defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
@@ -137,7 +137,7 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 
 //SendMessagesToServer передать сообщение на устройство
 func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice, tout *time.Duration) {
-	// defer socket.Close()
+	defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {

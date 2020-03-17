@@ -58,15 +58,13 @@ func main() {
 	stop := make(chan int)
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("pudge")
-	rq := make(chan int)
-	ans := make(chan string)
-	go pudge.Start(p, stop, rq, ans)
-	go comm.StartListen(stop, rq, ans)
+	go pudge.Start(p, stop)
+	go comm.StartListen(stop)
 	if len(os.Args) > 1 {
 		if strings.Contains(os.Args[1], "simul") {
 			time.Sleep(5 * time.Second)
 			c, _ := extcon.NewContext("controller")
-			go controller.Start(c, rq, ans)
+			go controller.Start(c)
 		}
 	}
 	i, _ := extcon.NewContext("inspector")

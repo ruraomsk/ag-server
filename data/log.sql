@@ -6,7 +6,7 @@ CREATE TABLE public.log
 (
     tm timestamp without time zone primary key NOT NULL,
     id integer NOT NULL,
-    txt jsonb NOT NULL
+    txt text NOT NULL
 )
 WITH (
     OIDS = FALSE,

@@ -18,10 +18,11 @@ import (
 var mutex sync.Mutex
 var controllers map[int]*Controller
 var crosses map[string]*Cross
+var statuses map[int]string
 
 //Works флаг готовности pudge
 var Works bool
-
+var ChanLog chan RecLogCtrl
 var conDBSave *sql.DB
 var conCross *sql.DB
 var conLog *sql.DB
@@ -31,8 +32,8 @@ var err error
 
 //GetCross возвращает копию перекрестка
 func GetCross(region, area, id int) (Cross, bool) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	// mutex.Lock()
+	// defer mutex.Unlock()
 	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
 	if !is {
@@ -44,8 +45,8 @@ func GetCross(region, area, id int) (Cross, bool) {
 
 //GetCrosses возвращает все перекрестки
 func GetCrosses() []Region {
-	mutex.Lock()
-	defer mutex.Unlock()
+	// mutex.Lock()
+	// defer mutex.Unlock()
 	r := make([]Region, 0)
 	for _, cr := range crosses {
 		reg := Region{Region: cr.Region, Area: cr.Area, ID: cr.ID}
@@ -79,8 +80,8 @@ func DeleteCross(region, area, id int) {
 
 //GetController возвращает копию Контроллера
 func GetController(id int) (*Controller, bool) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	// mutex.Lock()
+	// defer mutex.Unlock()
 	c, is := controllers[id]
 	return c, is
 }
@@ -101,15 +102,15 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 
 //SetCross обновляет состояние перекрестка
 func SetCross(c *Cross) {
-	mutex.Lock()
-	defer mutex.Unlock()
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 	insert := false
 	_, is := crosses[reg.ToKey()]
 	if !is {
+		mutex.Lock()
 		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
+		mutex.Unlock()
 	}
 	if insert {
 		js, _ := json.Marshal(c)
@@ -130,13 +131,13 @@ func SetCross(c *Cross) {
 
 //SetController Записывает новое состояние контроллера и если есть изменения то записывает его в лог
 func SetController(c *Controller) {
-	mutex.Lock()
-	defer mutex.Unlock()
 	insert := false
 	_, is := controllers[c.ID]
 	if !is {
+		mutex.Lock()
 		insert = true
 		controllers[c.ID] = c
+		mutex.Unlock()
 	}
 	if insert {
 		js, _ := json.Marshal(c)
@@ -154,12 +155,14 @@ func SetController(c *Controller) {
 }
 
 //Start главная процедура управления состоянием котроллеров
-func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan string) {
+func Start(context *extcon.ExtContext, stop chan int) {
 	// Создаем каналы и переменные
 	Works = false
 	defer mutex.Unlock()
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
+	statuses = make(map[int]string)
+	ChanLog = make(chan RecLogCtrl, 100)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -200,6 +203,7 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 		return
 	}
 	defer conLog.Close()
+	go writeLog()
 	Works = true
 	timer := extcon.SetTimerClock(time.Duration(setup.Set.StepPudge) * time.Second)
 	for true {
@@ -213,17 +217,13 @@ func Start(context *extcon.ExtContext, stop chan int, rq chan int, ans chan stri
 		case <-context.Done():
 			saveDBase()
 			return
-		case id := <-rq:
-			ans <- isRegistred(id)
 		}
 	}
 }
 func toReturnControllers(mgs []int) {
 	var ret Controllers
 	ret.Contrs = make([]Controller, 0)
-	mutex.Lock()
 	for _, i := range mgs {
 		ret.Contrs = append(ret.Contrs, *controllers[i])
 	}
-	mutex.Unlock()
 }

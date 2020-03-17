@@ -32,9 +32,7 @@ func GetChanArray(id int) (chan CommandArray, bool) {
 }
 
 //StartListen основной вход сервер коммуникаций
-func StartListen(stop chan int, rq chan int, ans chan string) {
-	request = rq
-	answare = ans
+func StartListen(stop chan int) {
 	for !pudge.Works {
 		time.Sleep(1 * time.Second)
 	}
@@ -75,6 +73,7 @@ func newConnect(soc net.Conn, stop chan int) {
 		работы, Состояние оборудования , Состояние ДК V3, сервер отвечает
 		подтверждением с номером принятого пакета.
 	*/
+	logger.Error.Printf("Устройствo %s подключается...", soc.RemoteAddr().String())
 	ctrl := new(pudge.Controller)
 	var err error
 	hout := make(chan transport.HeaderServer, 100)
@@ -85,10 +84,11 @@ func newConnect(soc net.Conn, stop chan int) {
 	go transport.GetMessagesFromDevice(soc, hin, &readTout)
 	go transport.SendMessagesToDevice(soc, hout, &writeTout)
 	hDev := <-hin
+	logger.Info.Printf("hDev %v", hDev)
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
-		logger.Error.Printf("Устройствo %s %s", soc.LocalAddr().String(), err.Error())
+		logger.Error.Printf("Устройствo %s %s", soc.RemoteAddr().String(), err.Error())
 		return
 	}
 	if ctrl.TimeOut != 0 {
@@ -118,10 +118,19 @@ func newConnect(soc net.Conn, stop chan int) {
 			flag = true
 			m.Get0x12Device(ctrl)
 		}
+		if m.Type == 0x1B {
+			flag = true
+			// m.Get0x1BDevice()
+		}
+		if m.Type == 0x1C {
+			flag = true
+			// m.Get0x1CDevice()
+		}
 	}
 	if !flag {
 		//В сообщении соединении нет 0x10 или 0x1D значит рвем связь
 		logger.Error.Printf("Устройство %d неверный формат подключения", hDev.ID)
+		logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 		return
 	}
 	if time.Now().Sub(start) > time.Duration(10*time.Second) {
@@ -149,6 +158,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	mss := make([]transport.SubMessage, 0)
 	hs.UpackMessages(mss)
 	hout <- hs
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -193,7 +203,9 @@ func newConnect(soc net.Conn, stop chan int) {
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = pudge.NotConnected
 				pudge.SetController(ctrl)
-				logger.Info.Printf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
+				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
+				logger.Info.Print(w)
 				return
 			}
 
@@ -251,6 +263,7 @@ func newConnect(soc net.Conn, stop chan int) {
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
 func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transport.HeaderServer, bool) {
 	dmess := hDev.ParseMessage()
+	// logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 	need := false
 	mutex.Lock()
 	d := devs[hDev.ID]
@@ -392,19 +405,21 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
 	ctrl := new(pudge.Controller)
+	logger.Info.Printf("Check reg for %d", id)
 	c, is := pudge.GetController(id)
 	if !is {
-		//Нет на pudge теперь надо проверить среди регистрированных
-		request <- id
-		strKey := <-answare
+		//Нет на pudge теперь надо проверить среди регистрированн
+		strKey := pudge.IsRegistred(id)
+
 		if len(strKey) == 0 {
 			return nil, fmt.Errorf("id %d не зарегистрирован", id)
 		}
-
 		pudge.SetDefault(ctrl, strKey)
-		// pudge.SetController(ctrl)
+		pudge.SetController(ctrl)
+		logger.Info.Printf("id %d reg on %s", id, strKey)
 		return ctrl, nil
 	}
+	logger.Info.Printf("Check reg for %d closed", id)
 	ctrl = c
 	return ctrl, nil
 }

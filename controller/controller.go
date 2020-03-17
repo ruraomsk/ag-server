@@ -35,14 +35,13 @@ func restartDevice() {
 		d.Mutex.Unlock()
 	}
 }
-func getController(id int, rq chan int, ans chan string) *pudge.Controller {
+func getController(id int) *pudge.Controller {
 	//Вначале проверим на pudge
 	ctrl := new(pudge.Controller)
 	c, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
-		rq <- id
-		key := <-ans
+		key := pudge.IsRegistred(id)
 		if len(key) == 0 {
 			return nil
 		}
@@ -59,7 +58,7 @@ func getController(id int, rq chan int, ans chan string) *pudge.Controller {
 }
 
 //Start Запуск имитатора контроллеров
-func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
+func Start(context *extcon.ExtContext) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	logger.Info.Println("Start controller work...")
 	fmt.Println("Controller start work...")
@@ -95,7 +94,7 @@ func Start(context *extcon.ExtContext, rq chan int, ans chan string) {
 			//Real!!
 			continue
 		}
-		dev.Controller = getController(dev.ID, rq, ans)
+		dev.Controller = getController(dev.ID)
 		if dev.Controller == nil {
 			logger.Error.Printf("нет такого ID на перекрестках %d", dev.ID)
 			continue

@@ -92,7 +92,7 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	case 0x09:
 		l = 6
 	case 0x0a:
-		l = int(d.Message[pos+2]) * 3
+		l = int(d.Message[pos+2]) + 3
 		if l == 0 {
 			l = 3
 		}
@@ -132,12 +132,16 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 //ParseMessage разбор буфера сообщений от устройства
 func (d *HeaderDevice) ParseMessage() []SubMessage {
 	var sb SubMessage
+	// logger.Debug.Printf("hdev %v", d)
 	sub := make([]SubMessage, 0)
 	pos := 0
 	for pos < len(d.Message) {
 		sb, pos = d.codeParse(pos)
+		// logger.Debug.Printf("mess %v %d", sb, pos)
 		sub = append(sub, sb)
 	}
+	// logger.Debug.Printf("all mess %v ", sub)
+
 	return sub
 }
 

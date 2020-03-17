@@ -16,7 +16,10 @@ func loadDBase() error {
 	if err != nil {
 		return err
 	}
-
+	err = loadStatuses()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func saveDBase() error {
@@ -31,7 +34,25 @@ func saveDBase() error {
 
 	return nil
 }
-
+func loadStatuses() error {
+	mutex.Lock()
+	defer mutex.Unlock()
+	rows, err := conCross.Query("Select id,description from public.status;")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	var id int
+	var description string
+	for rows.Next() {
+		err = rows.Scan(&id, &description)
+		if err != nil {
+			return err
+		}
+		statuses[id] = description
+	}
+	return nil
+}
 func loadCrosees() error {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -97,6 +118,7 @@ func loadControllers() error {
 	return nil
 }
 func saveControllers() error {
+	// logger.Debug.Println("saveControllers")
 	mutex.Lock()
 	defer mutex.Unlock()
 	count := 0
@@ -123,6 +145,7 @@ func saveControllers() error {
 	return nil
 }
 func saveCrosees() error {
+	// logger.Debug.Println("saveCrossers")
 	mutex.Lock()
 	defer mutex.Unlock()
 	count := 0

@@ -242,7 +242,7 @@ func (cc *Controller) calcStatus() int {
 		return 23
 	}
 
-	return 18
+	return 1
 }
 func (cc *Controller) coderr() int {
 	if cc.DK.EDK != 0 {

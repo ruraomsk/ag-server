@@ -85,11 +85,13 @@ func BackgroundWork(step time.Duration, stop chan int) {
 		select {
 		case <-stop:
 			{
+				fmt.Println("Wait make abort...")
 				allstop()
 				return
 			}
 		case <-c:
 			{
+				fmt.Println("Wait make abort...")
 				allstop()
 				return
 			}

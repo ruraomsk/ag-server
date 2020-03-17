@@ -1,7 +1,9 @@
 package pudge
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 )
 
 //IsConnected возвращает на связи ли устройство
@@ -9,9 +11,10 @@ func (c *Controller) IsConnected() bool {
 	return c.StatusConnection == Connected
 }
 
-func isRegistred(id int) string {
-	mutex.Lock()
-	defer mutex.Unlock()
+//IsRegistred проверяет зарегистрирован ли Id на перекрестке
+func IsRegistred(id int) string {
+	// mutex.Lock()
+	// defer mutex.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == id {
 			reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
@@ -24,8 +27,8 @@ func isRegistred(id int) string {
 var cCount int
 
 func setStatusCross() {
-	mutex.Lock()
-	defer mutex.Unlock()
+	// mutex.Lock()
+	// defer mutex.Unlock()
 	for _, cr := range crosses {
 		cc, is := controllers[cr.IDevice]
 		if !is {
@@ -37,6 +40,17 @@ func setStatusCross() {
 		if statusDevice != cr.StatusDevice {
 			cr.StatusDevice = statusDevice
 			cr.WriteToDB = true
+			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
+			cc.LastLogString = mes
+			ChanLog <- RecLogCtrl{ID: cc.ID, LogString: mes}
+			SetController(cc)
+		} else {
+			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
+			if strings.Compare(cc.LastLogString, mes) != 0 {
+				cc.LastLogString = mes
+				ChanLog <- RecLogCtrl{ID: cc.ID, LogString: mes}
+				SetController(cc)
+			}
 		}
 		if cr.PK != cc.PK {
 			cr.PK = cc.PK

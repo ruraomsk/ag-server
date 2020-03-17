@@ -303,6 +303,13 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 	return reflect.DeepEqual(a, aa)
 }
 
+//RecLogCtrl структура передачи инормации системного лога устройства
+// Время всегда ставится системное
+type RecLogCtrl struct {
+	ID        int    // Уникальный номер контроллера
+	LogString string //Собственно сообщение
+}
+
 //Controller внутренне представление контроллера
 type Controller struct {
 	ID               int              `json:"id"`    // Уникальный номер контроллера
@@ -335,7 +342,7 @@ type Controller struct {
 	Statistics      []Statistic
 	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
 	LogLines        []LogLine
-	LastLog         string //Последнее активное сообщение логирования по устройству
+	LastLogString   string //Последнее активное сообщение логирования по устройству
 }
 
 //Compare сравнивание истина если равны
@@ -345,9 +352,7 @@ func (c *Controller) Compare(cc *Controller) bool {
 
 //SetDefault Заполнить по умолчанию
 func SetDefault(c *Controller, key string) {
-	mutex.Lock()
 	cr, is := crosses[key]
-	mutex.Unlock()
 	if !is {
 		logger.Error.Fatalf("нет такого %s", key)
 	}
