@@ -269,6 +269,12 @@ func (l *LogLine) Compare(ll *LogLine) bool {
 
 //Arrays описание и хранение всех настроечных массивов
 
+//UserCross структура для передачи нового состояния перекрестка
+type UserCross struct {
+	User  string `json:"user"`
+	State Cross  `json:"state"`
+}
+
 //Cross описание перекрестка
 type Cross struct {
 	Region       int            `json:"region"`  //Регион

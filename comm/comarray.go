@@ -12,12 +12,6 @@ import (
 	"github.com/ruraomsk/ag-server/setup"
 )
 
-//UserCross структура для передачи нового состояния перекрестка
-type UserCross struct {
-	User  string      `json:"user"`
-	State pudge.Cross `json:"state"`
-}
-
 func listenArmCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortCommand))
 	if err != nil {
@@ -99,7 +93,7 @@ func workerCommand(soc net.Conn) {
 }
 func workerArray(soc net.Conn) {
 	defer soc.Close()
-	var state UserCross
+	var state pudge.UserCross
 	logger.Info.Printf("Новый клиент массивов %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	for {
