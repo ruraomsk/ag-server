@@ -244,6 +244,7 @@ func sendLocalOff(dev *pudge.Controller) {
 	cmd.ID = 0
 	cmd.Number = 1
 	ch <- *cmd
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Начата передача массивов"}
 }
 func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	//Спросить у коммуникационного сервера канал для отправки сообщения
@@ -258,4 +259,5 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
 	ch <- *cmd
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Окончена передача массивов"}
 }

@@ -22,6 +22,8 @@ var statuses map[int]string
 
 //Works флаг готовности pudge
 var Works bool
+
+//ChanLog канал приема сообщений логов устройств
 var ChanLog chan RecLogCtrl
 var conDBSave *sql.DB
 var conCross *sql.DB
@@ -215,7 +217,14 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			setStatusCross()
 			saveDBase()
 		case <-context.Done():
+			logger.Info.Println("Останов обновления БД")
 			saveDBase()
+			for _, d := range controllers {
+				if d.IsConnected() {
+					ChanLog <- RecLogCtrl{ID: d.ID, LogString: "Остановлен сервер"}
+				}
+			}
+			time.Sleep(5 * time.Second)
 			return
 		}
 	}

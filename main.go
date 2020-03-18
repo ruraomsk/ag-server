@@ -32,7 +32,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	path := setup.Set.Home
-	err = logger.Init(path + "/log/ag-server")
+	err = logger.Init(path + "/log")
 	if err != nil {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return

@@ -6,9 +6,10 @@ import (
 
 //CommandARM Команды от Сервера АРМ
 type CommandARM struct {
-	ID      int `json:"id"`
-	Command int `json:"cmd"`
-	Params  int `json:"param"`
+	ID      int    `json:"id"`
+	User    string `json:"user"`
+	Command int    `json:"cmd"`
+	Params  int    `json:"param"`
 }
 
 //CommandArray Привязка от Сервера АРМ

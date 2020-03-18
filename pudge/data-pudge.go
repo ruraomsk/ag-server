@@ -288,7 +288,6 @@ type Cross struct {
 	NK           int            `json:"nk"`     //Номер недельной карты
 	Statistics   []Statistic    `json:"statis"` //Накопленная статистика
 	Arrays       binding.Arrays `json:"arrays"` //Файлы привязки
-
 }
 
 //ArrayPriv собственно массив привязки

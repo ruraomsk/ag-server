@@ -211,7 +211,9 @@ func newConnect(soc net.Conn, stop chan int) {
 
 		case <-dd.context.Done():
 			transport.Stoped = true
+			// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Остановлен сервер"}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
+
 			return
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма

@@ -3,6 +3,7 @@ package pudge
 import (
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/JanFant/TLServer/logger"
 )
@@ -108,6 +109,8 @@ func loadControllers() error {
 		}
 		c.WriteToDB = true
 		c.StatusConnection = NotConnected
+		c.LastLogString = ""
+		c.LastOperation = time.Unix(0, 0)
 
 		_, is := controllers[id]
 		if is {
