@@ -67,7 +67,7 @@ func workerCommand(soc net.Conn) {
 		}
 		dev, is := devs[command.ID]
 		if !is {
-			logger.Error.Printf("Команда сервера АРМ нет такого id %d", command.ID)
+			logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
 			continue
 		}
 		logger.Info.Printf("Команда %v", command)
@@ -83,7 +83,7 @@ func workerCommand(soc net.Conn) {
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {
 			ctrl, _ := pudge.GetController(command.ID)
-			w := fmt.Sprintf("Пользователь %s  указал команду [%d %d]", command.User, command.Command, command.Params)
+			w := fmt.Sprintf("Пользователь %s  %s", command.User, getDescription(command))
 			ctrl.LastLogString = w
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, LogString: w}
 			pudge.SetController(ctrl)
@@ -106,11 +106,13 @@ func workerArray(soc net.Conn) {
 			// logger.Info.Println("Keep alive")
 			continue
 		}
+
 		err = json.Unmarshal([]byte(a), &state)
 		if err != nil {
 			logger.Error.Println("При конвератации привязки сервера АРМ ", err.Error())
 			continue
 		}
+		// logger.Error.Println("Пришло state")
 		if state.State.IDevice < 0 {
 			//Удаление перекрестка
 			_, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
@@ -139,13 +141,15 @@ func workerArray(soc net.Conn) {
 				ctrl.LastLogString = w
 				pudge.SetController(ctrl)
 			}
+			logger.Info.Print(w)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
 		}
-		// logger.Info.Printf("Write status %v", state)
+		// logger.Info.Printf("Write new state ")
 
 		pudge.SetCross(&state.State)
 		ctrl, is := pudge.GetController(state.State.IDevice)
 		w := fmt.Sprintf("Пользователь %s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
+		logger.Info.Print(w)
 		if is {
 			ctrl.LastLogString = w
 			pudge.SetController(ctrl)
@@ -153,4 +157,40 @@ func workerArray(soc net.Conn) {
 		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
 	}
 
+}
+func getDescription(toSend CommandARM) string {
+	switch toSend.Command {
+	case 4:
+		if toSend.Params == 1 {
+			return "Отправлен запрос на смену фаз"
+		} else {
+			return "Отключить запрос на смену фаз"
+		}
+	case 5:
+		if toSend.Params == 0 {
+			return "Отправлена команда Переход на автоматическое регулирование ПК"
+		}
+		return "Отправлена команда Сменить ПК на " + strconv.Itoa(toSend.Params)
+	case 6:
+		if toSend.Params == 0 {
+			return "Отправлена команда Переход на автоматическое регулирование СК"
+		}
+		return "Отправлена команда Сменить CК на " + strconv.Itoa(toSend.Params)
+	case 7:
+		if toSend.Params == 0 {
+			return "Отправлена команда Переход на автоматическое регулирование НК"
+		}
+		return "Отправлена команда Сменить НК на " + strconv.Itoa(toSend.Params)
+	}
+	switch toSend.Params {
+	case 0:
+		return "Отправлена команда Локальный режим"
+	case 9:
+		return "Отправлена команда Координированное управление"
+	case 10:
+		return "Отправлена команда Включить жёлтое мигание"
+	case 11:
+		return "Отправлена команда Отключить светофоры"
+	}
+	return "Отправлена команда Включить фазу №" + strconv.Itoa(toSend.Params)
 }

@@ -127,7 +127,7 @@ func oneCross(reg pudge.Region) {
 				// logger.Info.Printf("массив -> %v", ac)
 
 				sendArray(dev, ac)
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 			}
 			sendLocalOff(dev)
 			dev.Local = false
@@ -233,6 +233,7 @@ func sendLocalOn(dev *pudge.Controller) {
 	cmd.ID = 0
 	cmd.Number = 0
 	ch <- *cmd
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Начата передача массивов"}
 }
 func sendLocalOff(dev *pudge.Controller) {
 	ch, is := comm.GetChanArray(dev.ID)
@@ -244,7 +245,7 @@ func sendLocalOff(dev *pudge.Controller) {
 	cmd.ID = 0
 	cmd.Number = 1
 	ch <- *cmd
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Начата передача массивов"}
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Окончена передача массивов"}
 }
 func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	//Спросить у коммуникационного сервера канал для отправки сообщения
@@ -259,5 +260,4 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
 	ch <- *cmd
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Окончена передача массивов"}
 }

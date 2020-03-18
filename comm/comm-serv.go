@@ -56,6 +56,9 @@ func StartListen(stop chan int) {
 			logger.Error.Printf("Ошибка accept %s", err.Error())
 			continue
 		}
+		if !pudge.Works {
+			return
+		}
 		count++
 		if count%5 == 0 {
 			logger.Info.Println("Входящих соединений", count)
@@ -229,12 +232,14 @@ func newConnect(soc net.Conn, stop chan int) {
 			if comArray.ID == 0 && comArray.Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
+				logger.Debug.Printf("Local on %d", dd.id)
 				hout <- hs
 				break
 			}
 			if comArray.ID == 0 && comArray.Number == 1 {
 				//Команда выйти из локального режима
 				hs := makeLocalOff(dd)
+				logger.Debug.Printf("Local off %d", dd.id)
 				hout <- hs
 				break
 			}
@@ -256,6 +261,8 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
+			logger.Debug.Printf("send array %d", dd.id)
+
 			hout <- hs
 		}
 	}
@@ -265,7 +272,7 @@ func newConnect(soc net.Conn, stop chan int) {
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
 func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transport.HeaderServer, bool) {
 	dmess := hDev.ParseMessage()
-	// logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
+	logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 	need := false
 	mutex.Lock()
 	d := devs[hDev.ID]

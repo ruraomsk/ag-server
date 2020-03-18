@@ -217,6 +217,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			setStatusCross()
 			saveDBase()
 		case <-context.Done():
+			Works = false
 			logger.Info.Println("Останов обновления БД")
 			saveDBase()
 			for _, d := range controllers {

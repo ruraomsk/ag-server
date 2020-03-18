@@ -1,11 +1,12 @@
 -- Table: public.log
 
 -- DROP TABLE public.log;
-DROP table if exists public.log; 
-CREATE TABLE public.log
+DROP table if exists public.logdevice; 
+CREATE TABLE public.logdevice
 (
     tm timestamp without time zone primary key NOT NULL,
     id integer NOT NULL,
+    crossinfo text,
     txt text NOT NULL
 )
 WITH (
@@ -14,7 +15,7 @@ WITH (
 )
 TABLESPACE pg_default;
 
-ALTER TABLE public.log
+ALTER TABLE public.logdevice
     OWNER to postgres;
-COMMENT ON TABLE public.log
+COMMENT ON TABLE public.logdevice
     IS 'Логирование изменения состояния и команд';
