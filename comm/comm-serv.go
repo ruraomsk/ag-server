@@ -76,7 +76,7 @@ func newConnect(soc net.Conn, stop chan int) {
 		работы, Состояние оборудования , Состояние ДК V3, сервер отвечает
 		подтверждением с номером принятого пакета.
 	*/
-	logger.Error.Printf("Устройствo %s подключается...", soc.RemoteAddr().String())
+	logger.Debug.Printf("Устройствo %s подключается...", soc.RemoteAddr().String())
 	ctrl := new(pudge.Controller)
 	var err error
 	hout := make(chan transport.HeaderServer, 100)
@@ -87,7 +87,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	go transport.GetMessagesFromDevice(soc, hin, &readTout)
 	go transport.SendMessagesToDevice(soc, hout, &writeTout)
 	hDev := <-hin
-	logger.Info.Printf("hDev %v", hDev)
+	// logger.Info.Printf("hDev %v", hDev)
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -133,7 +133,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	if !flag {
 		//В сообщении соединении нет 0x10 или 0x1D значит рвем связь
 		logger.Error.Printf("Устройство %d неверный формат подключения", hDev.ID)
-		logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
+		logger.Error.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 		return
 	}
 	if time.Now().Sub(start) > time.Duration(10*time.Second) {
@@ -208,7 +208,7 @@ func newConnect(soc net.Conn, stop chan int) {
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
 				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
-				logger.Info.Print(w)
+				logger.Error.Print(w)
 				return
 			}
 
@@ -232,14 +232,14 @@ func newConnect(soc net.Conn, stop chan int) {
 			if comArray.ID == 0 && comArray.Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
-				logger.Debug.Printf("Local on %d", dd.id)
+				// logger.Debug.Printf("Local on %d", dd.id)
 				hout <- hs
 				break
 			}
 			if comArray.ID == 0 && comArray.Number == 1 {
 				//Команда выйти из локального режима
 				hs := makeLocalOff(dd)
-				logger.Debug.Printf("Local off %d", dd.id)
+				// logger.Debug.Printf("Local off %d", dd.id)
 				hout <- hs
 				break
 			}
@@ -261,7 +261,7 @@ func newConnect(soc net.Conn, stop chan int) {
 			}
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
-			logger.Debug.Printf("send array %d", dd.id)
+			// logger.Debug.Printf("send array %d", dd.id)
 
 			hout <- hs
 		}
@@ -272,7 +272,7 @@ func newConnect(soc net.Conn, stop chan int) {
 //Считывает полученную информацию от устройства и распаковывет ее в контроллер
 func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transport.HeaderServer, bool) {
 	dmess := hDev.ParseMessage()
-	logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
+	// logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 	need := false
 	mutex.Lock()
 	d := devs[hDev.ID]
@@ -414,7 +414,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
 	ctrl := new(pudge.Controller)
-	logger.Info.Printf("Check reg for %d", id)
+	// logger.Info.Printf("Check reg for %d", id)
 	c, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированн
@@ -425,10 +425,10 @@ func getController(id int) (*pudge.Controller, error) {
 		}
 		pudge.SetDefault(ctrl, strKey)
 		pudge.SetController(ctrl)
-		logger.Info.Printf("id %d reg on %s", id, strKey)
+		// logger.Info.Printf("id %d reg on %s", id, strKey)
 		return ctrl, nil
 	}
-	logger.Info.Printf("Check reg for %d closed", id)
+	// logger.Info.Printf("Check reg for %d closed", id)
 	ctrl = c
 	return ctrl, nil
 }

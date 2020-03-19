@@ -124,7 +124,7 @@ func oneCross(reg pudge.Region) {
 			sendLocalOn(dev)
 
 			for _, ac := range sending {
-				// logger.Info.Printf("массив -> %v", ac)
+				// logger.Info.Printf("id %d массив -> %v", dev.ID, ac)
 
 				sendArray(dev, ac)
 				time.Sleep(500 * time.Millisecond)

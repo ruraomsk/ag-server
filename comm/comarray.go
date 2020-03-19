@@ -121,7 +121,7 @@ func workerArray(soc net.Conn) {
 				logger.Info.Printf("Попытка удаления удаленного перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 				continue
 			}
-			logger.Debug.Printf("Удаление перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
+			logger.Info.Printf("Удаление перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			ctrl, _ := pudge.GetController(state.State.IDevice)
 			w := fmt.Sprintf("Пользователь %s удаление перекрестка %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)

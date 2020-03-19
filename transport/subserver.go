@@ -1,10 +1,10 @@
 package transport
 
-import "strings"
-
-import "fmt"
-
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 //GetCodeCommandServer возвращает номер команды  или ноль если это массив привязки
 func (s *SubMessage) GetCodeCommandServer() int {
@@ -370,10 +370,13 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 
 //SetArray возвращает номер и массив от сервера
 func (s *SubMessage) SetArray(num int, nelem int, array []int) {
+	// logger.Debug.Printf("setarray %d %d %v", num, nelem, array)
 	s.Type = uint8(num)
-	s.Message = make([]uint8, len(array)+1)
+	s.Message = make([]uint8, len(array))
 	s.Message[0] = uint8(nelem)
-	for i := 1; i < len(s.Message); i++ {
-		s.Message[i] = uint8(array[i-1])
+	for i := 1; i < len(array); i++ {
+		s.Message[i] = uint8(array[i])
 	}
+	// logger.Debug.Printf("message  %v", s)
+
 }

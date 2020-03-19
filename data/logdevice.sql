@@ -6,7 +6,7 @@ CREATE TABLE public.logdevice
 (
     tm timestamp without time zone primary key NOT NULL,
     id integer NOT NULL,
-    crossinfo text,
+    crossinfo jsonb,
     txt text NOT NULL
 )
 WITH (
