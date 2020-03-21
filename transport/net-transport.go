@@ -117,7 +117,7 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 				return
 			}
 		case hs := <-hout:
-			logger.Debug.Printf("Отправляем на %s %v", socket.RemoteAddr().String(), hs)
+			// logger.Debug.Printf("Отправляем на %s %v", socket.RemoteAddr().String(), hs)
 			socket.SetWriteDeadline(time.Now().Add(*tout))
 			buffer := hs.MakeBuffer()
 			n, err := socket.Write(buffer)
