@@ -370,13 +370,11 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 
 //SetArray возвращает номер и массив от сервера
 func (s *SubMessage) SetArray(num int, nelem int, array []int) {
-	// logger.Debug.Printf("setarray %d %d %v", num, nelem, array)
 	s.Type = uint8(num)
 	s.Message = make([]uint8, len(array)-1)
 	s.Message[0] = uint8(nelem)
 	for i := 2; i < len(array); i++ {
 		s.Message[i-1] = uint8(array[i])
 	}
-	// logger.Debug.Printf("message  %v", s)
 
 }

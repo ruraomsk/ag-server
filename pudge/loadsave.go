@@ -36,8 +36,6 @@ func saveDBase() error {
 	return nil
 }
 func loadStatuses() error {
-	mutex.Lock()
-	defer mutex.Unlock()
 	rows, err := conCross.Query("Select id,description from public.status;")
 	if err != nil {
 		return err
@@ -55,8 +53,6 @@ func loadStatuses() error {
 	return nil
 }
 func loadCrosees() error {
-	mutex.Lock()
-	defer mutex.Unlock()
 	rows, err := conCross.Query("Select region,area,id,idevice,describ,state from public.cross;")
 	if err != nil {
 		return err
@@ -92,8 +88,6 @@ func loadCrosees() error {
 	return nil
 }
 func loadControllers() error {
-	mutex.Lock()
-	defer mutex.Unlock()
 	rows, err := conDBSave.Query("Select * from devices;")
 	var id int
 	var js []byte
@@ -122,8 +116,8 @@ func loadControllers() error {
 }
 func saveControllers() error {
 	// logger.Debug.Println("saveControllers")
-	mutex.Lock()
-	defer mutex.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	count := 0
 	for _, c := range controllers {
 		if len(c.Name) == 0 {
@@ -149,8 +143,8 @@ func saveControllers() error {
 }
 func saveCrosees() error {
 	// logger.Debug.Println("saveCrossers")
-	mutex.Lock()
-	defer mutex.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	count := 0
 	for _, c := range crosses {
 		if !c.WriteToDB {

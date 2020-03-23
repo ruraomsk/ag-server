@@ -15,7 +15,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var mutex sync.Mutex
+var mutexCross sync.Mutex
+var mutexCtrl sync.Mutex
 var controllers map[int]*Controller
 var crosses map[string]*Cross
 var statuses map[int]string
@@ -67,10 +68,10 @@ func getNameCross(idevice int) string {
 
 //DeleteCross Удаляет перекресток
 func DeleteCross(region, area, id int) {
-	mutex.Lock()
+	mutexCross.Lock()
 	reg := Region{Region: region, Area: area, ID: id}
 	delete(crosses, reg.ToKey())
-	mutex.Unlock()
+	mutexCross.Unlock()
 	w := fmt.Sprintf("DELETE FROM public.\"cross\" WHERE region=%d and area=%d and id=%d;", region, area, id)
 	_, err = conCross.Exec(w)
 
@@ -90,8 +91,8 @@ func GetController(id int) (*Controller, bool) {
 
 //SetCrossNewDevice деляет новую привязку контроллера
 func SetCrossNewDevice(reg Region, idevice int) error {
-	mutex.Lock()
-	defer mutex.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	c, is := crosses[reg.ToKey()]
 	if !is {
 		return fmt.Errorf("нет такого перекрестка %v", reg)
@@ -108,11 +109,11 @@ func SetCross(c *Cross) {
 	insert := false
 	_, is := crosses[reg.ToKey()]
 	if !is {
-		mutex.Lock()
+		mutexCross.Lock()
 		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
-		mutex.Unlock()
+		mutexCross.Unlock()
 	}
 	if insert {
 		js, _ := json.Marshal(c)
@@ -125,8 +126,10 @@ func SetCross(c *Cross) {
 			return
 		}
 	} else {
+		mutexCross.Lock()
 		c.WriteToDB = true
 		crosses[reg.ToKey()] = c
+		mutexCross.Unlock()
 	}
 	return
 }
@@ -136,10 +139,10 @@ func SetController(c *Controller) {
 	insert := false
 	_, is := controllers[c.ID]
 	if !is {
-		mutex.Lock()
+		mutexCtrl.Lock()
 		insert = true
 		controllers[c.ID] = c
-		mutex.Unlock()
+		mutexCtrl.Unlock()
 	}
 	if insert {
 		js, _ := json.Marshal(c)
@@ -151,8 +154,10 @@ func SetController(c *Controller) {
 			return
 		}
 	} else {
+		mutexCtrl.Lock()
 		c.WriteToDB = true
 		controllers[c.ID] = c
+		mutexCtrl.Unlock()
 	}
 }
 
@@ -160,7 +165,9 @@ func SetController(c *Controller) {
 func Start(context *extcon.ExtContext, stop chan int) {
 	// Создаем каналы и переменные
 	Works = false
-	defer mutex.Unlock()
+	defer mutexCross.Unlock()
+	defer mutexCtrl.Unlock()
+
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
 	statuses = make(map[int]string)
