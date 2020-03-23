@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -16,6 +17,10 @@ import (
 	"github.com/ruraomsk/ag-server/inspect"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
+
+	//pprof init
+	"net/http"
+	_ "net/http/pprof"
 )
 
 var err error
@@ -69,7 +74,10 @@ func main() {
 	}
 	i, _ := extcon.NewContext("inspector")
 	go inspect.Start(i, stop)
-
+	//for pprof!
+	go func() {
+		log.Println(http.ListenAndServe(":6060", nil))
+	}()
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 
