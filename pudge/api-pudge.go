@@ -58,6 +58,7 @@ func GetCrosses() []Region {
 	}
 	return r
 }
+
 func getNameCross(idevice int) string {
 	mutexCross.Lock()
 	defer mutexCross.Unlock()
