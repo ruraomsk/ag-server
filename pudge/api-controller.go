@@ -13,8 +13,8 @@ func (c *Controller) IsConnected() bool {
 
 //IsRegistred проверяет зарегистрирован ли Id на перекрестке
 func IsRegistred(id int) string {
-	// mutex.Lock()
-	// defer mutex.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == id {
 			reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
@@ -27,11 +27,13 @@ func IsRegistred(id int) string {
 var cCount int
 
 func setStatusCross() {
-	// mutexCross.Lock()
-	// defer mutexCross.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	// logger.Debug.Print("setStatudCross")
 	for _, cr := range crosses {
+		mutexCtrl.Lock()
 		cc, is := controllers[cr.IDevice]
+		mutexCtrl.Unlock()
 		if !is {
 			continue
 		}
@@ -39,13 +41,13 @@ func setStatusCross() {
 
 		statusDevice := cc.calcStatus()
 		if statusDevice != cr.StatusDevice {
-			mutexCross.Lock()
+			// mutexCross.Lock()
 			cr.StatusDevice = statusDevice
 			cr.WriteToDB = true
-			SetController(cc)
+			// mutexCross.Unlock()
 			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
 			cc.LastLogString = mes
-			mutexCross.Unlock()
+			SetController(cc)
 			ChanLog <- RecLogCtrl{ID: cc.ID, LogString: mes}
 		} else {
 			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
@@ -76,9 +78,9 @@ func setStatusCross() {
 		}
 		if cr.WriteToDB {
 			reg := Region{cr.Region, cr.Area, cr.ID}
-			mutexCross.Lock()
+			// mutexCross.Lock()
 			crosses[reg.ToKey()] = cr
-			mutexCross.Unlock()
+			// mutexCross.Unlock()
 		}
 	}
 }

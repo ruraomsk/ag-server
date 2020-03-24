@@ -16,8 +16,9 @@ import (
 
 var devs map[int]*device
 var mutex sync.Mutex
-var answare chan string
-var request chan int
+
+// var answare chan string
+// var request chan int
 
 //Это сервер коммуникации
 //Слушает входящие сообщения и распределяет их на устройства
@@ -347,6 +348,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				continue
 			}
 			c.LogLines = append(c.LogLines, lg)
+			logger.Debug.Printf("Пришла строка лога id %d %v", hDev.ID, lg)
 		case 0x0f:
 			//Установление связи ДК v2
 			need = true
@@ -414,7 +416,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
 	ctrl := new(pudge.Controller)
-	// logger.Info.Printf("Check reg for %d", id)
+	logger.Info.Printf("Check reg for %d", id)
 	c, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированн
@@ -425,10 +427,10 @@ func getController(id int) (*pudge.Controller, error) {
 		}
 		pudge.SetDefault(ctrl, strKey)
 		pudge.SetController(ctrl)
-		// logger.Info.Printf("id %d reg on %s", id, strKey)
+		logger.Info.Printf("id %d reg on %s", id, strKey)
 		return ctrl, nil
 	}
-	// logger.Info.Printf("Check reg for %d closed", id)
+	logger.Info.Printf("Check reg for %d closed", id)
 	ctrl = c
 	return ctrl, nil
 }

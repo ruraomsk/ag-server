@@ -36,8 +36,8 @@ var err error
 
 //GetCross возвращает копию перекрестка
 func GetCross(region, area, id int) (Cross, bool) {
-	// mutex.Lock()
-	// defer mutex.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
 	if !is {
@@ -49,8 +49,8 @@ func GetCross(region, area, id int) (Cross, bool) {
 
 //GetCrosses возвращает все перекрестки
 func GetCrosses() []Region {
-	// mutex.Lock()
-	// defer mutex.Unlock()
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	r := make([]Region, 0)
 	for _, cr := range crosses {
 		reg := Region{Region: cr.Region, Area: cr.Area, ID: cr.ID}
@@ -59,6 +59,8 @@ func GetCrosses() []Region {
 	return r
 }
 func getNameCross(idevice int) string {
+	mutexCross.Lock()
+	defer mutexCross.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == idevice {
 			return c.Name
@@ -84,8 +86,8 @@ func DeleteCross(region, area, id int) {
 
 //GetController возвращает копию Контроллера
 func GetController(id int) (*Controller, bool) {
-	// mutex.Lock()
-	// defer mutex.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	c, is := controllers[id]
 	return c, is
 }
@@ -108,7 +110,9 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 func SetCross(c *Cross) {
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 	insert := false
+	mutexCross.Lock()
 	_, is := crosses[reg.ToKey()]
+	mutexCross.Unlock()
 	if !is {
 		mutexCross.Lock()
 		insert = true
@@ -138,16 +142,18 @@ func SetCross(c *Cross) {
 //SetController Записывает новое состояние контроллера и если есть изменения то записывает его в лог
 func SetController(c *Controller) {
 	insert := false
+	mutexCtrl.Lock()
 	_, is := controllers[c.ID]
+	mutexCtrl.Unlock()
 	if !is {
-		mutexCtrl.Lock()
 		insert = true
+		c.WriteToDB = false
+		mutexCtrl.Lock()
 		controllers[c.ID] = c
 		mutexCtrl.Unlock()
 	}
 	if insert {
 		js, _ := json.Marshal(c)
-		c.WriteToDB = false
 		w := "insert into devices (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
 		_, err := conDBSave.Exec(w)
 		if err != nil {
@@ -155,8 +161,8 @@ func SetController(c *Controller) {
 			return
 		}
 	} else {
-		mutexCtrl.Lock()
 		c.WriteToDB = true
+		mutexCtrl.Lock()
 		controllers[c.ID] = c
 		mutexCtrl.Unlock()
 	}
@@ -238,10 +244,11 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		}
 	}
 }
-func toReturnControllers(mgs []int) {
-	var ret Controllers
-	ret.Contrs = make([]Controller, 0)
-	for _, i := range mgs {
-		ret.Contrs = append(ret.Contrs, *controllers[i])
-	}
-}
+
+// func toReturnControllers(mgs []int) {
+// 	var ret Controllers
+// 	ret.Contrs = make([]Controller, 0)
+// 	for _, i := range mgs {
+// 		ret.Contrs = append(ret.Contrs, *controllers[i])
+// 	}
+// }

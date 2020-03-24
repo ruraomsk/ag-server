@@ -18,6 +18,7 @@ func writeLog() {
 		if err != nil {
 			logger.Error.Printf("Ошибка записи в БД логгирования %s \n%s", err.Error(), ch.LogString)
 		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 func (c *Controller) setLogString() {

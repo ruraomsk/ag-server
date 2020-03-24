@@ -163,9 +163,8 @@ func getDescription(toSend CommandARM) string {
 	case 4:
 		if toSend.Params == 1 {
 			return "Отправлен запрос на смену фаз"
-		} else {
-			return "Отключить запрос на смену фаз"
 		}
+		return "Отключить запрос на смену фаз"
 	case 5:
 		if toSend.Params == 0 {
 			return "Отправлена команда Переход на автоматическое регулирование ПК"
