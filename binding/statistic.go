@@ -211,6 +211,10 @@ func (ui *UseInput) FromBuffer(buffer []int) error {
 		return fmt.Errorf("неверный номер массива")
 	}
 	pos := 5
+	if buffer[3] <= 1 {
+		ui.Used = make([]bool, 8)
+		return nil
+	}
 	ui.Used = make([]bool, buffer[3]-1)
 	for n := range ui.Used {
 		ui.Used[n] = false

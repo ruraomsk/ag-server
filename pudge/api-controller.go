@@ -29,11 +29,11 @@ var cCount int
 func setStatusCross() {
 	mutexCross.Lock()
 	defer mutexCross.Unlock()
-	// logger.Debug.Print("setStatudCross")
+	// logger.Debug.Print("setStatusCross start")
+	result := make(map[string]*Cross, 0)
 	for _, cr := range crosses {
-		mutexCtrl.Lock()
-		cc, is := controllers[cr.IDevice]
-		mutexCtrl.Unlock()
+		cc, is := GetController(cr.IDevice)
+
 		if !is {
 			continue
 		}
@@ -41,10 +41,8 @@ func setStatusCross() {
 
 		statusDevice := cc.calcStatus()
 		if statusDevice != cr.StatusDevice {
-			// mutexCross.Lock()
 			cr.StatusDevice = statusDevice
 			cr.WriteToDB = true
-			// mutexCross.Unlock()
 			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
 			cc.LastLogString = mes
 			SetController(cc)
@@ -78,9 +76,11 @@ func setStatusCross() {
 		}
 		if cr.WriteToDB {
 			reg := Region{cr.Region, cr.Area, cr.ID}
-			// mutexCross.Lock()
-			crosses[reg.ToKey()] = cr
-			// mutexCross.Unlock()
+			result[reg.ToKey()] = cr
 		}
 	}
+	for key, cr := range result {
+		crosses[key] = cr
+	}
+	// logger.Debug.Print("setStatusCross end")
 }

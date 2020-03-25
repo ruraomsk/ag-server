@@ -4,7 +4,7 @@
 DROP table if exists public.logdevice; 
 CREATE TABLE public.logdevice
 (
-    tm timestamp without time zone primary key NOT NULL,
+    tm timestamp with time zone primary key NOT NULL,
     id integer NOT NULL,
     crossinfo jsonb,
     txt text NOT NULL

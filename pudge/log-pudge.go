@@ -20,6 +20,7 @@ type JSONLog struct {
 
 //getJsonLog возвращает json для лога
 func getJSONLog(idevice int) []byte {
+	// logger.Debug.Printf("region om %d", idevice)
 	result := make([]byte, 0)
 	mutexCross.Lock()
 	defer mutexCross.Unlock()
@@ -45,7 +46,4 @@ func writeLog() {
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-}
-func (c *Controller) setLogString() {
-
 }

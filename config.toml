@@ -3,7 +3,7 @@ location= "Asia/Omsk"   		#Временной пояс сервера
 steppudge=1						#Шаг сохранения в pudge
 #Описание параметров доступа к БД
 [dataBase]
-	host= "localhost"
+	host= "192.168.115.115"
 	port= 5432
 	user= "postgres"
 	password= "162747"

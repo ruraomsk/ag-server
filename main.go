@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -19,7 +18,7 @@ import (
 	"github.com/ruraomsk/ag-server/setup"
 
 	//pprof init
-	"net/http"
+
 	_ "net/http/pprof"
 )
 
@@ -67,7 +66,6 @@ func main() {
 	go comm.StartListen(stop)
 	if len(os.Args) > 1 {
 		if strings.Contains(os.Args[1], "simul") {
-			time.Sleep(5 * time.Second)
 			c, _ := extcon.NewContext("controller")
 			go controller.Start(c)
 		}
@@ -75,9 +73,9 @@ func main() {
 	i, _ := extcon.NewContext("inspector")
 	go inspect.Start(i, stop)
 	//for pprof!
-	go func() {
-		log.Println(http.ListenAndServe(":6060", nil))
-	}()
+	// go func() {
+	// 	log.Println(http.ListenAndServe(":6060", nil))
+	// }()
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 

@@ -14,6 +14,9 @@ func (dev *Device) oneStep() {
 	if len(dev.Controller.Arrays) == 0 {
 		return
 	}
+	if true {
+		return
+	}
 	for _, ar := range dev.Controller.Arrays {
 		err := dev.Arrays.SetArray(ar.Number, ar.NElem, ar.Array)
 		if err != nil {

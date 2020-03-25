@@ -103,7 +103,6 @@ func (d *Device) addLog(source bool, buffer []byte) {
 func (d *Device) Close() {
 	d.Status = false
 
-	// d.Mutex.Unlock()
 	d.Soc.Close()
 }
 

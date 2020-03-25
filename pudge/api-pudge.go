@@ -113,14 +113,12 @@ func SetCross(c *Cross) {
 	insert := false
 	mutexCross.Lock()
 	_, is := crosses[reg.ToKey()]
-	mutexCross.Unlock()
 	if !is {
-		mutexCross.Lock()
 		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
-		mutexCross.Unlock()
 	}
+	mutexCross.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
 		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(%d,%d,%d,%d,point(%s),'%s',%d,'%s');",
@@ -142,17 +140,16 @@ func SetCross(c *Cross) {
 
 //SetController Записывает новое состояние контроллера и если есть изменения то записывает его в лог
 func SetController(c *Controller) {
+	// logger.Debug.Printf("start setController %d", c.ID)
 	insert := false
 	mutexCtrl.Lock()
 	_, is := controllers[c.ID]
-	mutexCtrl.Unlock()
 	if !is {
 		insert = true
 		c.WriteToDB = false
-		mutexCtrl.Lock()
 		controllers[c.ID] = c
-		mutexCtrl.Unlock()
 	}
+	mutexCtrl.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
 		w := "insert into devices (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
@@ -167,6 +164,7 @@ func SetController(c *Controller) {
 		controllers[c.ID] = c
 		mutexCtrl.Unlock()
 	}
+	// logger.Debug.Printf("end setController %d", c.ID)
 }
 
 //Start главная процедура управления состоянием котроллеров
@@ -179,7 +177,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
 	statuses = make(map[int]string)
-	ChanLog = make(chan RecLogCtrl, 100)
+	ChanLog = make(chan RecLogCtrl, 10000)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)

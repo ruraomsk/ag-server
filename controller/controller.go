@@ -62,6 +62,10 @@ func Start(context *extcon.ExtContext) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	logger.Info.Println("Start controller work...")
 	fmt.Println("Controller start work...")
+	for !pudge.Works {
+		time.Sleep(1 * time.Second)
+	}
+
 	device.Devs = make(map[int]*device.Device)
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,

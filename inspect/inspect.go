@@ -17,6 +17,9 @@ var croses map[string]pudge.Region
 //Start главный модуль инспектора
 func Start(context *extcon.ExtContext, stop chan int) {
 	// time.Sleep(1 * time.Minute)
+	for !pudge.Works {
+		time.Sleep(1 * time.Second)
+	}
 	listCross := pudge.GetCrosses()
 	croses = make(map[string]pudge.Region)
 	for _, r := range listCross {
