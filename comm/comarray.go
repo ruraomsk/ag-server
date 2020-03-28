@@ -123,11 +123,13 @@ func workerArray(soc net.Conn) {
 			}
 			logger.Info.Printf("Удаление перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
-			ctrl, _ := pudge.GetController(state.State.IDevice)
 			w := fmt.Sprintf("Пользователь %s удаление перекрестка %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
-			ctrl.LastLogString = w
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
-			pudge.SetController(ctrl)
+			ctrl, is := pudge.GetController(state.State.IDevice)
+			if is {
+				ctrl.LastLogString = w
+				pudge.SetController(ctrl)
+			}
 			continue
 		}
 		_, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
