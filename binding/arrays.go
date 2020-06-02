@@ -8,6 +8,7 @@ import (
 
 //Arrays масиссивы привязок
 type Arrays struct {
+	TypeDevice int `json:"type"` //Тип устройства 1 C12УСДК 2 УСДК 4 ДКА 8 ДТ СК
 	SetupDK    SetupDK
 	SetDK      SetDK
 	MonthSets  MonthSets
@@ -24,6 +25,7 @@ type Arrays struct {
 //NewArrays создание нового
 func NewArrays() *Arrays {
 	r := new(Arrays)
+	r.TypeDevice = 2
 	r.StatDefine = *NewStatDefine()
 	r.PointSet = *NewPointSet()
 	r.UseInput = *NewUseInput()

@@ -71,6 +71,9 @@ func SaveAll(path string) error {
 			file.WriteString(str)
 			file.WriteString(fmt.Sprintf("@C,%s\n", state.Dgis))
 			file.WriteString(fmt.Sprintf("@S,%s\n", state.Name))
+			str = fmt.Sprintf("@P,8,29,12,27,%d\n", state.NumDev)
+			file.WriteString(str)
+
 			file.WriteString(fmt.Sprintf("@N,%s\n", state.Phone))
 			//Теперь начинаем выгружать массивы привязки
 			if !state.Arrays.StatDefine.IsEmpty() {

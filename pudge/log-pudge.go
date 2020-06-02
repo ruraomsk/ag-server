@@ -42,7 +42,7 @@ func writeLog() {
 			ch.ID, string(pq.FormatTimestamp(time.Now())), getJSONLog(ch.ID), ch.LogString)
 		_, err = conLog.Exec(w)
 		if err != nil {
-			logger.Error.Printf("Ошибка записи в БД логгирования %s \n%s", err.Error(), ch.LogString)
+			logger.Error.Printf("Ошибка записи в БД логгирования %s \n%s", err.Error(), w)
 		}
 		time.Sleep(10 * time.Millisecond)
 	}

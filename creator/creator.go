@@ -184,9 +184,19 @@ func loadCross(region int, nfile string) error {
 			state.Region = region
 			state.Area, _ = strconv.Atoi(ss[4])
 			state.SubArea, _ = strconv.Atoi(ss[5])
-			state.NumDev, _ = strconv.Atoi(ss[2])
 			state.ConType = ss[3][0:2]
 			state.IDevice, _ = strconv.Atoi(ss[3][2:])
+			continue
+		}
+		if strings.HasPrefix(str, "@P,") {
+			//Тип устройствва
+			ss := strings.Split(str, ",")
+			if len(ss) != 6 {
+				logger.Error.Printf("в строке %s неверное число параметров", str)
+				return err
+			}
+			state.NumDev, _ = strconv.Atoi(ss[5])
+			state.Arrays.TypeDevice = state.NumDev
 			continue
 		}
 		if strings.HasPrefix(str, "@C,") {
@@ -328,6 +338,10 @@ func loadCross(region int, nfile string) error {
 	return nil
 }
 func saveState(state *pudge.Cross, dgis string) error {
+	if state.NumDev == 0 {
+		state.NumDev = 2
+		state.Arrays.TypeDevice = state.NumDev
+	}
 	state.Dgis = dgis
 	b, err := json.Marshal(&state)
 	if err != nil {

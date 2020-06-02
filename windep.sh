@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Start to Windows deploy"
 GOOS=windows GOARCH=amd64 go build
-FILE=/mnt/asud/cmd/ag.server.exe
+FILE=/mnt/asud/cmd/ag-server.exe
 if [ -f "$FILE" ]; then
     echo "Mounted the server drive"
 else
