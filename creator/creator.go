@@ -349,8 +349,8 @@ func saveState(state *pudge.Cross, dgis string) error {
 		return err
 	}
 
-	w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(%d,%d,%d,%d,point(%s),'%s',%d,'%s');",
-		state.Region, state.Area, state.SubArea, state.ID, dgis, state.Name, state.IDevice, string(b))
+	w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
+		state.Region, state.Area, state.SubArea, state.ID, dgis, state.Name, state.IDevice, state.StatusDevice, string(b))
 	_, err = con.Exec(w)
 
 	if err != nil {

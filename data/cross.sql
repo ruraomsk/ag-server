@@ -11,6 +11,7 @@ CREATE TABLE public."cross"
     idevice int NOT NULL,
     dgis point NOT NULL,
     describ text,
+    status int NOT NULL,
     state jsonb NOT NULL
 )
 WITH (
