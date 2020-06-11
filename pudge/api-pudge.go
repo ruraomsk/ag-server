@@ -121,8 +121,8 @@ func SetCross(c *Cross) {
 	mutexCross.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
-		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,state) values(%d,%d,%d,%d,point(%s),'%s',%d,'%s');",
-			c.Region, c.Area, c.SubArea, c.ID, c.Dgis, c.Name, c.IDevice, string(js))
+		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
+			c.Region, c.Area, c.SubArea, c.ID, c.Dgis, c.Name, c.IDevice, c.StatusDevice, string(js))
 		_, err = conCross.Exec(w)
 
 		if err != nil {

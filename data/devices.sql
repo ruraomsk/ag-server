@@ -5,6 +5,9 @@ DROP table if exists public.devices;
 CREATE TABLE public.devices
 (
     id integer primary key NOT NULL,
+    fdk integer,
+    tdk integer,
+    pdk boolean,
     device jsonb NOT NULL
 )
 WITH (

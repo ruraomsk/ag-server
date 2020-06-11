@@ -88,7 +88,7 @@ func loadCrosees() error {
 	return nil
 }
 func loadControllers() error {
-	rows, err := conDBSave.Query("Select * from devices;")
+	rows, err := conDBSave.Query("Select id,device from devices;")
 	var id int
 	var js []byte
 	for rows.Next() {
