@@ -15,10 +15,10 @@ type Setup struct {
 
 //CommServer настройки для сервера коммуникации
 type CommServer struct {
-	Port        int `toml:"port"`  //Стартовый номер порта на прием
-	PortCommand int `toml:"portc"` //Порт приема команд от сервера АРМ
-	PortArray   int `toml:"porta"` //Порт приема массивов привязки от сервера АРМ
-
+	Port         int   `toml:"port"`          //Стартовый номер порта на прием
+	PortCommand  int   `toml:"portc"`         //Порт приема команд от сервера АРМ
+	PortArray    int   `toml:"porta"`         //Порт приема массивов привязки от сервера АРМ
+	PortProtocol int   `toml:"portp"`         //Порт приема изменения протокола от сервера АРМ
 	TimeOutRead  int64 `toml:"read_timeout"`  //Таймаут на чтение если данные должны быть получены
 	TimeOutWrite int64 `toml:"write_timeout"` //Таймаут на запись если данные должны быть переданы
 	ID           int   `toml:"id"`

@@ -314,6 +314,18 @@ type RecLogCtrl struct {
 	ID        int    // Уникальный номер контроллера
 	LogString string //Собственно сообщение
 }
+type Status struct {
+	StatusV200    int  `json:"s220"`     // Состояние питания
+	StatusGPS     int  `json:"sGPS"`     // Состояние GPS
+	StatusServer  int  `json:"sServer"`  // Состояние связи с сервером
+	StatusPSPD    int  `json:"sPSPD"`    // Состояние связи с платой ПСПД
+	ErrorLastConn int  `json:"elc"`      // Код последней причины разрыва связи
+	Ethernet      bool `json:"ethernet"` // true если связь через Ethernet
+	TObmen        int  `json:"tobm"`     // Интервал обмена с сервером (минуты)
+	LevelGSMNow   int  `json:"lnow"`     // уровень сигнала GSM  в текущей сессии
+	LevelGSMLast  int  `json:"llast"`    // уровень сигнала GSM  в предыдущей сессии
+	Motiv         int  `json:"motiv"`    // уровень сигнала GSM  в текущей сессии
+}
 
 //Controller внутренне представление контроллера
 type Controller struct {
@@ -344,10 +356,11 @@ type Controller struct {
 	Error           ErrorDevice
 	GPS             GPS
 	Input           Input
+	Status          Status
 	Statistics      []Statistic
 	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
 	LogLines        []LogLine
-	LastLogString   string //Последнее активное сообщение логирования по устройству
+	LastLogString   string //Последнее активное сообщение логгирования по устройству
 }
 
 //Compare сравнивание истина если равны

@@ -124,7 +124,7 @@ func newConnect(soc net.Conn, stop chan int) {
 		}
 		if m.Type == 0x1B {
 			flag = true
-			// m.Get0x1BDevice()
+			m.Get0x1BDevice(ctrl)
 		}
 		if m.Type == 0x1C {
 			flag = true
@@ -147,6 +147,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
 	dd.CommandArray = make(chan CommandArray)
+	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.addNumber()
 	dd.context, _ = extcon.NewContext("device" + strconv.Itoa(dd.id))
 	mutex.Lock()
@@ -219,6 +220,14 @@ func newConnect(soc net.Conn, stop chan int) {
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 
 			return
+		case changeProtocol := <-dd.ChangeProtocol:
+			hs, err := makeChangeProtocol(dd, changeProtocol)
+			if err != nil {
+				logger.Error.Printf("При создании команды измения протокола для %d %s", dd.id, err.Error())
+				continue
+			}
+			hout <- hs
+
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма
 			hs, err = makeCommandToDevice(dd, comARM)
@@ -400,8 +409,11 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
 			}
 		case 0x1B:
-			//Состояние ПСБ V1 перелается с адресом отправителя 0x7F
-			//Ничего пока не делаем
+			need = true
+			err := mes.Get0x1BDevice(c)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x1B id %d %s", hDev.ID, err.Error())
+			}
 		case 0x1C:
 			//Состояние подтверждения перелается с адресом отправителя 0x7F
 			//Ничего пока не делаем
@@ -433,6 +445,30 @@ func getController(id int) (*pudge.Controller, error) {
 	// logger.Info.Printf("Check reg for %d closed", id)
 	ctrl = c
 	return ctrl, nil
+}
+func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderServer, error) {
+	dd.addNumber()
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 0x7f)
+	mss := make([]transport.SubMessage, 0)
+	var ms transport.SubMessage
+	if protocol.F0x32 {
+		ms.Set0x32Server(protocol.IP, protocol.Port)
+		mss = append(mss, ms)
+	}
+	if protocol.F0x33 {
+		ms.Set0x33Server(protocol.Long)
+		mss = append(mss, ms)
+	}
+	if protocol.F0x34 {
+		ms.Set0x34Server(protocol.Type)
+		mss = append(mss, ms)
+	}
+	if protocol.F0x35 {
+		ms.Set0x35Server(protocol.Interval, protocol.Ignore)
+		mss = append(mss, ms)
+	}
+	hs.UpackMessages(mss)
+	return hs, nil
 }
 func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {
 	dd.addNumber()

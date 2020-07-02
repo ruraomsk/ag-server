@@ -211,12 +211,16 @@ func (s *SubMessage) Get0x11Device(c *pudge.Controller) error {
 	c.Error.TVP1 = (s.Message[1] & 4) != 0
 	c.Error.TVP2 = (s.Message[1] & 8) != 0
 	c.Error.FRAM = (s.Message[1] & 16) != 0
+	if s.Message[2] == 64 {
+		s.Message[2] = 0
+	}
 	c.GPS.Ok = s.Message[2] == 0
 	c.GPS.E01 = s.Message[2] == 1
 	c.GPS.E02 = s.Message[2] == 2
 	c.GPS.E03 = s.Message[2] == 3
 	c.GPS.E04 = s.Message[2] == 4
 	c.GPS.Seek = s.Message[2] == 0x0A
+	//fmt.Println(s.Message[2])
 	c.Input.V1 = (s.Message[3] & 1) != 0
 	c.Input.V2 = (s.Message[3] & 2) != 0
 	c.Input.V3 = (s.Message[3] & 4) != 0
@@ -452,26 +456,16 @@ func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x1D {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.Error.V220DK1 = (s.Message[1] & 1) != 0
-	c.Error.V220DK2 = (s.Message[1] & 32) != 0
-	c.Error.RTC = (s.Message[1] & 2) != 0
-	c.Error.TVP1 = (s.Message[1] & 4) != 0
-	c.Error.TVP2 = (s.Message[1] & 8) != 0
-	c.Error.FRAM = (s.Message[1] & 16) != 0
-	c.GPS.Ok = s.Message[2] == 0
-	c.GPS.E01 = s.Message[2] == 1
-	c.GPS.E02 = s.Message[2] == 2
-	c.GPS.E03 = s.Message[2] == 3
-	c.GPS.E04 = s.Message[2] == 4
-	c.GPS.Seek = s.Message[2] == 0x0A
-	// c.Input.V1 = (s.Message[3] & 1) != 0
-	// c.Input.V2 = (s.Message[3] & 2) != 0
-	// c.Input.V3 = (s.Message[3] & 4) != 0
-	// c.Input.V4 = (s.Message[3] & 8) != 0
-	// c.Input.V5 = (s.Message[3] & 16) != 0
-	// c.Input.V6 = (s.Message[3] & 32) != 0
-	// c.Input.V7 = (s.Message[3] & 64) != 0
-	// c.Input.V8 = (s.Message[3] & 128) != 0
+	c.Status.StatusV200 = int(s.Message[1])
+	c.Status.StatusGPS = int(s.Message[2])
+	c.Status.StatusServer = int(s.Message[3])
+	c.Status.StatusPSPD = int(s.Message[4])
+	c.Status.ErrorLastConn = int(s.Message[5])
+	c.Status.Ethernet = s.Message[6] == 2
+	c.Status.TObmen = int(s.Message[7])
+	c.Status.LevelGSMNow = int(s.Message[8])
+	c.Status.LevelGSMLast = int(s.Message[9])
+	c.Status.Motiv = int(s.Message[10])
 	return nil
 }
 
@@ -480,69 +474,53 @@ func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Type = 0x1D
 	s.Message = make([]uint8, 13)
 	s.Message[0] = 0x1D
-	s.Message[1] = 0
-	if c.Error.V220DK1 {
-		s.Message[1] |= 1
+	s.Message[1] = uint8(c.Status.StatusV200)
+	s.Message[2] = uint8(c.Status.StatusGPS)
+	s.Message[3] = uint8(c.Status.StatusServer)
+	s.Message[4] = uint8(c.Status.StatusPSPD)
+	s.Message[5] = uint8(c.Status.ErrorLastConn)
+	s.Message[6] = 0
+	if c.Status.Ethernet {
+		s.Message[6] = 2
 	}
-	if c.Error.V220DK2 {
-		s.Message[1] |= 32
-	}
-	if c.Error.RTC {
-		s.Message[1] |= 2
-	}
-	if c.Error.TVP1 {
-		s.Message[1] |= 4
-	}
-	if c.Error.TVP2 {
-		s.Message[1] |= 8
-	}
-	if c.Error.FRAM {
-		s.Message[1] |= 16
-	}
-	if c.GPS.Ok {
-		s.Message[2] = 0
-	}
-	if c.GPS.E01 {
-		s.Message[2] = 1
-	}
-	if c.GPS.E02 {
-		s.Message[2] = 2
-	}
-	if c.GPS.E03 {
-		s.Message[2] = 3
-	}
-	if c.GPS.E04 {
-		s.Message[2] = 4
-	}
-	if c.GPS.Seek {
-		s.Message[2] = 0x0A
-	}
-	s.Message[3] = 0
+	s.Message[7] = uint8(c.Status.TObmen)
+	s.Message[8] = uint8(c.Status.LevelGSMNow)
+	s.Message[9] = uint8(c.Status.LevelGSMLast)
+	s.Message[10] = uint8(c.Status.Motiv)
+}
 
-	// if c.Input.V1 {
-	// 	s.Message[3] |= 1
-	// }
-	// if c.Input.V2 {
-	// 	s.Message[3] |= 2
-	// }
-	// if c.Input.V3 {
-	// 	s.Message[3] |= 4
-	// }
-	// if c.Input.V4 {
-	// 	s.Message[3] |= 8
-	// }
-	// if c.Input.V5 {
-	// 	s.Message[3] |= 16
-	// }
-	// if c.Input.V6 {
-	// 	s.Message[3] |= 32
-	// }
-	// if c.Input.V7 {
-	// 	s.Message[3] |= 64
-	// }
-	// if c.Input.V8 {
-	// 	s.Message[3] |= 128
-	// }
+//Get0x1BDevice изменяет состояние контроллера по команду
+func (s *SubMessage) Get0x1BDevice(c *pudge.Controller) error {
+	if s.Message[0] != 0x1B {
+		return fmt.Errorf("неверный номер команды %x", s.Message[0])
+	}
+	c.Status.StatusV200 = int(s.Message[1])
+	c.Status.StatusGPS = int(s.Message[2])
+	c.Status.StatusServer = int(s.Message[3])
+	c.Status.StatusPSPD = int(s.Message[4])
+	c.Status.ErrorLastConn = int(s.Message[5])
+	c.Status.Ethernet = s.Message[6] == 2
+	c.Status.TObmen = int(s.Message[7])
+	c.Status.LevelGSMNow = int(s.Message[8])
+	return nil
+}
+
+//Set0x1BDevice изменяет состояние контроллера по команду
+func (s *SubMessage) Set0x1BDevice(c *pudge.Controller) {
+	s.Type = 0x1D
+	s.Message = make([]uint8, 9)
+	s.Message[0] = 0x1D
+	s.Message[1] = uint8(c.Status.StatusV200)
+	s.Message[2] = uint8(c.Status.StatusGPS)
+	s.Message[3] = uint8(c.Status.StatusServer)
+	s.Message[4] = uint8(c.Status.StatusPSPD)
+	s.Message[5] = uint8(c.Status.ErrorLastConn)
+	s.Message[6] = 0
+	if c.Status.Ethernet {
+		s.Message[6] = 2
+	}
+	s.Message[7] = uint8(c.Status.TObmen)
+	s.Message[8] = uint8(c.Status.LevelGSMNow)
 }
 
 func takeDateDevice(buffer []byte, pos int) time.Time {

@@ -21,7 +21,6 @@ type JSONLog struct {
 //getJsonLog возвращает json для лога
 func getJSONLog(idevice int) []byte {
 	// logger.Debug.Printf("region om %d", idevice)
-	result := make([]byte, 0)
 	mutexCross.Lock()
 	defer mutexCross.Unlock()
 	for _, c := range crosses {
@@ -31,6 +30,8 @@ func getJSONLog(idevice int) []byte {
 			return result
 		}
 	}
+	j := JSONLog{ID: 0, Area: "0", Region: "0", Description: ""}
+	result, _ := json.Marshal(j)
 	return result
 }
 

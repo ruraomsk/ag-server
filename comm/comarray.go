@@ -28,6 +28,23 @@ func listenArmCommand() {
 		go workerCommand(socket)
 	}
 }
+func listenChangeProtocol() {
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortProtocol))
+	if err != nil {
+		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
+		return
+	}
+	defer ln.Close()
+	for {
+		socket, err := ln.Accept()
+		if err != nil {
+			logger.Error.Printf("Ошибка accept %s", err.Error())
+			continue
+		}
+		go workerProtocol(socket)
+	}
+}
+
 func listenArmArray() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortArray))
 
@@ -158,8 +175,37 @@ func workerArray(soc net.Conn) {
 		}
 		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
 	}
-
 }
+func workerProtocol(soc net.Conn) {
+	defer soc.Close()
+	var protocol ChangeProtocol
+	logger.Info.Printf("Новый клиент комманд %s", soc.RemoteAddr().String())
+	reader := bufio.NewReader(soc)
+	for {
+		c, err := reader.ReadString('\n')
+		if err != nil {
+			logger.Error.Println("При чтении изменения протокола от АРМ ", err.Error())
+			return
+		}
+		if c[0:1] == "0" {
+			// logger.Info.Println("Keep alive")
+			continue
+		}
+		err = json.Unmarshal([]byte(c), &protocol)
+		if err != nil {
+			logger.Error.Println("При конвертации изменения протокола АРМ ", err.Error())
+			continue
+		}
+		dev, is := devs[protocol.ID]
+		if !is {
+			logger.Error.Printf("Команда протокола АРМ %v нет такого id %d", protocol, protocol.ID)
+			continue
+		}
+		logger.Info.Printf("Команда %v", protocol)
+		dev.ChangeProtocol <- protocol
+	}
+}
+
 func getDescription(toSend CommandARM) string {
 	switch toSend.Command {
 	case 4:

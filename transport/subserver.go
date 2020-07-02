@@ -324,8 +324,13 @@ func (s *SubMessage) Set0x32Server(ip string, port int) error {
 	}
 	p := fmt.Sprintf("%04d", port)
 	rs := ""
-	for _, ss := range st {
-		rs += ss + "."
+	for i, ss := range st {
+		rs += ss
+		if i < 3 {
+			rs += "."
+		} else {
+			rs += ","
+		}
 	}
 	rs += p
 	bs := []byte(rs)
