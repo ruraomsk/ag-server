@@ -95,7 +95,7 @@ func (s *SubMessage) Get0x0FDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x0f {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.TexRezim = int(s.Message[1] & 0x7f)
+	c.TechMode = int(s.Message[1] & 0x7f)
 	c.Base = false
 	if (s.Message[1] & 0x80) != 0 {
 		c.Base = true
@@ -113,7 +113,7 @@ func (s *SubMessage) Set0x0FDevice(c *pudge.Controller) error {
 	s.Type = 0x0f
 	s.Message = make([]uint8, 22)
 	s.Message[0] = 0x0f
-	s.Message[1] = uint8(c.TexRezim)
+	s.Message[1] = uint8(c.TechMode)
 	if c.Base {
 		s.Message[1] |= 0x80
 	}
@@ -130,7 +130,7 @@ func (s *SubMessage) Set0x12Device(c *pudge.Controller) error {
 	s.Type = 0x12
 	s.Message = make([]uint8, 23)
 	s.Message[0] = 0x12
-	s.Message[1] = uint8(c.TexRezim)
+	s.Message[1] = uint8(c.TechMode)
 	if c.Base {
 		s.Message[1] |= 0x80
 	}
@@ -148,7 +148,7 @@ func (s *SubMessage) Get0x12Device(c *pudge.Controller) error {
 	if s.Message[0] != 0x12 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.TexRezim = int(s.Message[1] & 0x12)
+	c.TechMode = int(s.Message[1] & 0x7f)
 	c.Base = false
 	if (s.Message[1] & 0x80) != 0 {
 		c.Base = true

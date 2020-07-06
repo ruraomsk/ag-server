@@ -120,7 +120,7 @@ func (s *StatusCommandDU) ToList(result []string) []string {
 //ToList для вывода в гуи
 func (c *Controller) ToList() []string {
 	result := make([]string, 0)
-	r := "Технологический режим;" + strconv.Itoa(c.TexRezim)
+	r := "Технологический режим;" + strconv.Itoa(c.TechMode)
 	result = append(result, r)
 	r = "Работаем в базовой привязке;" + strconv.FormatBool(c.Base)
 	result = append(result, r)
