@@ -106,7 +106,7 @@ func (i *Input) ToList(result []string) []string {
 func (s *StatusCommandDU) ToList(result []string) []string {
 	r := "Назначен ПК;" + strconv.FormatBool(s.IsPK)
 	result = append(result, r)
-	r = "Назначена карта выбора по времени суток;" + strconv.FormatBool(s.IsPKS)
+	r = "Назначена карта выбора по времени суток;" + strconv.FormatBool(s.IsCK)
 	result = append(result, r)
 	r = "Назначена недельная карта;" + strconv.FormatBool(s.IsNK)
 	result = append(result, r)

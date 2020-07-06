@@ -6,7 +6,7 @@ func (s *StatusCommandDU) Make() (command uint8) {
 	if s.IsPK {
 		command |= 1
 	}
-	if s.IsPKS {
+	if s.IsCK {
 		command |= 2
 	}
 	if s.IsNK {
@@ -30,7 +30,7 @@ func (s *StatusCommandDU) Make() (command uint8) {
 //Set переносит из байта статуса команд ДУ в поле состояния
 func (s *StatusCommandDU) Set(command uint8) {
 	s.IsPK = false
-	s.IsPKS = false
+	s.IsCK = false
 	s.IsNK = false
 	s.IsDUDK1 = false
 	s.IsDUDK2 = false
@@ -40,7 +40,7 @@ func (s *StatusCommandDU) Set(command uint8) {
 		s.IsPK = true
 	}
 	if command&2 != 0 {
-		s.IsPKS = true
+		s.IsCK = true
 	}
 	if command&4 != 0 {
 		s.IsNK = true

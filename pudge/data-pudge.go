@@ -242,7 +242,7 @@ type DataStat struct {
 //StatusCommandDU команды ДУ
 type StatusCommandDU struct {
 	IsPK       bool //Назначен ПК
-	IsPKS      bool // назначена карта выбора по времени суток
+	IsCK       bool // назначена карта выбора по времени суток
 	IsNK       bool //Назначена недельная карта
 	IsDUDK1    bool //на 1 ДК есть команда ДУ
 	IsDUDK2    bool //на 2 ДК есть команда ДУ
@@ -324,7 +324,7 @@ type Status struct {
 	TObmen        int  `json:"tobm"`     // Интервал обмена с сервером (минуты)
 	LevelGSMNow   int  `json:"lnow"`     // уровень сигнала GSM  в текущей сессии
 	LevelGSMLast  int  `json:"llast"`    // уровень сигнала GSM  в предыдущей сессии
-	Motiv         int  `json:"motiv"`    // уровень сигнала GSM  в текущей сессии
+	Motiv         int  `json:"motiv"`    // Мотив разрыва связи
 }
 
 //Controller внутренне представление контроллера

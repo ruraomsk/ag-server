@@ -73,7 +73,7 @@ func (dev *Device) oneStep() {
 	dev.Controller.StatusCommandDU.IsDUDK1 = true
 	dev.Controller.StatusCommandDU.IsNK = true
 	dev.Controller.StatusCommandDU.IsPK = true
-	dev.Controller.StatusCommandDU.IsPKS = true
+	dev.Controller.StatusCommandDU.IsCK = true
 	dev.Controller.TexRezim = 8
 	dev.Controller.DK.DDK = 11
 	dev.Controller.DK.FDK = 1
