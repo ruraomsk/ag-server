@@ -193,11 +193,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		stop <- 1
 		return
 	}
-	defer conDBSave.Close()
-	if err = conDBSave.Ping(); err != nil {
-		logger.Error.Printf("Ping %s", err.Error())
-		return
-	}
 	conCross, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())

@@ -16,6 +16,7 @@ import (
 	"github.com/ruraomsk/ag-server/inspect"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
+	"github.com/ruraomsk/ag-server/xcontrol"
 
 	//pprof init
 
@@ -56,6 +57,14 @@ func main() {
 			}
 			return
 		}
+		if strings.Contains(os.Args[1], "update") {
+			xcontrol.Updater()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			return
+		}
+
 	}
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")

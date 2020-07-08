@@ -314,6 +314,8 @@ type RecLogCtrl struct {
 	ID        int    // Уникальный номер контроллера
 	LogString string //Собственно сообщение
 }
+
+//Status описание статуса устройства
 type Status struct {
 	StatusV200    int  `json:"s220"`     // Состояние питания
 	StatusGPS     int  `json:"sGPS"`     // Состояние GPS

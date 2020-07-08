@@ -11,6 +11,7 @@ type Setup struct {
 	DataBase   DataBase   `toml:"dataBase"`
 	CommServer CommServer `toml:"commServer"`
 	Controller Controller `toml:"controller"`
+	XCtrl      XCtrl      `toml:"xctrl"`
 }
 
 //CommServer настройки для сервера коммуникации
@@ -40,4 +41,10 @@ type Controller struct {
 	Port    int    `toml:"port"`
 	Step    int    `toml:"step"` //Интервал времени в секундах для расчетов
 	Random  bool   `toml:"random"`
+}
+
+//XCtrl настройки подсистемы характерных точек
+type XCtrl struct {
+	StepCalc int `toml:"stepCalc"`
+	StepSend int `toml:"stepSend"`
 }
