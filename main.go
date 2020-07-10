@@ -81,10 +81,9 @@ func main() {
 	}
 	i, _ := extcon.NewContext("inspector")
 	go inspect.Start(i, stop)
-	//for pprof!
-	// go func() {
-	// 	log.Println(http.ListenAndServe(":6060", nil))
-	// }()
+	x, _ := extcon.NewContext("xcontrol")
+	go xcontrol.Start(x, stop)
+
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 

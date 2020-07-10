@@ -29,7 +29,7 @@ func Updater() {
 		logger.Error.Printf("Ping %s", err.Error())
 		return
 	}
-	subs := make(map[key]StateSubArea)
+	subs := make(map[key]State)
 	w := "select region,area,subarea,id from public.cross;"
 	rows, err := conDB.Query(w)
 
@@ -67,15 +67,14 @@ func Updater() {
 	}
 	for _, vv := range subs {
 		// fmt.Printf("==%v\n", vv)
-		strat, err := json.Marshal(vv.Strategys)
-		calc, err := json.Marshal(vv.Calculates)
+		state, err := json.Marshal(vv)
 		if err != nil {
 			logger.Error.Printf("json  %s", err.Error())
 			return
 		}
 
-		w = fmt.Sprintf("insert into public.xctrl (region,area,subarea,switch,pknow,pklast,xnum,strat,calc) values (%d,%d,%d,'%t',%d,%d,%d,'%s','%s');",
-			vv.Region, vv.Area, vv.SubArea, vv.Switch, vv.PKNow, vv.PKLast, vv.XNumber, string(strat), string(calc))
+		w = fmt.Sprintf("insert into public.xctrl (region,area,subarea,state) values (%d,%d,%d,'%s');",
+			vv.Region, vv.Area, vv.SubArea, string(state))
 		_, err = conDB.Exec(w)
 		if err != nil {
 			logger.Error.Printf("Запрос  %s %s", w, err.Error())
@@ -85,8 +84,8 @@ func Updater() {
 	}
 	logger.Info.Printf("Звершено добавление данных ....")
 }
-func newState() StateSubArea {
-	v := new(StateSubArea)
+func newState() State {
+	v := new(State)
 
 	v.LastTime = time.Now()
 	v.PKLast = 0
@@ -96,6 +95,7 @@ func newState() StateSubArea {
 
 	v.Strategys = make([]Strategy, 0)
 	v.Calculates = make([]Calc, 0)
+	v.Status = make([]string, 0)
 
 	v.Strategys = append(v.Strategys, Strategy{XLeft: 0, XRight: 100, PK: 1})
 	v.Strategys = append(v.Strategys, Strategy{XLeft: 100, XRight: 200, PK: 2})

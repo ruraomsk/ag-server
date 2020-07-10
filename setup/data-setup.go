@@ -45,6 +45,8 @@ type Controller struct {
 
 //XCtrl настройки подсистемы характерных точек
 type XCtrl struct {
-	StepCalc int `toml:"stepCalc"`
-	StepSend int `toml:"stepSend"`
+	Switch    bool `toml:"switch"`
+	Calculate bool `toml:"calculate"`
+	StepCalc  int  `toml:"stepCalc"`
+	StepSend  int  `toml:"stepSend"`
 }

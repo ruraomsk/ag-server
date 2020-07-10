@@ -7,13 +7,7 @@ CREATE TABLE public."xctrl"
     region integer NOT NULL,
     area integer NOT NULL,
     subarea integer NOT NULL,
-    switch  boolean ,
-	ltime timestamp with time zone , 
-	pknow integer,
-	pklast integer,
-	xnum integer,
-    strat jsonb not null,
-    calc jsonb not null
+    state jsonb not null
 
 )
 WITH (

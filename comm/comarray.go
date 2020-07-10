@@ -18,7 +18,7 @@ func listenArmCommand() {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
 	}
-	defer ln.Close()
+	//defer ln.Close()
 	for {
 		socket, err := ln.Accept()
 		if err != nil {
@@ -34,7 +34,7 @@ func listenChangeProtocol() {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
 	}
-	defer ln.Close()
+	//defer ln.Close()
 	for {
 		socket, err := ln.Accept()
 		if err != nil {
@@ -52,7 +52,7 @@ func listenArmArray() {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
 	}
-	defer ln.Close()
+	//defer ln.Close()
 	for {
 		socket, err := ln.Accept()
 		if err != nil {
@@ -119,6 +119,7 @@ func workerArray(soc net.Conn) {
 			logger.Error.Println("При чтении привязки от сервера АРМ ", err.Error())
 			return
 		}
+		//fmt.Printf("=%v=",a)
 		if a[0:1] == "0" {
 			// logger.Info.Println("Keep alive")
 			continue
@@ -126,7 +127,7 @@ func workerArray(soc net.Conn) {
 
 		err = json.Unmarshal([]byte(a), &state)
 		if err != nil {
-			logger.Error.Println("При конвератации привязки сервера АРМ ", err.Error())
+			logger.Error.Printf("При конвератации привязки сервера АРМ %s %s", a, err.Error())
 			continue
 		}
 		// logger.Error.Println("Пришло state")
