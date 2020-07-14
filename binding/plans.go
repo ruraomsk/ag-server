@@ -19,6 +19,28 @@ func (sd *SetDK) Compare(ss *SetDK) bool {
 	return reflect.DeepEqual(sd, ss)
 }
 
+//GetPhases возращает список доступных фаз
+func (sd *SetDK) GetPhases() []int {
+	res := make([]int, 0)
+	m := make(map[int]int)
+	for _, sp := range sd.DK {
+		if !sd.IsEmpty(sp.DK, sp.Pk) {
+			for _, st := range sp.Stages {
+				if st.Number != 0 {
+					_, is := m[st.Number]
+					if !is {
+						m[st.Number] = st.Number
+					}
+				}
+			}
+		}
+	}
+	for i, _ := range m {
+		res = append(res, i)
+	}
+	return res
+}
+
 //SetPk набор планов координации перекрестка
 type SetPk struct {
 	DK         int     `json:"dk"`         //Номер ДК
