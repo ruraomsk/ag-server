@@ -3,6 +3,7 @@ package binding
 import (
 	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/JanFant/TLServer/logger"
 )
@@ -38,6 +39,7 @@ func (sd *SetDK) GetPhases() []int {
 	for i, _ := range m {
 		res = append(res, i)
 	}
+	sort.Ints(res)
 	return res
 }
 
