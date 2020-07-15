@@ -16,6 +16,7 @@ import (
 	"github.com/ruraomsk/ag-server/inspect"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
+	"github.com/ruraomsk/ag-server/sqlsave"
 	"github.com/ruraomsk/ag-server/xcontrol"
 
 	//pprof init
@@ -83,7 +84,7 @@ func main() {
 	go inspect.Start(i, stop)
 	x, _ := extcon.NewContext("xcontrol")
 	go xcontrol.Start(x, stop)
-
+	go sqlsave.Start()
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 

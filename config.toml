@@ -30,3 +30,9 @@ steppudge=1						#Шаг сохранения в pudge
     calculate=true      #Включить алгоритм расчета
 	stepCalc=900		#Шаг расчетов характерных точек
 	stepSend=300		#Шаг передачи результатов на устройства
+[saver]
+    keys=[["cross","region","area","subarea","id"],
+          ["devices","id"],
+          ["region","region","area"],
+          ["xctrl","region","area","subarea"]
+         ]

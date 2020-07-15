@@ -12,6 +12,10 @@ type Setup struct {
 	CommServer CommServer `toml:"commServer"`
 	Controller Controller `toml:"controller"`
 	XCtrl      XCtrl      `toml:"xctrl"`
+	Saver      Saver      `toml:"saver"`
+}
+type Saver struct {
+	Keys [][]string `toml:"keys"`
 }
 
 //CommServer настройки для сервера коммуникации

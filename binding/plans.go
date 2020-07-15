@@ -28,9 +28,11 @@ func (sd *SetDK) GetPhases() []int {
 		if !sd.IsEmpty(sp.DK, sp.Pk) {
 			for _, st := range sp.Stages {
 				if st.Number != 0 {
-					_, is := m[st.Number]
-					if !is {
-						m[st.Number] = st.Number
+					if st.Number < 9 {
+						_, is := m[st.Number]
+						if !is {
+							m[st.Number] = st.Number
+						}
 					}
 				}
 			}

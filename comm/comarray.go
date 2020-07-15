@@ -180,7 +180,7 @@ func workerArray(soc net.Conn) {
 func workerProtocol(soc net.Conn) {
 	defer soc.Close()
 	var protocol ChangeProtocol
-	logger.Info.Printf("Новый клиент комманд %s", soc.RemoteAddr().String())
+	logger.Info.Printf("Новый клиент протокола %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	for {
 		c, err := reader.ReadString('\n')
