@@ -20,7 +20,8 @@ type CommandArray struct {
 	Elems  []int `json:"elems"`
 }
 type ChangeProtocol struct {
-	ID       int    `json:"id"`       // Уникальный номер контроллера
+	ID       int    `json:"id"` // Уникальный номер контроллера
+	User     string `json:"user"`
 	F0x32    bool   `json:"f0x32"`    //Есть команда смены IP сервера
 	IP       string `json:"ip"`       // Собственно IP в формате 000.000.000.000
 	Port     int    `json:"port"`     // Номер порта сервера

@@ -15,7 +15,10 @@ type Setup struct {
 	Saver      Saver      `toml:"saver"`
 }
 type Saver struct {
-	Keys [][]string `toml:"keys"`
+	File   string     `toml:"file"`   //Имя и путь для файла сохраниея команд SQL
+	PreSQL []string   `toml:"presql"` //Команды выполняемые при передаче первого дампа
+	Step   int        `toml:"step"`   //Интервал времени в секундах для расчетов
+	Keys   [][]string `toml:"keys"`   //Имена твблиц с ключами для пересылки
 }
 
 //CommServer настройки для сервера коммуникации

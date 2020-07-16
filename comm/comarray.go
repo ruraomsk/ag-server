@@ -202,7 +202,14 @@ func workerProtocol(soc net.Conn) {
 			logger.Error.Printf("Команда протокола АРМ %v нет такого id %d", protocol, protocol.ID)
 			continue
 		}
-		logger.Info.Printf("Команда %v", protocol)
+		ctrl, is := pudge.GetController(protocol.ID)
+		w := fmt.Sprintf("Пользователь %s send command %v", protocol.User, protocol)
+		logger.Info.Print(w)
+		if is {
+			ctrl.LastLogString = w
+			pudge.SetController(ctrl)
+		}
+		pudge.ChanLog <- pudge.RecLogCtrl{ID: protocol.ID, LogString: w}
 		dev.ChangeProtocol <- protocol
 	}
 }
