@@ -79,7 +79,7 @@ func Corrector() error {
 				if c.Arrays.SetDK.IsEmpty(1, p.PK) {
 					flag = true
 					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PK)
-					logger.Error.Printf(s)
+					//logger.Error.Printf(s)
 					status = append(status, s)
 				}
 			}
@@ -96,7 +96,7 @@ func Corrector() error {
 
 	}
 	if flag {
-		logger.Info.Print("найдены ошибки посмотрите протокол")
+		//logger.Info.Print("найдены ошибки посмотрите протокол")
 		return fmt.Errorf("найдены ошибки посмотрите протокол")
 	}
 	logger.Info.Print("Все проверено ошибок нет")
