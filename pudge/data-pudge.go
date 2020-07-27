@@ -83,10 +83,10 @@ func (d *DK) Compare(dd *DK) bool {
 
 //Model Описание модели устройства
 type Model struct {
-	VPCPDL int  `json:"vpcdl"` //Версия ПО платы ПСПД до точки
-	VPCPDR int  `json:"vpcdr"` //Версия ПО платы ПСПД после точки
-	VPBSL  int  `json:"vpbsl"` //Версия ПО платы ПБС до точки
-	VPBSR  int  `json:"vpbsr"` //Версия ПО платы ПБС после точки
+	VPCPDL int  `json:"vpcpdl"` //Версия ПО платы ПСПД до точки
+	VPCPDR int  `json:"vpcpdr"` //Версия ПО платы ПСПД после точки
+	VPBSL  int  `json:"vpbsl"`  //Версия ПО платы ПБС до точки
+	VPBSR  int  `json:"vpbsr"`  //Версия ПО платы ПБС после точки
 	C12    bool //Субблок С12
 	STP    bool //Разрешение накопление статистики по ТП
 	DKA    bool //Контроллер ДК-А
@@ -399,7 +399,7 @@ func SetDefault(c *Controller, key string) {
 	c.Base = true
 	var m Model
 	m.VPCPDL = 12
-	m.VPBSR = 3
+	m.VPCPDR = 3
 	m.VPBSL = 1
 	m.VPBSR = 8
 
