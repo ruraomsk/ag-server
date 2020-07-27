@@ -167,8 +167,10 @@ func (s *SubMessage) Get0x10Device(c *pudge.Controller) error {
 	if s.Message[0] != 0x10 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.Model.VPCPD = int(s.Message[1])<<8 | int(s.Message[2])
-	c.Model.VPBS = int(s.Message[3])<<8 | int(s.Message[4])
+	c.Model.VPCPDL = int(s.Message[1])
+	c.Model.VPCPDR = int(s.Message[2])
+	c.Model.VPBSL = int(s.Message[3])
+	c.Model.VPBSR = int(s.Message[4])
 	c.Model.C12 = (s.Message[5] & 1) != 0
 	c.Model.STP = (s.Message[5] & 2) != 0
 	c.Model.DKA = (s.Message[5] & 4) != 0
@@ -181,10 +183,10 @@ func (s *SubMessage) Set0x10Device(c *pudge.Controller) {
 	s.Type = 0x10
 	s.Message = make([]uint8, 6)
 	s.Message[0] = 0x10
-	s.Message[1] = uint8((c.Model.VPCPD >> 8) & 0xff)
-	s.Message[2] = uint8(c.Model.VPCPD & 0xff)
-	s.Message[3] = uint8((c.Model.VPBS >> 8) & 0xff)
-	s.Message[4] = uint8(c.Model.VPBS & 0xff)
+	s.Message[1] = uint8(c.Model.VPCPDL & 0xff)
+	s.Message[2] = uint8(c.Model.VPCPDR & 0xff)
+	s.Message[3] = uint8(c.Model.VPBSL & 0xff)
+	s.Message[4] = uint8(c.Model.VPBSR & 0xff)
 	s.Message[5] = 0
 	if c.Model.C12 {
 		s.Message[5] |= 1

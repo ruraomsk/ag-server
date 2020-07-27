@@ -33,11 +33,11 @@ func (d *DK) ToList(result []string) []string {
 
 //ToList для вывода в гуи
 func (m *Model) ToList(result []string) []string {
-	r := "Версия ПО пдаты ПСПД;" + strconv.Itoa(m.VPCPD)
-	result = append(result, r)
-	r = "Версия ПО пдаты ПБС;" + strconv.Itoa(m.VPBS)
-	result = append(result, r)
-	r = "Субблок С12;" + strconv.FormatBool(m.C12)
+	//r := "Версия ПО пдаты ПСПД;" + strconv.Itoa(m.VPCPDL)
+	//result = append(result, r)
+	//r = "Версия ПО пдаты ПБС;" + strconv.Itoa(m.VPBS)
+	//result = append(result, r)
+	r := "Субблок С12;" + strconv.FormatBool(m.C12)
 	result = append(result, r)
 	r = "Разрешение накопления статистики по ТП;" + strconv.FormatBool(m.STP)
 	result = append(result, r)

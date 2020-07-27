@@ -83,12 +83,14 @@ func (d *DK) Compare(dd *DK) bool {
 
 //Model Описание модели устройства
 type Model struct {
-	VPCPD int  //Версия ПО платы ПСПД
-	VPBS  int  //Версия ПО платы ПБС
-	C12   bool //Субблок С12
-	STP   bool //Разрешение накопление статистики по ТП
-	DKA   bool //Контроллер ДК-А
-	DTA   bool //Детектор транспорта
+	VPCPDL int  `json:"vpcdl"` //Версия ПО платы ПСПД до точки
+	VPCPDR int  `json:"vpcdr"` //Версия ПО платы ПСПД после точки
+	VPBSL  int  `json:"vpbsl"` //Версия ПО платы ПБС до точки
+	VPBSR  int  `json:"vpbsr"` //Версия ПО платы ПБС после точки
+	C12    bool //Субблок С12
+	STP    bool //Разрешение накопление статистики по ТП
+	DKA    bool //Контроллер ДК-А
+	DTA    bool //Детектор транспорта
 }
 
 //Compare сравнивание истина если равны
@@ -396,8 +398,11 @@ func SetDefault(c *Controller, key string) {
 	c.DK.TDK = 1
 	c.Base = true
 	var m Model
-	m.VPCPD = 3075
-	m.VPBS = 264
+	m.VPCPDL = 12
+	m.VPBSR = 3
+	m.VPBSL = 1
+	m.VPBSR = 8
+
 	c.Model = m
 	c.Statistics = make([]Statistic, 0)
 	c.Arrays = make([]ArrayPriv, 0)
