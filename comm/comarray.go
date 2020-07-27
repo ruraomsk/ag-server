@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/pudge"
@@ -133,21 +134,22 @@ func workerArray(soc net.Conn) {
 		// logger.Error.Println("Пришло state")
 		if state.State.IDevice < 0 {
 			//Удаление перекрестка
-			_, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
+			last, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
 			if !is {
 				//Перекрестка нет
 				logger.Info.Printf("Попытка удаления удаленного перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 				continue
 			}
-			logger.Info.Printf("Удаление перекрестка %d %d %d", state.State.Region, state.State.Area, state.State.ID)
-			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
-			w := fmt.Sprintf("Пользователь %s удаление перекрестка %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
-			ctrl, is := pudge.GetController(state.State.IDevice)
+			logger.Info.Printf("Удаление перекрестка %d %d %d %d", state.State.Region, state.State.Area, state.State.ID, last.IDevice)
+			w := fmt.Sprintf("Пользователь %s удаление перекрестка %d %d %d ", state.User, state.State.Region, state.State.Area, state.State.ID)
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: last.IDevice, LogString: w}
+			ctrl, is := pudge.GetController(last.IDevice)
 			if is {
 				ctrl.LastLogString = w
 				pudge.SetController(ctrl)
 			}
+			time.Sleep(1 * time.Second)
+			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			continue
 		}
 		_, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
@@ -156,13 +158,16 @@ func workerArray(soc net.Conn) {
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 			state.State.StatusDevice = 18
 			ctrl, is := pudge.GetController(state.State.IDevice)
-			w := fmt.Sprintf("Пользователь %s добаление перекрестка %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
+			w := fmt.Sprintf("Пользователь %s добавление перекрестка %d %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID, state.State.IDevice)
 			if is {
 				ctrl.LastLogString = w
 				pudge.SetController(ctrl)
 			}
 			logger.Info.Print(w)
+			pudge.SetCross(&state.State)
+			time.Sleep(1 * time.Second)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
+			continue
 		}
 		// logger.Info.Printf("Write new state ")
 

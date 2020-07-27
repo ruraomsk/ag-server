@@ -25,11 +25,12 @@ func getJSONLog(idevice int) []byte {
 	defer mutexCross.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == idevice {
-			j := JSONLog{ID: c.ID, Area: strconv.Itoa(c.Area), Region: strconv.Itoa(c.Region), Description: c.Name}
+			j := JSONLog{Region: strconv.Itoa(c.Region), Area: strconv.Itoa(c.Area), ID: c.ID, Description: c.Name}
 			result, _ := json.Marshal(j)
 			return result
 		}
 	}
+
 	j := JSONLog{ID: 0, Area: "0", Region: "0", Description: ""}
 	result, _ := json.Marshal(j)
 	return result

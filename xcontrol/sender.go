@@ -66,7 +66,9 @@ func Sender() {
 				logger.Error.Printf("Запрос unmurhal %v %s", vv, err.Error())
 				return
 			}
-
+			if !v.Release {
+				continue
+			}
 			if v.PKNow != v.PKLast {
 				w = fmt.Sprintf("select idevice from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
 				cross, err := conDB.Query(w)

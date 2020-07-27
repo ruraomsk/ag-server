@@ -32,7 +32,7 @@ type Record struct {
 
 var tableFields map[string][]string
 var tables map[string][]name
-var useTables map[string]*defTable
+var useTables map[string]defTable
 
 func isTable(table string) bool {
 	_, is := tableFields[table]
@@ -46,7 +46,7 @@ func addTable(table string) {
 	tables[table] = make([]name, 0)
 	t := new(defTable)
 	t.Records = make(map[string]*Record)
-	useTables[table] = t
+	useTables[table] = *t
 }
 func addName(table string, fieldname string, typeColumn string) {
 	n := new(name)
@@ -67,13 +67,14 @@ func addName(table string, fieldname string, typeColumn string) {
 }
 
 var dbb *sql.DB
+var err error
 
 func Start() {
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
 
-	dbb, err := sql.Open("postgres", dbinfo)
+	dbb, err = sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Error open conn %s", err.Error())
 		return
@@ -87,7 +88,7 @@ func Start() {
 		time.Sleep(time.Duration(setup.Set.Saver.Step) * time.Second)
 		tableFields = make(map[string][]string)
 		tables = make(map[string][]name)
-		useTables = make(map[string]*defTable)
+		useTables = make(map[string]defTable)
 		//fmt.Printf("%v\n", setup.Set.Saver.Keys)
 		for i := 0; i < len(setup.Set.Saver.Keys); i++ {
 			nt := setup.Set.Saver.Keys[i][0]
@@ -148,7 +149,7 @@ func Start() {
 				del, insert, update, key := readOneRecord(rows, nameTab, names)
 				file.WriteString(del + "\n")
 				file.WriteString(insert + "\n")
-				file.WriteString(update + "\n")
+				//file.WriteString(update + "\n")
 				r := new(Record)
 				r.Hash = md5.New()
 				io.WriteString(r.Hash, update)
@@ -157,16 +158,16 @@ func Start() {
 		}
 		file.Close()
 
-		if !sender(setup.Set.Saver.File) {
+		if !sender() {
 			continue
 		}
 		for true {
 			time.Sleep(time.Duration(setup.Set.Saver.Step) * time.Second)
 
-			//if !updater(setup.Set.Saver.File) {
-			//	break
-			//}
-			if !sender(setup.Set.Saver.File) {
+			if !updater() {
+				break
+			}
+			if !sender() {
 				break
 			}
 

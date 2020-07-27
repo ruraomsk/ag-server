@@ -15,6 +15,7 @@ type Setup struct {
 	Saver      Saver      `toml:"saver"`
 }
 type Saver struct {
+	Remote string     `toml:"remote"` //TCP до сервера приема
 	File   string     `toml:"file"`   //Имя и путь для файла сохраниея команд SQL
 	PreSQL []string   `toml:"presql"` //Команды выполняемые при передаче первого дампа
 	Step   int        `toml:"step"`   //Интервал времени в секундах для расчетов

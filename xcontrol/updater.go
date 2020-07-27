@@ -91,6 +91,7 @@ func newState() State {
 	v.PKLast = 0
 	v.PKNow = 0
 	v.Switch = false
+	v.Release = false
 	v.XNumber = 0
 
 	v.Strategys = make([]Strategy, 0)

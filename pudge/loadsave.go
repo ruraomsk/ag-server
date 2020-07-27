@@ -155,7 +155,7 @@ func saveCrosees() error {
 		}
 		js, _ := json.Marshal(c)
 		_, err = conCross.Exec("update  public.cross set idevice=" + strconv.Itoa(c.IDevice) + ",state='" + string(js) + "',describ='" + c.Name + "',dgis='" +
-			c.Dgis + "',status=" + strconv.Itoa(c.StatusDevice) + " where region=" +
+			c.Dgis + "',status=" + strconv.Itoa(c.StatusDevice) + ",subarea=" + strconv.Itoa(c.SubArea) + " where region=" +
 			strconv.Itoa(c.Region) + " and id=" + strconv.Itoa(c.ID) + " and area=" + strconv.Itoa(c.Area) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to cross %s", err.Error())

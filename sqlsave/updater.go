@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func updater(path string) bool {
+func updater() bool {
 
 	file, err := os.Create(setup.Set.Saver.File)
 	if err != nil {
@@ -25,8 +25,8 @@ func updater(path string) bool {
 		}
 	}
 	for nameTab, dTable := range useTables {
-		w := fmt.Sprintf("select * from public.%s;", nameTab)
-		rows, err := dbb.Query(w)
+		//fmt.Printf("Table %s %v",nameTab,dTable.Records)
+		rows, err := dbb.Query(fmt.Sprintf("select * from public.%s;", nameTab))
 		if err != nil {
 			logger.Error.Printf("Error %s", err.Error())
 			return false
@@ -48,7 +48,7 @@ func updater(path string) bool {
 				hnew := md5.New()
 				io.WriteString(hnew, update)
 				rec.Used = true
-				if reflect.DeepEqual(&rec.Hash, &hnew) {
+				if !reflect.DeepEqual(&rec.Hash, &hnew) {
 					file.WriteString(update + "\n")
 					rec.Hash = hnew
 				}

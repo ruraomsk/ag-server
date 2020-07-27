@@ -31,18 +31,23 @@ steppudge=1						#Шаг сохранения в pudge
 	stepCalc=900		#Шаг расчетов характерных точек
 	stepSend=300		#Шаг передачи результатов на устройства
 [saver]
+    remote="192.168.1.1:2005"
     file="result.sql"
     presql=[
-        "delete public.cross where region=1;",
-        "delete public.cross where region=2;",
-        "delete public.cross where region=3;",
-        "delete public.xctrl where region=1;",
-        "delete public.xctrl where region=2;",
-        "delete public.xctrl where region=3;"
+        "delete from public.cross where region=1;",
+        "delete from public.cross where region=2;",
+        "delete from public.cross where region=3;",
+        "delete from public.xctrl where region=1;",
+        "delete from public.xctrl where region=2;",
+        "delete from public.xctrl where region=3;",
+        "delete from public.routes where region=1;",
+        "delete from public.routes where region=2;",
+        "delete from public.routes where region=3;"
     ]
-    step=10         #Шаг проверки изменения в БД
+    step=600         #Шаг проверки изменения в БД
     keys=[["cross","region","area","subarea","id"],
           ["devices","id"],
           ["region","region","area"],
-          ["xctrl","region","area","subarea"]
+          ["xctrl","region","area","subarea"],
+          ["routes","region","id"]
          ]
