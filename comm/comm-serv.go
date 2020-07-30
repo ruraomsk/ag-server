@@ -33,7 +33,7 @@ func GetChanArray(id int) (chan CommandArray, bool) {
 }
 
 //StartListen основной вход сервер коммуникаций
-func StartListen(stop chan int) {
+func StartListen() {
 	for !pudge.Works {
 		time.Sleep(1 * time.Second)
 	}
@@ -66,10 +66,10 @@ func StartListen(stop chan int) {
 		if count%5 == 0 {
 			logger.Info.Println("Входящих соединений", count)
 		}
-		go newConnect(socket, stop)
+		go newConnect(socket)
 	}
 }
-func newConnect(soc net.Conn, stop chan int) {
+func newConnect(soc net.Conn) {
 	/*
 			После установления соединения:
 		1.Клиент отправляет сообщение Состояние ПБС V2, если ID клиента есть в БД сервера,
@@ -114,19 +114,19 @@ func newConnect(soc net.Conn, stop chan int) {
 	for _, m := range dmess {
 		if m.Type == 0x1D {
 			flag = true
-			m.Get0x1DDevice(ctrl)
+			_ = m.Get0x1DDevice(ctrl)
 		}
 		if m.Type == 0x10 {
 			flag = true
-			m.Get0x10Device(ctrl)
+			_ = m.Get0x10Device(ctrl)
 		}
 		if m.Type == 0x12 {
 			flag = true
-			m.Get0x12Device(ctrl)
+			_ = m.Get0x12Device(ctrl)
 		}
 		if m.Type == 0x1B {
 			flag = true
-			m.Get0x1BDevice(ctrl)
+			_ = m.Get0x1BDevice(ctrl)
 		}
 		if m.Type == 0x1C {
 			flag = true
@@ -163,7 +163,7 @@ func newConnect(soc net.Conn, stop chan int) {
 	//Подтвердим что клиент прописан
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	mss := make([]transport.SubMessage, 0)
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	hout <- hs
 	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
@@ -289,6 +289,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	mutex.Lock()
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
+	c.TimeDevice = hDev.Time
 	c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
@@ -297,7 +298,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		var ms transport.SubMessage
 		ms.Set0x01Server(int(hDev.Number))
 		mss = append(mss, ms)
-		hs.UpackMessages(mss)
+		_ = hs.UpackMessages(mss)
 	}
 	for _, mes := range dmess {
 		switch mes.Type {
@@ -454,7 +455,7 @@ func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderSe
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
 	if protocol.F0x32 {
-		ms.Set0x32Server(protocol.IP, protocol.Port)
+		_ = ms.Set0x32Server(protocol.IP, protocol.Port)
 		mss = append(mss, ms)
 	}
 	if protocol.F0x33 {
@@ -469,7 +470,7 @@ func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderSe
 		ms.Set0x35Server(protocol.Interval, protocol.Ignore)
 		mss = append(mss, ms)
 	}
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	return hs, nil
 }
 func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {
@@ -508,7 +509,7 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 		return hs, fmt.Errorf("Неверная команда от АРМ для %d  %x ", dd.id, comARM.Command)
 	}
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	return hs, nil
 }
 func makeLocalOn(dd *device) transport.HeaderServer {
@@ -519,7 +520,7 @@ func makeLocalOn(dd *device) transport.HeaderServer {
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	return hs
 
@@ -532,7 +533,7 @@ func makeLocalOff(dd *device) transport.HeaderServer {
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(true)
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	// hss = append(hss, hs)
 	return hs
 
@@ -544,6 +545,6 @@ func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer
 	mss := make([]transport.SubMessage, 0)
 	ms.SetArray(comArray.Number, comArray.NElem, comArray.Elems)
 	mss = append(mss, ms)
-	hs.UpackMessages(mss)
+	_ = hs.UpackMessages(mss)
 	return hs
 }

@@ -45,8 +45,6 @@ const (
 	Connected StatusConnection = iota
 	//NotConnected not Ok
 	NotConnected
-	//Undefine Undefine
-	Undefine
 )
 
 //DK диагностика состояния по ДК
@@ -337,6 +335,7 @@ type Controller struct {
 	Name             string           `json:"name"`     //Имя перекрестка если привязан
 	StatusConnection StatusConnection `json:"scon"`     // Статус соединения
 	LastOperation    time.Time        `json:"ltime"`    // Время последней операции обмена с устройством
+	TimeDevice       time.Time        `json:"dtime"`    // Время устройства
 	WriteToDB        bool             `json:"-"`        //Если истина то еще не записана в БД
 	TechMode         int              `json:"techmode"` //Технологический режим
 

@@ -74,7 +74,7 @@ func main() {
 	extcon.BackgroundInit()
 	p, _ := extcon.NewContext("pudge")
 	go pudge.Start(p, stop)
-	go comm.StartListen(stop)
+	go comm.StartListen()
 	if len(os.Args) > 1 {
 		if strings.Contains(os.Args[1], "simul") {
 			c, _ := extcon.NewContext("controller")
