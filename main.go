@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/svgsave"
 	"os"
 	"runtime"
 	"strings"
@@ -85,6 +86,7 @@ func main() {
 	x, _ := extcon.NewContext("xcontrol")
 	go xcontrol.Start(x, stop)
 	go sqlsave.Start()
+	go svgsave.Start()
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 

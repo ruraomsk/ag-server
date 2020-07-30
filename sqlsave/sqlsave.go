@@ -69,6 +69,7 @@ func addName(table string, fieldname string, typeColumn string) {
 var dbb *sql.DB
 var err error
 
+//Start сохранение БД
 func Start() {
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,

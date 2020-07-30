@@ -15,11 +15,15 @@ type Setup struct {
 	Saver      Saver      `toml:"saver"`
 }
 type Saver struct {
-	Remote string     `toml:"remote"` //TCP до сервера приема
-	File   string     `toml:"file"`   //Имя и путь для файла сохраниея команд SQL
-	PreSQL []string   `toml:"presql"` //Команды выполняемые при передаче первого дампа
-	Step   int        `toml:"step"`   //Интервал времени в секундах для расчетов
-	Keys   [][]string `toml:"keys"`   //Имена твблиц с ключами для пересылки
+	Remote  string     `toml:"remote"`   //TCP до сервера приема
+	Svg     string     `toml:"svg"`      //TCP до сервера приема SVG
+	File    string     `toml:"file"`     //Имя и путь для файла сохраниея команд SQL
+	PreSQL  []string   `toml:"presql"`   //Команды выполняемые при передаче первого дампа
+	Step    int        `toml:"step"`     //Интервал времени в секундах для расчетов
+	Keys    [][]string `toml:"keys"`     //Имена твблиц с ключами для пересылки
+	StepSVG int        `toml:"stepSVG"`  //Интервал времени в секундах для расчетов SVG
+	Path    string     `toml:"pathSVG"`  //Путь для каталога рисунков перекрестков
+	Files   [][]string `toml:"filesSVG"` //Файлы которые описывают перекресток
 }
 
 //CommServer настройки для сервера коммуникации

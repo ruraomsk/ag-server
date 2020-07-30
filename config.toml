@@ -32,6 +32,7 @@ steppudge=1						#Шаг сохранения в pudge
 	stepSend=300		#Шаг передачи результатов на устройства
 [saver]
     remote="192.168.1.1:2005"
+    svg="192.168.1.1:2006"
     file="result.sql"
     presql=[
         "delete from public.cross where region=1;",
@@ -51,3 +52,8 @@ steppudge=1						#Шаг сохранения в pudge
           ["xctrl","region","area","subarea"],
           ["routes","region","id"]
          ]
+    stepSVG=60         #Шаг проверки изменения SVG
+    pathSVG="d:/TLServer/resources/static/cross"
+    filesSVG=[ ["cross.svg","0"],
+            ["map.png","1"]
+    ]
