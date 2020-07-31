@@ -140,6 +140,11 @@ func oneCross(reg pudge.Region) {
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)
 		// pudge.SetController(dev)
+
+		// Посмотрим на статистику
+		//if !reflect.DeepEqual(&cr.Statistics, &dev.Statistics){
+		//	cr.Statistics=dev.Statistics
+		//}
 		time.Sleep(time.Duration(10 * time.Second))
 		flagError = 0
 		count = 0
@@ -218,14 +223,15 @@ func makePriv(buffer []int) pudge.ArrayPriv {
 	}
 	return *r
 }
-func notZerro(buffer []int) bool {
-	for i := 5; i < len(buffer); i++ {
-		if buffer[i] != 0 {
-			return true
-		}
-	}
-	return false
-}
+
+//func notZerro(buffer []int) bool {
+//	for i := 5; i < len(buffer); i++ {
+//		if buffer[i] != 0 {
+//			return true
+//		}
+//	}
+//	return false
+//}
 func sendLocalOn(dev *pudge.Controller) {
 	ch, is := comm.GetChanArray(dev.ID)
 	if !is {

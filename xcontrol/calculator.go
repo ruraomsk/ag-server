@@ -6,8 +6,20 @@ import (
 	"fmt"
 	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/setup"
+	"math/rand"
 	"time"
 )
+
+func (s *State) calculate() {
+	s.XNumber = rand.Intn(500)
+}
+func (s *State) change() {
+	for _, st := range s.Strategys {
+		if s.XNumber >= st.XLeft && s.XNumber < st.XRight {
+			s.PKNow = st.PK
+		}
+	}
+}
 
 //Calculator Посылает новые планы координации на устройства
 func Calculator() {
@@ -57,6 +69,8 @@ func Calculator() {
 				v.PKNow = 0
 			} else {
 				//Собственно расчет
+				v.calculate()
+				v.change()
 			}
 			s, err := json.Marshal(&v)
 			if err != nil {
