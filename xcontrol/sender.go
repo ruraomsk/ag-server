@@ -39,8 +39,8 @@ func Sender() {
 	}
 	defer conDB.Exec("rollback;")
 	for true {
-		time.Sleep(time.Duration(setup.Set.XCtrl.StepSend) * time.Second)
-		logger.Info.Printf("Управление по характерным точка стадия 2....")
+		time.Sleep(1 * time.Minute)
+		//logger.Info.Printf("Управление по характерным точка стадия 2....")
 		_, err = conDB.Exec("begin;")
 		if err != nil {
 			logger.Error.Printf("Запрос begin %s", err.Error())
@@ -70,6 +70,7 @@ func Sender() {
 				continue
 			}
 			if v.PKNow != v.PKLast {
+				v.LastTime = time.Now()
 				w = fmt.Sprintf("select idevice from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
 				cross, err := conDB.Query(w)
 				if err != nil {

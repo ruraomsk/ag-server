@@ -15,5 +15,37 @@
         <reg id="3" name="Сахалин" file="Сахалин.mrk">
             <area id="1" name="Без районов" />
         </reg>
+        <reg id="5" name="Воронеж" file="Voronez.mrk">
+            <area id="1" name="Правый берег"/>
+            <area id="2" name="Левый берег"/>
+        </reg>
     </regions>
+    <xctrl>
+        <xreg id="1">
+            <xarea id="1">
+                <xsubarea id="1" step="10">
+                    <xstrs>
+                        <s pk="1" left="0" right="100"/>
+                        <s pk="2" left="100" right="200"/>
+                        <s pk="3" left="200" right="9999"/>
+                    </xstrs>
+                    <calucs>
+                        <c region="1" area="1" id="1" chan="1" />
+                        <c region="1" area="1" id="1" chan="2"/>
+                    </calucs>
+                </xsubarea>
+                <xsubarea id="2" step="5">
+                    <xstrs>
+                        <s pk="1" left="0" right="100"/>
+                        <s pk="2" left="100" right="200"/>
+                        <s pk="3" left="200" right="9999"/>
+                    </xstrs>
+                    <calucs>
+                        <c region="1" area="1" id="1" chan="1"/>
+                        <c region="1" area="1" id="1" chan="2"/>
+                    </calucs>
+                </xsubarea>
+            </xarea>
+        </xreg>
+    </xctrl>
 </create>

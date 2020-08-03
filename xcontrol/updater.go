@@ -93,7 +93,7 @@ func newState() State {
 	v.Switch = false
 	v.Release = false
 	v.XNumber = 0
-
+	v.Step = 5
 	v.Strategys = make([]Strategy, 0)
 	v.Calculates = make([]Calc, 0)
 	v.Status = make([]string, 0)

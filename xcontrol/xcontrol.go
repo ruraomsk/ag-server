@@ -21,6 +21,8 @@ type State struct {
 	SubArea    int        `json:"subarea"`
 	Switch     bool       `json:"switch"`  //true призводим расчет нового плана
 	Release    bool       `json:"release"` //true выполняем план
+	Step       int        `json:"step"`    //Время цикла для данного подрайона
+	Remain     int        `json:"rem"`     //Остаток времени для нового расчета
 	LastTime   time.Time  `json:"ltime"`   //Последний расчет характерной точки
 	PKNow      int        `json:"pknow"`   //Текущий ПК
 	PKLast     int        `json:"pklast"`  //Предыдущий ПК
