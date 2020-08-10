@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/data/cross.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/data/devices.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/data/logdevice.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/data/region.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/data/routes.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/data/status.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/data/xctrl.sql" dialect="Greenplum" />
+    <file url="file://$PROJECT_DIR$/xcontrol/calculator.go" dialect="GenericSQL" />
+    <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

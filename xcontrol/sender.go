@@ -39,7 +39,7 @@ func Sender() {
 	}
 	defer conDB.Exec("rollback;")
 	for true {
-		time.Sleep(1 * time.Minute)
+		time.Sleep(time.Duration(setup.Set.XCtrl.StepSend) * time.Second)
 		//logger.Info.Printf("Управление по характерным точка стадия 2....")
 		_, err = conDB.Exec("begin;")
 		if err != nil {
@@ -47,10 +47,9 @@ func Sender() {
 			return
 		}
 		comms := make([]comm.CommandARM, 0)
-		w := "select state from public.xctrl;"
-		rows, err := conDB.Query(w)
+		rows, err := conDB.Query("select state from public.xctrl;")
 		if err != nil {
-			logger.Error.Printf("Запрос  %s %s", w, err.Error())
+			logger.Error.Printf("Запрос  select state from public.xctrl; %s", err.Error())
 			return
 		}
 		for rows.Next() {
@@ -71,7 +70,7 @@ func Sender() {
 			}
 			if v.PKNow != v.PKLast {
 				v.LastTime = time.Now()
-				w = fmt.Sprintf("select idevice from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
+				w := fmt.Sprintf("select idevice from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
 				cross, err := conDB.Query(w)
 				if err != nil {
 					logger.Error.Printf("Запрос  %s %s", w, err.Error())
@@ -84,6 +83,7 @@ func Sender() {
 					comms = append(comms, c)
 				}
 				v.PKLast = v.PKNow
+				v.LastTime = time.Now()
 				s, err := json.Marshal(&v)
 				if err != nil {
 					logger.Error.Printf("Запрос marhal %v %s", vv, err.Error())

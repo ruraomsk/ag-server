@@ -57,9 +57,6 @@ type Area struct {
 	Name string `xml:"name,attr" json:"name"`
 }
 
-var st Creator
-var con *sql.DB
-
 //Start создание баз данных
 func Start(path string) error {
 	logger.Info.Println("Start creator...")

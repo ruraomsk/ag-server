@@ -59,6 +59,9 @@ func Calculator() {
 			return
 		}
 		v.Remain = v.Step
+		v.PKNow = 0
+		v.PKLast = 0
+		v.XNumber = 0
 		s, err := json.Marshal(&v)
 		if err != nil {
 			logger.Error.Printf("Запрос marhal %v %s", vv, err.Error())

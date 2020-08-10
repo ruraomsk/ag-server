@@ -53,14 +53,11 @@ func main() {
 			return
 		}
 		if strings.Contains(os.Args[1], "save") {
-			err = creator.SaveAll(path)
-			if err != nil {
-				fmt.Println(err.Error())
+			if len(os.Args[2]) == 0 {
+				fmt.Println("Нужно запускать с параметом all для всех регионов или указать код региона")
+				return
 			}
-			return
-		}
-		if strings.Contains(os.Args[1], "update") {
-			xcontrol.Updater()
+			err = creator.SaveAll(path+"/save", os.Args[2])
 			if err != nil {
 				fmt.Println(err.Error())
 			}
