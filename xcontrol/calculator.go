@@ -107,6 +107,9 @@ func Calculator() {
 				logger.Error.Printf("Запрос unmurhal %v %s", vv, err.Error())
 				return
 			}
+			if !v.Switch && v.PKNow == 0 {
+				continue
+			}
 			v.Remain--
 			if v.Remain <= 0 {
 				v.LastTime = time.Now()
