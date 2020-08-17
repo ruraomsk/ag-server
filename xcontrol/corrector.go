@@ -15,7 +15,7 @@ import (
 
 //Corrector Проверяем корректность системы к управлению
 func Corrector() error {
-	logger.Info.Printf("Проверяем систему ....")
+	//logger.Info.Printf("Проверяем систему ....")
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -52,6 +52,15 @@ func Corrector() error {
 			logger.Error.Printf("json %s %s", string(stat), err.Error())
 			return err
 		}
+		//Проверим правильность заполнения Стратегии
+		for _, s := range v.Strategys {
+			if s.XRight <= s.XLeft {
+				status = append(status, fmt.Sprintf("В стратегии левое %d больше правого %d", s.XLeft, s.XRight))
+			}
+			if s.XLeft < 0 || s.XRight < 0 {
+				status = append(status, fmt.Sprintf("В стратегии %d %d отрицательно", s.XLeft, s.XRight))
+			}
+		}
 		w = fmt.Sprintf("select id,state from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
 		cross, err := conDB.Query(w)
 		if err != nil {
@@ -84,16 +93,28 @@ func Corrector() error {
 				}
 			}
 		}
-		v.Status = status
-		s, err := json.Marshal(&v)
-		w = fmt.Sprintf("update public.xctrl set state='%s' where region=%d and area=%d and subarea=%d;",
-			string(s), v.Region, v.Area, v.SubArea)
-		_, err = conDB.Exec(w)
-		if err != nil {
-			logger.Error.Printf("Запрос %s %s", w, err.Error())
-			return err
+		equal := true
+		if len(v.Status) == len(status) {
+			for i, st := range v.Status {
+				if st != status[i] {
+					equal = false
+					break
+				}
+			}
+		} else {
+			equal = false
 		}
-
+		if !equal {
+			v.Status = status
+			s, err := json.Marshal(&v)
+			w = fmt.Sprintf("update public.xctrl set state='%s' where region=%d and area=%d and subarea=%d;",
+				string(s), v.Region, v.Area, v.SubArea)
+			_, err = conDB.Exec(w)
+			if err != nil {
+				logger.Error.Printf("Запрос %s %s", w, err.Error())
+				return err
+			}
+		}
 	}
 	if flag {
 		//logger.Info.Print("найдены ошибки посмотрите протокол")

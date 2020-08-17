@@ -9,10 +9,15 @@ type Setup struct {
 	Location   string     `toml:"location"`  //Локация временной зоны
 	StepPudge  int        `toml:"steppudge"` //Шаг сохранения в секундах
 	DataBase   DataBase   `toml:"dataBase"`
+	ApiServer  ApiServer  `toml:"api"`
 	CommServer CommServer `toml:"commServer"`
 	Controller Controller `toml:"controller"`
 	XCtrl      XCtrl      `toml:"xctrl"`
 	Saver      Saver      `toml:"saver"`
+}
+type ApiServer struct {
+	PortAPI int `toml:"portapi"` //Порт приема подключений для API
+	PortOut int `toml:"portout"` //Порт запросов для получения изменений cross
 }
 type Saver struct {
 	Remote  string     `toml:"remote"`   //TCP до сервера приема

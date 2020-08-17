@@ -30,7 +30,7 @@ func getJSONLog(idevice int) []byte {
 			return result
 		}
 	}
-
+	logger.Debug.Printf("Нет такого устрйства на пекрестке %d", idevice)
 	j := JSONLog{ID: 0, Area: "0", Region: "0", Description: ""}
 	result, _ := json.Marshal(j)
 	return result

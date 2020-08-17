@@ -88,6 +88,7 @@ func Calculator() {
 			logger.Error.Printf("Запрос begin %s", err.Error())
 			return
 		}
+		Corrector()
 		w := "select state from public.xctrl;"
 		rows, err := conDB.Query(w)
 		if err != nil {

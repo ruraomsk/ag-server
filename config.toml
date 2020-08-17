@@ -8,6 +8,10 @@ steppudge=1						#Шаг сохранения в pudge
 	user= "postgres"
 	password= "162747"
 	dbname= "agserv"
+#Настройки сервера API
+[api]
+    portapi=2010                #Ожидаем подключений для внешнего API
+    portout=2011                #По этому порту ждем запросов на измение cross
 #Настройки сервера контроллеров
 [commServer]
 	port= 1093					#Основной порт связи
