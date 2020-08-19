@@ -82,13 +82,25 @@ func Corrector() error {
 				return err
 			}
 			for _, p := range v.Strategys {
-				if p.PK == 0 {
+				if p.PKL == 0 || p.PKR == 0 || p.PKS == 0 {
+					flag = true
+					s := fmt.Sprintf("В стратегии есть ноль {%d %d %d} ", p.PKL, p.PKS, p.PKR)
+					status = append(status, s)
 					continue
 				}
-				if c.Arrays.SetDK.IsEmpty(1, p.PK) {
+				if c.Arrays.SetDK.IsEmpty(1, p.PKL) {
 					flag = true
-					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PK)
-					//logger.Error.Printf(s)
+					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKL)
+					status = append(status, s)
+				}
+				if c.Arrays.SetDK.IsEmpty(1, p.PKS) {
+					flag = true
+					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKS)
+					status = append(status, s)
+				}
+				if c.Arrays.SetDK.IsEmpty(1, p.PKR) {
+					flag = true
+					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKR)
 					status = append(status, s)
 				}
 			}

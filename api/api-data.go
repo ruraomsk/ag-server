@@ -134,6 +134,7 @@ func workerOutConnect(soc net.Conn) {
 	defer soc.Close()
 	var command CommandOut
 	tab := new(table)
+	tab.records = make(map[string]*record)
 	logger.Info.Printf("Новый клиент комманд обновления %s", soc.RemoteAddr().String())
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
