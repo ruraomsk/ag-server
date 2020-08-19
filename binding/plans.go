@@ -47,16 +47,17 @@ func (sd *SetDK) GetPhases() []int {
 
 //SetPk набор планов координации перекрестка
 type SetPk struct {
-	DK         int     `json:"dk"`         //Номер ДК
-	Pk         int     `json:"pk"`         //Номер программы от 1 до 12
-	TypePU     int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
-	RazLen     bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
-	Tc         int     `json:"tc"`         //Время цикла программы
-	Shift      int     `json:"shift"`      //Сдвиг начала цикла
-	LastType   int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
-	LastNumber int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
-	TwoT       bool    `json:"twot"`       //Признак 2Т
-	Stages     []Stage `json:"sts"`        //Фазы переключения
+	DK          int     `json:"dk"`         //Номер ДК
+	Pk          int     `json:"pk"`         //Номер программы от 1 до 12
+	Description string  `json:"desc"`       //Описание плана координации
+	TypePU      int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
+	RazLen      bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
+	Tc          int     `json:"tc"`         //Время цикла программы
+	Shift       int     `json:"shift"`      //Сдвиг начала цикла
+	LastType    int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
+	LastNumber  int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
+	TwoT        bool    `json:"twot"`       //Признак 2Т
+	Stages      []Stage `json:"sts"`        //Фазы переключения
 }
 
 //Stage описание одной фазы плана координации
@@ -93,6 +94,7 @@ func NewSetPk(pk int) SetPk {
 	r := new(SetPk)
 	r.DK = 1
 	r.Pk = pk
+	r.Description = fmt.Sprintf("План координации %d", pk)
 	r.Stages = make([]Stage, 12)
 	for n := range r.Stages {
 		r.Stages[n].Nline = n + 1
