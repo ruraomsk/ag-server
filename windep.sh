@@ -13,6 +13,8 @@ sudo  cp ./data/*.mrk /mnt/asud/setup
 sudo  cp ./data/*.xml /mnt/asud/setup
 sudo  cp ag-server.exe /mnt/asud/cmd
 sudo  cp *.toml /mnt/asud/cmd
+sudo  cp save.bat /mnt/asud/cmd
+
 # cp ./data/*.sql ~/vm/asud/setup
 # cp ./data/*.mrk ~/vm/asud/setup
 # cp ./data/*.xml ~/vm/asud/setup

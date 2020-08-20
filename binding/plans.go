@@ -38,7 +38,8 @@ func (sd *SetDK) GetPhases() []int {
 			}
 		}
 	}
-	for i, _ := range m {
+	var i int
+	for i = range m {
 		res = append(res, i)
 	}
 	sort.Ints(res)
@@ -261,6 +262,10 @@ func (sd *SetDK) FromBuffer(buffer []int) error {
 	if buffer[0] <= 112 {
 		st.DK = 1
 		sd.DK[st.Pk-1] = st
+	}
+	for i, d := range sd.DK {
+		d.Description = fmt.Sprintf("План координации %d", d.Pk)
+		sd.DK[i] = d
 	}
 	return nil
 }
