@@ -24,7 +24,7 @@ type State struct {
 	Step     int       `json:"step"`    //Время цикла для данного подрайона
 	Remain   int       `json:"rem"`     //Остаток времени для нового расчета
 	LastTime time.Time `json:"ltime"`   //Последний расчет характерной точки
-	PKCalc   int       `json:"plcalc"`  //Расчитанный ПК
+	PKCalc   int       `json:"pkcalc"`  //Расчитанный ПК
 	PKNow    int       `json:"pknow"`   //Текущий ПК
 	PKLast   int       `json:"pklast"`  //Предыдущий ПК
 	Status   []string  `json:"status"`  //Состояние расчетов и итоги проверки
