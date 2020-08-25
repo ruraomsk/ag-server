@@ -84,6 +84,12 @@ func oneCross(reg pudge.Region) {
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
+		if cr.Model.VPBSL != dev.Model.VPBSL || cr.Model.VPBSR != dev.Model.VPBSR ||
+			cr.Model.VPCPDL != dev.Model.VPCPDL || cr.Model.VPCPDR != dev.Model.VPCPDR {
+			//Не совпало ПО
+			time.Sleep(time.Duration(10 * time.Second))
+			continue
+		}
 		if dev.Local {
 			//Беда у нас в прошлый обмен связь порвалась в опасном месте
 			//Необходимо перепослать все массивы привязки

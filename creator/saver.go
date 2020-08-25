@@ -131,7 +131,7 @@ func SaveAll(path string, sreg string) error {
 			_, _ = file.WriteString(str)
 			_, _ = file.WriteString(fmt.Sprintf("@C,%s\n", state.Dgis))
 			_, _ = file.WriteString(fmt.Sprintf("@S,%s\n", state.Name))
-			str = fmt.Sprintf("@P,8,29,12,27,%d\n", state.NumDev)
+			str = fmt.Sprintf("@P,%d,%d,%d,%d,%d\n", state.Model.VPCPDL, state.Model.VPCPDR, state.Model.VPBSL, state.Model.VPBSR, state.NumDev)
 			_, _ = file.WriteString(str)
 
 			_, _ = file.WriteString(fmt.Sprintf("@N,%s\n", state.Phone))

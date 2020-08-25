@@ -68,6 +68,7 @@ func setStatusCross() {
 			cr.WriteToDB = true
 		}
 		if !reflect.DeepEqual(&cr.Statistics, &cc.Statistics) {
+			//logger.Info.Printf("region %d area %d cross %d device %d измениась статистика",cr.Region,cr.Area,cr.ID,cr.IDevice)
 			cr.Statistics = make([]Statistic, 0)
 			for _, s := range cc.Statistics {
 				cr.Statistics = append(cr.Statistics, s)

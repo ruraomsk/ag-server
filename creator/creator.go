@@ -122,6 +122,7 @@ func sqlCreate(path string, ext string) error {
 		logger.Error.Printf("Ошибка чтения содержимого кaталога %s %s", path, err.Error())
 		return err
 	}
+	flerr := false
 	//Создаем все таблицы
 	for _, dir := range dirs {
 		if dir.IsDir() {
@@ -142,9 +143,12 @@ func sqlCreate(path string, ext string) error {
 
 		if err != nil {
 			logger.Error.Printf("Error create  %s\n", err.Error())
-			return err
+			flerr = true
 		}
 
+	}
+	if flerr {
+		return fmt.Errorf("ошибки при выполнении sql")
 	}
 	return nil
 }
@@ -194,6 +198,20 @@ func loadCross(region int, nfile string) error {
 			}
 			state.NumDev, _ = strconv.Atoi(ss[5])
 			state.Arrays.TypeDevice = state.NumDev
+			state.Model.VPCPDL, _ = strconv.Atoi(ss[1])
+			state.Model.VPCPDR, _ = strconv.Atoi(ss[2])
+			state.Model.VPBSL, _ = strconv.Atoi(ss[3])
+			state.Model.VPBSR, _ = strconv.Atoi(ss[4])
+			switch state.NumDev {
+			case 1:
+				state.Model.C12 = true
+			case 2:
+				state.Model.DKA = true
+			case 4:
+				state.Model.DTA = true
+			case 8:
+				state.Model.STP = true
+			}
 			continue
 		}
 		if strings.HasPrefix(str, "@C,") {

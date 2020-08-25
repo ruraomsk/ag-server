@@ -76,6 +76,7 @@ func Sender() {
 					logger.Error.Printf("Запрос  %s %s", w, err.Error())
 					return
 				}
+				logger.Info.Printf("Регион %d район %d подрайон %d новый план %d", v.Region, v.Area, v.SubArea, v.PKNow)
 				for cross.Next() {
 					var idevice int
 					err = cross.Scan(&idevice)
