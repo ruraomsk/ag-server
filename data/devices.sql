@@ -18,11 +18,16 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.devices
     OWNER to postgres;
-COMMENT ON TABLE public.devices
-    IS 'Сохранение состояния контроллеров';
 
+COMMENT ON TABLE public.devices
+    IS 'Состояние контроллеров';
 COMMENT ON COLUMN public.devices.id
     IS 'Идентификатор устройства';
-
+COMMENT ON COLUMN public.devices.fdk
+    IS 'Текущая фаза';
+COMMENT ON COLUMN public.devices.tdk
+    IS 'Время исполнения фазы';
+COMMENT ON COLUMN public.devices.pdk
+    IS 'Признак переходного периода';
 COMMENT ON COLUMN public.devices.device
     IS 'Все об устройстве';

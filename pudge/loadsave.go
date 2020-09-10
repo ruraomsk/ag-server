@@ -13,6 +13,11 @@ func loadDBase() error {
 	if err != nil {
 		return err
 	}
+	//err := clearControllers()
+	//if err != nil {
+	//	return err
+	//}
+
 	err = loadCrosees()
 	if err != nil {
 		return err
@@ -86,6 +91,11 @@ func loadCrosees() error {
 		crosses[reg.ToKey()] = c
 	}
 	return nil
+}
+func clearControllers() error {
+	_, err := conDBSave.Exec("delete from devices whre id>0;")
+
+	return err
 }
 func loadControllers() error {
 	rows, err := conDBSave.Query("Select id,device from devices;")

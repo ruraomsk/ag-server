@@ -47,6 +47,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 			return
 		}
 		buffer := append(buf, buf2...)
+		//logger.Debug.Printf("Приняли с сокета %ss %v",socket.RemoteAddr().String(),buffer)
 		err = h.Parse(buffer)
 		if err != nil {
 			logger.Error.Printf("при раскодировании от устройства %s %s", socket.RemoteAddr().String(), err.Error())

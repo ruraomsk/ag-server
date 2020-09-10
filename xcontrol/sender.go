@@ -66,7 +66,7 @@ func Sender() {
 				return
 			}
 			if !v.Release {
-				continue
+				v.PKNow = 0
 			}
 			if v.PKNow != v.PKLast {
 				v.LastTime = time.Now()

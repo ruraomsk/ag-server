@@ -237,6 +237,10 @@ func readOneRecord(rows *sql.Rows, nameTab string, names []name) (del string, in
 			str = fmt.Sprintf("%v", v)
 			str = "'" + strings.TrimLeft(str, "time:") + "'"
 			//fmt.Println(str)
+		case "date":
+			//fmt.Println(str)
+			str = fmt.Sprintf("%v", v)
+			str = "'" + str[0:10] + "'"
 		default:
 			logger.Error.Printf("DataType %s", n.DataType)
 			str = "0"

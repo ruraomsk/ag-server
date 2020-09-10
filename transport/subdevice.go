@@ -213,8 +213,8 @@ func (s *SubMessage) Get0x11Device(c *pudge.Controller) error {
 	c.Error.TVP1 = (s.Message[1] & 4) != 0
 	c.Error.TVP2 = (s.Message[1] & 8) != 0
 	c.Error.FRAM = (s.Message[1] & 16) != 0
-	if s.Message[2] == 64 {
-		s.Message[2] = 0
+	if s.Message[2] > 0x0A {
+		s.Message[2] = 1
 	}
 	c.GPS.Ok = s.Message[2] == 0
 	c.GPS.E01 = s.Message[2] == 1

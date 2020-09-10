@@ -39,8 +39,8 @@ func sender() bool {
 		return true
 	}
 	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 64*1024)
-	scanner.Buffer(buf, 128*1024)
+	buf := make([]byte, 256*1024)
+	scanner.Buffer(buf, 512*1024)
 	for scanner.Scan() {
 		soc.SetWriteDeadline(time.Now().Add(time.Duration(5 * time.Second)))
 		_, errSoc = soc.Write(append(scanner.Bytes(), '\n'))

@@ -140,7 +140,7 @@ func Test_ParseDevice(t *testing.T) {
 }
 func Test_MakeSet(t *testing.T) {
 	var cc pudge.Controller
-	cc.TexRezim = 11
+	//cc.TexRezim = 11
 	cc.Base = false
 	cc.PK = 3
 	cc.CK = 4

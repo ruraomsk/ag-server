@@ -12,6 +12,12 @@ import (
 )
 
 func (s *State) calculate() {
+	if !s.Switch {
+		s.PKCalc = 0
+		s.PKNow = 0
+		s.Release = false
+		return
+	}
 	s.Results = make([]Result, 0)
 	for _ = range s.Calculates {
 		r := new(Result)
@@ -92,7 +98,11 @@ func (s *State) calculate() {
 	}
 }
 func (s *State) change() {
-	s.PKNow = s.PKCalc
+	if s.Release {
+		s.PKNow = s.PKCalc
+	} else {
+		s.PKNow = 0
+	}
 }
 
 //Calculator Посылает новые планы координации на устройства
@@ -177,14 +187,15 @@ func Calculator() {
 				logger.Error.Printf("Запрос unmurhal %v %s", vv, err.Error())
 				return
 			}
-			if !v.Switch && v.PKNow == 0 {
+			if !v.Switch && v.PKNow == 0 && v.PKLast == 0 && v.PKCalc == 0 {
 				continue
 			}
 			v.Remain--
-			if v.Remain <= 0 {
+			if v.Remain < 1 {
 				v.LastTime = time.Now()
 				if !v.Switch {
 					v.PKNow = 0
+					v.PKCalc = 0
 				} else {
 					//Собственно расчет
 					v.calculate()

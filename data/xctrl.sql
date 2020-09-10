@@ -8,12 +8,22 @@ CREATE TABLE public."xctrl"
     area integer NOT NULL,
     subarea integer NOT NULL,
     state jsonb not null
-
 )
 WITH (
     OIDS = FALSE
 )
 TABLESPACE pg_default;
+
+COMMENT ON TABLE public."xctrl"
+    IS 'Описание перекрестков';
+COMMENT ON COLUMN public.xctrl.region
+    IS 'Регион';
+COMMENT ON COLUMN public.xctrl.area
+    IS 'Район';
+COMMENT ON COLUMN public.xctrl.subarea
+    IS 'Подрайон';
+COMMENT ON COLUMN public.xctrl.state
+    IS 'Прогрмма переключения';
 
 ALTER TABLE public."xctrl"
     OWNER to postgres;

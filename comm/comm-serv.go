@@ -16,6 +16,7 @@ import (
 
 var devs map[int]*device
 var mutex sync.Mutex
+var writeArch chan pudge.ArchStat
 
 // var answare chan string
 // var request chan int
@@ -44,6 +45,9 @@ func StartListen() {
 	go listenArmArray()
 	// //Запускаем слушателя для настройки протокола
 	go listenChangeProtocol()
+	// Запускаем записывателя архива
+	go writerArch()
+	writeArch = make(chan pudge.ArchStat, 1000)
 	count := 0
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))
@@ -79,7 +83,6 @@ func newConnect(soc net.Conn) {
 		работы, Состояние оборудования , Состояние ДК V3, сервер отвечает
 		подтверждением с номером принятого пакета.
 	*/
-	logger.Debug.Printf("Устройствo %s подключается...", soc.RemoteAddr().String())
 	ctrl := new(pudge.Controller)
 	var err error
 	hout := make(chan transport.HeaderServer, 100)
@@ -90,7 +93,7 @@ func newConnect(soc net.Conn) {
 	go transport.GetMessagesFromDevice(soc, hin, &readTout)
 	go transport.SendMessagesToDevice(soc, hout, &writeTout)
 	hDev := <-hin
-	// logger.Info.Printf("hDev %v", hDev)
+	logger.Debug.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -111,22 +114,36 @@ func newConnect(soc net.Conn) {
 	}
 	dmess := hDev.ParseMessage()
 	flag := false
+	hren := false
 	for _, m := range dmess {
 		if m.Type == 0x1D {
 			flag = true
 			_ = m.Get0x1DDevice(ctrl)
+			logger.Info.Printf("Заголовок команда 0x1D id %d ", ctrl.ID)
+
 		}
 		if m.Type == 0x10 {
 			flag = true
 			_ = m.Get0x10Device(ctrl)
+			logger.Info.Printf("Заголовок команда 0x10 id %d ", ctrl.ID)
+
 		}
 		if m.Type == 0x12 {
 			flag = true
 			_ = m.Get0x12Device(ctrl)
+			logger.Info.Printf("Заголовок команда 0x12 id %d ", ctrl.ID)
 		}
 		if m.Type == 0x1B {
 			flag = true
+			hren = true
 			_ = m.Get0x1BDevice(ctrl)
+			logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
+
+		}
+		if m.Type == 0x11 {
+			flag = true
+			m.Get0x11Device(ctrl)
+			logger.Info.Printf("Заголовок команда 0x11 id %d ", ctrl.ID)
 		}
 		if m.Type == 0x1C {
 			flag = true
@@ -161,10 +178,26 @@ func newConnect(soc net.Conn) {
 	}
 	pudge.SetController(ctrl)
 	//Подтвердим что клиент прописан
-	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	var hs transport.HeaderServer
+	if hren {
+		hs = transport.CreateHeaderServer(0, 0)
+
+	} else {
+		hs = transport.CreateHeaderServer(0, int(hDev.Code))
+	}
 	mss := make([]transport.SubMessage, 0)
 	_ = hs.UpackMessages(mss)
+	time.Sleep(1 * time.Second)
 	hout <- hs
+	logger.Info.Printf("Подключено устройство: id %d ", ctrl.ID)
+	//hs = transport.CreateHeaderServer(0, int(hDev.Code))
+	//var ms transport.SubMessage
+	//mss = make([]transport.SubMessage, 0)
+	//ms.Set0x03Server()
+	//mss = append(mss, ms)
+	//_ = hs.UpackMessages(mss)
+	//hout <- hs
+
 	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
@@ -192,6 +225,7 @@ func newConnect(soc net.Conn) {
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
+	pTime := time.Now() //Для контроля новых суток
 	for {
 		select {
 		case hDev = <-hin:
@@ -214,6 +248,23 @@ func newConnect(soc net.Conn) {
 				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
 				logger.Error.Print(w)
 				return
+			}
+			if pTime.Day() != time.Now().Day() {
+				//Новые сутки Нужно спасти статистику
+				key := pudge.IsRegistred(ctrl.ID)
+				arch := new(pudge.ArchStat)
+				arch.Region = key.Region
+				arch.Area = key.Area
+				arch.ID = key.ID
+				arch.Date = pTime
+				arch.Statistics = make([]pudge.Statistic, 0)
+				for _, s := range ctrl.Statistics {
+					arch.Statistics = append(arch.Statistics, s)
+				}
+				ctrl.Statistics = make([]pudge.Statistic, 0)
+				pTime = time.Now()
+				pudge.SetController(ctrl)
+				writeArch <- *arch
 			}
 
 		case <-dd.context.Done():
@@ -292,7 +343,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = pudge.Connected
 	defer mutex.Unlock()
-	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	hs := transport.CreateHeaderServer(0, 1)
 	if hDev.Number != 0 {
 		mss := make([]transport.SubMessage, 0)
 		var ms transport.SubMessage
@@ -371,8 +422,9 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		case 0x10:
 			need = true
 			err := mes.Get0x10Device(c)
+			logger.Info.Printf("Пришла команда 0x10 id %d ", hDev.ID)
 			if err != nil {
-				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
+				logger.Error.Printf("При разборе команды 0x10 id %d %s", hDev.ID, err.Error())
 			}
 		case 0x11:
 			//Состояние оборудования v2
@@ -420,6 +472,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		case 0x1C:
 			//Состояние подтверждения перелается с адресом отправителя 0x7F
 			//Ничего пока не делаем
+			//logger.Info.Printf("Пришла команда 0x1c id %d ", hDev.ID)
+			need = true
 		default:
 			logger.Error.Printf("От %d неверная команда %x", hDev.ID, mes.Type)
 			return hs, false
@@ -435,12 +489,12 @@ func getController(id int) (*pudge.Controller, error) {
 	c, is := pudge.GetController(id)
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированн
-		strKey := pudge.IsRegistred(id)
+		key := pudge.IsRegistred(id)
 
-		if len(strKey) == 0 {
+		if key == nil {
 			return nil, fmt.Errorf("id %d не зарегистрирован", id)
 		}
-		pudge.SetDefault(ctrl, strKey)
+		pudge.SetDefault(ctrl, *key)
 		pudge.SetController(ctrl)
 		// logger.Info.Printf("id %d reg on %s", id, strKey)
 		return ctrl, nil
@@ -475,7 +529,7 @@ func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderSe
 }
 func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 1)
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
 	switch comARM.Command {

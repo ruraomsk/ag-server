@@ -133,6 +133,7 @@ func SetCross(c *Cross) {
 		mutexCross.Lock()
 		c.WriteToDB = true
 		crosses[reg.ToKey()] = c
+		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
 		mutexCross.Unlock()
 	}
 	return

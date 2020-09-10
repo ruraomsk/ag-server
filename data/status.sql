@@ -17,7 +17,13 @@ TABLESPACE pg_default;
 ALTER TABLE public.status
     OWNER to postgres;
 COMMENT ON TABLE public.status
-    IS 'Описание статуса устройств';
+    IS 'Справочник статусов устройств';
+COMMENT ON COLUMN public.status.id
+    IS 'Код состоянния';
+COMMENT ON COLUMN public.status.description
+    IS 'Описание состоянния';
+COMMENT ON COLUMN public.status.control
+    IS 'Признак возможности управления';
 
 insert into public.status (id,description,control) values (1,'Координированное управление',TRUE);
 insert into public.status (id,description,control) values (2,'Диспетчерское управление',TRUE);

@@ -206,11 +206,10 @@ func loadCross(region int, nfile string) error {
 			case 1:
 				state.Model.C12 = true
 			case 2:
-				state.Model.DKA = true
 			case 4:
-				state.Model.DTA = true
+				state.Model.DKA = true
 			case 8:
-				state.Model.STP = true
+				state.Model.DTA = true
 			}
 			continue
 		}

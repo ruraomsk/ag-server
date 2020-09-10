@@ -42,10 +42,10 @@ func getController(id int) *pudge.Controller {
 	if !is {
 		//Нет на pudge теперь надо проверить среди регистрированных
 		key := pudge.IsRegistred(id)
-		if len(key) == 0 {
+		if key == nil {
 			return nil
 		}
-		pudge.SetDefault(ctrl, key)
+		pudge.SetDefault(ctrl, *key)
 		return ctrl
 	}
 	ctrl = c

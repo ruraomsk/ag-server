@@ -217,6 +217,15 @@ func (i *Input) Compare(ii *Input) bool {
 	return reflect.DeepEqual(i, ii)
 }
 
+//ArchStat архивная статистика
+type ArchStat struct {
+	Region     int         `json:"region"` //Регион
+	Area       int         `json:"area"`   //Район
+	ID         int         `json:"id"`     //Номер перекрестка
+	Date       time.Time   `json:"date"`
+	Statistics []Statistic //Накопленная статистика
+}
+
 //Statistic статистика
 type Statistic struct {
 	Period int //Номер периода усреднения от начала суток
@@ -293,8 +302,8 @@ type Cross struct {
 	CK           int    `json:"ck"`     //Номер суточной карты
 	NK           int    `json:"nk"`     //Номер недельной карты
 	Model        Model
-	Statistics   []Statistic    `json:"statis"` //Накопленная статистика
-	Arrays       binding.Arrays `json:"arrays"` //Файлы привязки
+	//Statistics   []Statistic    `json:"statis"` //Накопленная статистика
+	Arrays binding.Arrays `json:"arrays"` //Файлы привязки
 }
 
 //ArrayPriv собственно массив привязки
@@ -383,8 +392,8 @@ func (c *Controller) Compare(cc *Controller) bool {
 }
 
 //SetDefault Заполнить по умолчанию
-func SetDefault(c *Controller, key string) {
-	cr, is := crosses[key]
+func SetDefault(c *Controller, key Region) {
+	cr, is := crosses[key.ToKey()]
 	if !is {
 		logger.Error.Fatalf("нет такого %s", key)
 	}
@@ -398,10 +407,10 @@ func SetDefault(c *Controller, key string) {
 	c.DK.TDK = 1
 	c.Base = true
 	var m Model
-	m.VPCPDL = 12
-	m.VPCPDR = 3
-	m.VPBSL = 1
-	m.VPBSR = 8
+	m.VPCPDL = 0
+	m.VPCPDR = 0
+	m.VPBSL = 0
+	m.VPBSR = 0
 
 	c.Model = m
 	c.Statistics = make([]Statistic, 0)
@@ -412,7 +421,7 @@ func SetDefault(c *Controller, key string) {
 //NewCross создание нового описания перекрестка
 func NewCross() *Cross {
 	r := new(Cross)
-	r.Statistics = make([]Statistic, 0)
+	//r.Statistics = make([]Statistic, 0)
 	r.Arrays = *binding.NewArrays()
 	return r
 }
