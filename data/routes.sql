@@ -2,11 +2,9 @@
 
 DROP TABLE if exists public.routes;
 DROP SEQUENCE if exists id_routes;
-CREATE SEQUENCE id_routes START 1;
 CREATE TABLE public.routes
 (
 	region integer NOT NULL,
-    id integer NOT NULL DEFAULT nextval('id_routes'),
     description text COLLATE pg_catalog."default",
     box jsonb,
     listtl jsonb
@@ -20,8 +18,6 @@ COMMENT ON TABLE public."routes"
     IS 'Описание маршрутов';
 COMMENT ON COLUMN public.routes.region
     IS 'Регион';
-COMMENT ON COLUMN public.routes.id
-    IS 'Номер маршрута';
 COMMENT ON COLUMN public.routes.description
     IS 'Описание';
 COMMENT ON COLUMN public.routes.box

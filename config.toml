@@ -62,7 +62,7 @@ steppudge=1						#Шаг сохранения в pudge
           ["devices","id"],
           ["region","region","area"],
           ["xctrl","region","area","subarea"],
-          ["routes","region","id"],
+          ["routes","region","description"],
           ["statistics","region","area","id","date"]
          ]
     stepSVG=60         #Шаг проверки изменения SVG
