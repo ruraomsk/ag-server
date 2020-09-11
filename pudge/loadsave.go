@@ -141,9 +141,7 @@ func saveControllers() error {
 		}
 		count++
 		js, _ := json.Marshal(c)
-		_, err = conDBSave.Exec("update  devices set device='" + string(js) + "',fdk=" + strconv.Itoa(c.DK.FDK) +
-			",tdk=" + strconv.Itoa(c.DK.TDK) + ",pdk=" + strconv.FormatBool(c.DK.PDK) +
-			" where id=" + strconv.Itoa(c.ID) + ";")
+		_, err = conDBSave.Exec("update  devices set device='" + string(js) + "' where id=" + strconv.Itoa(c.ID) + ";")
 		if err != nil {
 			logger.Error.Printf("For update save to controller %s", err.Error())
 			break
