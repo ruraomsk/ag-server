@@ -113,7 +113,7 @@ func loadControllers() error {
 			return err
 		}
 		c.WriteToDB = true
-		c.StatusConnection = NotConnected
+		c.StatusConnection = false
 		c.LastLogString = ""
 		c.LastOperation = time.Unix(0, 0)
 

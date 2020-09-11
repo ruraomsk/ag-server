@@ -114,7 +114,7 @@ func newConnect(soc net.Conn) {
 	}
 	dmess := hDev.ParseMessage()
 	flag := false
-	hren := false
+	//hren := false
 	for _, m := range dmess {
 		if m.Type == 0x1D {
 			flag = true
@@ -135,7 +135,7 @@ func newConnect(soc net.Conn) {
 		}
 		if m.Type == 0x1B {
 			flag = true
-			hren = true
+			//hren = true
 			_ = m.Get0x1BDevice(ctrl)
 			logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
 
@@ -160,7 +160,7 @@ func newConnect(soc net.Conn) {
 		logger.Info.Println("больше 10 секунд ", ctrl.ID)
 	}
 	//Обновим состояние в pudge
-	ctrl.StatusConnection = pudge.Connected
+	ctrl.StatusConnection = true
 	ctrl.LastOperation = time.Now()
 	dd := new(device)
 	dd.id = ctrl.ID
@@ -179,12 +179,13 @@ func newConnect(soc net.Conn) {
 	pudge.SetController(ctrl)
 	//Подтвердим что клиент прописан
 	var hs transport.HeaderServer
-	if hren {
-		hs = transport.CreateHeaderServer(0, 0)
-
-	} else {
-		hs = transport.CreateHeaderServer(0, int(hDev.Code))
-	}
+	hs = transport.CreateHeaderServer(0, 0)
+	//if hren {
+	//	hs = transport.CreateHeaderServer(0, 0)
+	//
+	//} else {
+	//	hs = transport.CreateHeaderServer(0, int(hDev.Code))
+	//}
 	mss := make([]transport.SubMessage, 0)
 	_ = hs.UpackMessages(mss)
 	time.Sleep(1 * time.Second)
@@ -242,7 +243,7 @@ func newConnect(soc net.Conn) {
 			if time.Now().Sub(ctrl.LastOperation) > readTout {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
-				ctrl.StatusConnection = pudge.NotConnected
+				ctrl.StatusConnection = false
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
 				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
@@ -341,7 +342,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	d := devs[hDev.ID]
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
-	c.StatusConnection = pudge.Connected
+	c.StatusConnection = true
 	defer mutex.Unlock()
 	hs := transport.CreateHeaderServer(0, 1)
 	if hDev.Number != 0 {

@@ -40,13 +40,6 @@ type Controllers struct {
 //StatusConnection статус соединения
 type StatusConnection int
 
-const (
-	//Connected Ok
-	Connected StatusConnection = iota
-	//NotConnected not Ok
-	NotConnected
-)
-
 //DK диагностика состояния по ДК
 type DK struct {
 	RDK int `json:"rdk"` //Режим ДК
@@ -341,13 +334,13 @@ type Status struct {
 
 //Controller внутренне представление контроллера
 type Controller struct {
-	ID               int              `json:"id"`       // Уникальный номер контроллера
-	Name             string           `json:"name"`     //Имя перекрестка если привязан
-	StatusConnection StatusConnection `json:"scon"`     // Статус соединения
-	LastOperation    time.Time        `json:"ltime"`    // Время последней операции обмена с устройством
-	TimeDevice       time.Time        `json:"dtime"`    // Время устройства
-	WriteToDB        bool             `json:"-"`        //Если истина то еще не записана в БД
-	TechMode         int              `json:"techmode"` //Технологический режим
+	ID               int       `json:"id"`       // Уникальный номер контроллера
+	Name             string    `json:"name"`     //Имя перекрестка если привязан
+	StatusConnection bool      `json:"scon"`     // Статус соединения
+	LastOperation    time.Time `json:"ltime"`    // Время последней операции обмена с устройством
+	TimeDevice       time.Time `json:"dtime"`    // Время устройства
+	WriteToDB        bool      `json:"-"`        //Если истина то еще не записана в БД
+	TechMode         int       `json:"techmode"` //Технологический режим
 
 	// Технологический режим
 
