@@ -94,6 +94,12 @@ func newConnect(soc net.Conn) {
 	go transport.SendMessagesToDevice(soc, hout, &writeTout)
 	hDev := <-hin
 	logger.Debug.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
+	mutex.Lock()
+	_, ok := devs[hDev.ID]
+	if ok {
+		delete(devs, hDev.ID)
+	}
+	mutex.Unlock()
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -248,6 +254,7 @@ func newConnect(soc net.Conn) {
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
 				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
 				logger.Error.Print(w)
+				delete(devs, ctrl.ID)
 				return
 			}
 			if pTime.Day() != time.Now().Day() {

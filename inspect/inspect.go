@@ -87,6 +87,7 @@ func oneCross(reg pudge.Region) {
 		if cr.Model.VPBSL != dev.Model.VPBSL || cr.Model.VPBSR != dev.Model.VPBSR ||
 			cr.Model.VPCPDL != dev.Model.VPCPDL || cr.Model.VPCPDR != dev.Model.VPCPDR {
 			//Не совпало ПО
+			logger.Info.Printf("Не совпали версии ПО id %d", dev.ID)
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
@@ -141,7 +142,9 @@ func oneCross(reg pudge.Region) {
 			sendLocalOff(dev)
 			dev.Local = false
 			pudge.SetController(dev)
-			// logger.Info.Printf("массивы передали %v", reg)
+			logger.Info.Printf("массивы передали %d", dev.ID)
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Обновлены привязки на устройстве"}
+
 		}
 		//Все переслали все совпало можно и поспать
 		// logger.Info.Printf("все совпало %v", reg)

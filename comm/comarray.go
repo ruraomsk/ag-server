@@ -85,7 +85,7 @@ func workerCommand(soc net.Conn) {
 		}
 		dev, is := devs[command.ID]
 		if !is {
-			//logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
+			logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
 			continue
 		}
 		logger.Info.Printf("Команда %v", command)
