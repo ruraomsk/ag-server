@@ -10,8 +10,8 @@ import (
 //SetTimeUse хранение настроек внешних входов
 type SetTimeUse struct {
 	Uses       []Use `json:"uses"`
-	IntervalTE int   `json:"ite"`  //Интервал между ТЕ
-	Tuin       int   `json:"tuin"` //Т уср ИН
+	IntervalTE int   `json:"ite"` //Интервал между ТЕ
+	//Tuin       int   `json:"tuin"` //Т уср ИН
 	MGRNotWork []int `json:"notwork"`
 }
 
@@ -57,7 +57,7 @@ func (u *Use) isEmpty() bool {
 
 //IsEmpty вернет истину если весь набор пустой
 func (s *SetTimeUse) IsEmpty() bool {
-	if s.IntervalTE != 0 || s.Tuin != 0 {
+	if s.IntervalTE != 0 {
 		return false
 	}
 	for _, ss := range s.Uses {
