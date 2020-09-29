@@ -2,7 +2,7 @@ package pudge
 
 import (
 	"fmt"
-	"strings"
+	"time"
 )
 
 //IsConnected возвращает на связи ли устройство
@@ -40,17 +40,6 @@ func setStatusCross() {
 		if statusDevice != cr.StatusDevice {
 			cr.StatusDevice = statusDevice
 			cr.WriteToDB = true
-			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
-			cc.LastLogString = mes
-			SetController(cc)
-			ChanLog <- RecLogCtrl{ID: cc.ID, LogString: mes}
-		} else {
-			mes := fmt.Sprintf("Режим %s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
-			if strings.Compare(cc.LastLogString, mes) != 0 {
-				cc.LastLogString = mes
-				SetController(cc)
-				ChanLog <- RecLogCtrl{ID: cc.ID, LogString: mes}
-			}
 		}
 		if cr.PK != cc.PK {
 			cr.PK = cc.PK
@@ -64,21 +53,48 @@ func setStatusCross() {
 			cr.NK = cc.NK
 			cr.WriteToDB = true
 		}
-		//if !reflect.DeepEqual(&cr.Statistics, &cc.Statistics) {
-		//	//logger.Info.Printf("region %d area %d cross %d device %d измениась статистика",cr.Region,cr.Area,cr.ID,cr.IDevice)
-		//	cr.Statistics = make([]Statistic, 0)
-		//	for _, s := range cc.Statistics {
-		//		cr.Statistics = append(cr.Statistics, s)
-		//	}
-		//	cr.WriteToDB = true
-		//}
 		if cr.WriteToDB {
 			reg := Region{cr.Region, cr.Area, cr.ID}
 			result[reg.ToKey()] = cr
 		}
+		statusDevice = cc.calcJournal()
+		reg := Region{cr.Region, cr.Area, cr.ID}
+		status, is := nowstatus[reg.ToKey()]
+		if !is {
+			status = 0
+		}
+		if statusDevice != status {
+			ChanLog <- RecLogCtrl{ID: cc.ID, Type: -1, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
+			nowstatus[reg.ToKey()] = statusDevice
+		}
+		w := "Лампы "
+		if cc.DK.LDK == 0 {
+			w += "исправны "
+		} else {
+			w += "не исправны "
+		}
+		w += " Двери "
+		if !cc.DK.ODK {
+			w += "закрыты "
+		} else {
+			w += "открыты "
+		}
+		ChanLog <- RecLogCtrl{ID: cc.ID, Type: 2, Time: time.Now(), LogString: w}
 	}
 	for key, cr := range result {
 		crosses[key] = cr
 	}
-	// logger.Debug.Print("setStatusCross end")
+}
+func makeMessage(cc *Controller, statusDevice int) string {
+	switch statusDevice {
+	case 1:
+		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
+	case 2:
+		return fmt.Sprintf("%s Фаза=%d", statuses[statusDevice], cc.DK.FDK)
+	case 5:
+		return fmt.Sprintf("%s Фаза=%d", statuses[statusDevice], cc.DK.FDK)
+	case 27:
+		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
+	}
+	return fmt.Sprintf("%s", statuses[statusDevice])
 }

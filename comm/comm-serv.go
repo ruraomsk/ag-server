@@ -205,7 +205,7 @@ func newConnect(soc net.Conn) {
 	//_ = hs.UpackMessages(mss)
 	//hout <- hs
 
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Подключен"}
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -252,7 +252,7 @@ func newConnect(soc net.Conn) {
 				ctrl.StatusConnection = false
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
-				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: w}
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: w}
 				logger.Error.Print(w)
 				delete(devs, ctrl.ID)
 				return
@@ -260,6 +260,11 @@ func newConnect(soc net.Conn) {
 			if pTime.Day() != time.Now().Day() {
 				//Новые сутки Нужно спасти статистику
 				key := pudge.IsRegistred(ctrl.ID)
+				if key==nil{
+					logger.Error.Printf("Странно но у меня отменили регистрацию id=%d",ctrl.ID)
+					delete(devs, ctrl.ID)
+					return
+				}
 				arch := new(pudge.ArchStat)
 				arch.Region = key.Region
 				arch.Area = key.Area
@@ -277,7 +282,7 @@ func newConnect(soc net.Conn) {
 
 		case <-dd.context.Done():
 			transport.Stoped = true
-			// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, LogString: "Остановлен сервер"}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: "Остановлен сервер"}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 
 			return

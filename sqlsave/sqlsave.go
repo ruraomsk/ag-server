@@ -235,7 +235,9 @@ func readOneRecord(rows *sql.Rows, nameTab string, names []name) (del string, in
 			str = "'" + v.String() + "'"
 		case "timestamp with time zone":
 			str = fmt.Sprintf("%v", v)
-			str = "'" + strings.TrimLeft(str, "time:") + "'"
+			str=strings.TrimLeft(str, "time:")
+			str=str[0:len(str)-6]
+			str = "'" +str  + "'"
 			//fmt.Println(str)
 		case "date":
 			//fmt.Println(str)

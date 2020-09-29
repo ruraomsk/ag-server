@@ -93,18 +93,16 @@ func workerCommand(soc net.Conn) {
 			//Принудительная отправка всех массивов
 			ctrl, _ := pudge.GetController(command.ID)
 			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
-			w := fmt.Sprintf("Пользователь %s  заказал перезагрузку всех массивов", command.User)
-			ctrl.LastLogString = w
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, LogString: w}
+			w := fmt.Sprintf(" %s  заказал перезагрузку всех массивов", command.User)
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID,Type:-1,Time: time.Now(), LogString: w}
 			pudge.SetController(ctrl)
 
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {
-			ctrl, _ := pudge.GetController(command.ID)
-			w := fmt.Sprintf("Пользователь %s  %s", command.User, getDescription(command))
-			ctrl.LastLogString = w
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, LogString: w}
-			pudge.SetController(ctrl)
+			if command.Command != 4 {
+				w := fmt.Sprintf("%s  %s", command.User, getDescription(command))
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID,Type:0,Time:time.Now(), LogString: w}
+			}
 			dev.CommandARM <- command
 		}
 	}
@@ -141,13 +139,8 @@ func workerArray(soc net.Conn) {
 				continue
 			}
 			logger.Info.Printf("Удаление перекрестка %d %d %d %d", state.State.Region, state.State.Area, state.State.ID, last.IDevice)
-			w := fmt.Sprintf("Пользователь %s удаление перекрестка %d %d %d ", state.User, state.State.Region, state.State.Area, state.State.ID)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: last.IDevice, LogString: w}
-			ctrl, is := pudge.GetController(last.IDevice)
-			if is {
-				ctrl.LastLogString = w
-				pudge.SetController(ctrl)
-			}
+			w := fmt.Sprintf("%s удаление перекрестка %d %d %d ", state.User, state.State.Region, state.State.Area, state.State.ID)
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: last.IDevice,Type:0,Time:time.Now(), LogString: w}
 			time.Sleep(1 * time.Second)
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			continue
@@ -157,29 +150,19 @@ func workerArray(soc net.Conn) {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 			state.State.StatusDevice = 18
-			ctrl, is := pudge.GetController(state.State.IDevice)
-			w := fmt.Sprintf("Пользователь %s добавление перекрестка %d %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID, state.State.IDevice)
-			if is {
-				ctrl.LastLogString = w
-				pudge.SetController(ctrl)
-			}
+			w := fmt.Sprintf(" %s добавил перекрестка %d %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID, state.State.IDevice)
 			logger.Info.Print(w)
 			pudge.SetCross(&state.State)
 			time.Sleep(1 * time.Second)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice,Type:0,Time:time.Now(), LogString: w}
 			continue
 		}
 		// logger.Info.Printf("Write new state ")
 
 		pudge.SetCross(&state.State)
-		ctrl, is := pudge.GetController(state.State.IDevice)
-		w := fmt.Sprintf("Пользователь %s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
+		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
 		logger.Info.Print(w)
-		if is {
-			ctrl.LastLogString = w
-			pudge.SetController(ctrl)
-		}
-		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, LogString: w}
+		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice,Type:0,Time:time.Now(), LogString: w}
 	}
 }
 func workerProtocol(soc net.Conn) {
@@ -207,14 +190,9 @@ func workerProtocol(soc net.Conn) {
 			logger.Error.Printf("Команда протокола АРМ %v нет такого id %d", protocol, protocol.ID)
 			continue
 		}
-		ctrl, is := pudge.GetController(protocol.ID)
-		w := fmt.Sprintf("Пользователь %s send command %v", protocol.User, protocol)
+		w := fmt.Sprintf("%s send command %v", protocol.User, protocol)
 		logger.Info.Print(w)
-		if is {
-			ctrl.LastLogString = w
-			pudge.SetController(ctrl)
-		}
-		pudge.ChanLog <- pudge.RecLogCtrl{ID: protocol.ID, LogString: w}
+		pudge.ChanLog <- pudge.RecLogCtrl{ID: protocol.ID,Type:1,Time:time.Now(), LogString: w}
 		dev.ChangeProtocol <- protocol
 	}
 }
@@ -228,29 +206,29 @@ func getDescription(toSend CommandARM) string {
 		return "Отключить запрос на смену фаз"
 	case 5:
 		if toSend.Params == 0 {
-			return "Отправлена команда Переход на автоматическое регулирование ПК"
+			return "Переход на автоматическое регулирование ПК"
 		}
-		return "Отправлена команда Сменить ПК на " + strconv.Itoa(toSend.Params)
+		return "Сменить ПК на " + strconv.Itoa(toSend.Params)
 	case 6:
 		if toSend.Params == 0 {
-			return "Отправлена команда Переход на автоматическое регулирование СК"
+			return "Переход на автоматическое регулирование СК"
 		}
-		return "Отправлена команда Сменить CК на " + strconv.Itoa(toSend.Params)
+		return "Сменить CК на " + strconv.Itoa(toSend.Params)
 	case 7:
 		if toSend.Params == 0 {
-			return "Отправлена команда Переход на автоматическое регулирование НК"
+			return "Переход на автоматическое регулирование НК"
 		}
-		return "Отправлена команда Сменить НК на " + strconv.Itoa(toSend.Params)
+		return "Сменить НК на " + strconv.Itoa(toSend.Params)
 	}
 	switch toSend.Params {
 	case 0:
-		return "Отправлена команда Локальный режим"
+		return "Переход в Локальный режим"
 	case 9:
-		return "Отправлена команда Координированное управление"
+		return "Переход в  Координированное управление"
 	case 10:
-		return "Отправлена команда Включить жёлтое мигание"
+		return "Включить жёлтое мигание"
 	case 11:
-		return "Отправлена команда Отключить светофоры"
+		return "Отключить светофоры"
 	}
-	return "Отправлена команда Включить фазу №" + strconv.Itoa(toSend.Params)
+	return "Включить фазу №" + strconv.Itoa(toSend.Params)
 }

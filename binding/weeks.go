@@ -25,7 +25,7 @@ func (ns *WeekSets) FromBuffer(buffer []int) error {
 	return nil
 }
 
-//NewNedelSets создает новый набор недельных карт
+//NewWeekSets создает новый набор недельных карт
 func NewWeekSets() *WeekSets {
 	r := new(WeekSets)
 	r.WeekSets = make([]OneWeek, 12)

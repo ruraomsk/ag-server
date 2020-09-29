@@ -314,8 +314,10 @@ func (a *ArrayPriv) Compare(aa *ArrayPriv) bool {
 //RecLogCtrl структура передачи инормации системного лога устройства
 // Время всегда ставится системное
 type RecLogCtrl struct {
-	ID        int    // Уникальный номер контроллера
-	LogString string //Собственно сообщение
+	ID        int       // Уникальный номер контроллера
+	Type      int       // Тип уровня -1 тенология и устройство 0-технология 1 устройство 2 двери и лампы
+	Time      time.Time //Время события
+	LogString string    //Собственно сообщение
 }
 
 //Status описание статуса устройства
@@ -376,7 +378,6 @@ type Controller struct {
 	Statistics      []Statistic
 	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
 	LogLines        []LogLine
-	LastLogString   string //Последнее активное сообщение логгирования по устройству
 }
 
 //Compare сравнивание истина если равны

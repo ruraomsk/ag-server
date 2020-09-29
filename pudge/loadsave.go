@@ -41,19 +41,21 @@ func saveDBase() error {
 	return nil
 }
 func loadStatuses() error {
-	rows, err := conCross.Query("Select id,description from public.status;")
+	rows, err := conCross.Query("Select id,description,control from public.status;")
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 	var id int
 	var description string
+	var control bool
 	for rows.Next() {
-		err = rows.Scan(&id, &description)
+		err = rows.Scan(&id, &description, &control)
 		if err != nil {
 			return err
 		}
 		statuses[id] = description
+		controls[id] = control
 	}
 	return nil
 }
@@ -89,6 +91,7 @@ func loadCrosees() error {
 
 		reg := Region{Region: region, Area: area, ID: id}
 		crosses[reg.ToKey()] = c
+		nowstatus[reg.ToKey()] = 0
 	}
 	return nil
 }
@@ -114,7 +117,6 @@ func loadControllers() error {
 		}
 		c.WriteToDB = true
 		c.StatusConnection = false
-		c.LastLogString = ""
 		c.LastOperation = time.Unix(0, 0)
 
 		_, is := controllers[id]

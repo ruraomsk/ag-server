@@ -21,6 +21,8 @@ var mutexCtrl sync.Mutex
 var controllers map[int]*Controller
 var crosses map[string]*Cross
 var statuses map[int]string
+var controls map[int]bool
+var nowstatus map[string]int
 
 //Works флаг готовности pudge
 var Works bool
@@ -172,13 +174,15 @@ func SetController(c *Controller) {
 func Start(context *extcon.ExtContext, stop chan int) {
 	// Создаем каналы и переменные
 	Works = false
-	defer mutexCross.Unlock()
-	defer mutexCtrl.Unlock()
+	//defer mutexCross.Unlock()
+	//defer mutexCtrl.Unlock()
 
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
 	statuses = make(map[int]string)
 	ChanLog = make(chan RecLogCtrl, 10000)
+	controls = make(map[int]bool)
+	nowstatus = make(map[string]int)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -231,7 +235,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			saveDBase()
 			for _, d := range controllers {
 				if d.IsConnected() {
-					ChanLog <- RecLogCtrl{ID: d.ID, LogString: "Остановлен сервер"}
+					ChanLog <- RecLogCtrl{ID: d.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 				}
 			}
 			time.Sleep(5 * time.Second)

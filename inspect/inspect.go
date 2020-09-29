@@ -84,11 +84,10 @@ func oneCross(reg pudge.Region) {
 			time.Sleep(time.Duration(10 * time.Second))
 			continue
 		}
-		if cr.Model.VPBSL != dev.Model.VPBSL || cr.Model.VPBSR != dev.Model.VPBSR ||
-			cr.Model.VPCPDL != dev.Model.VPCPDL || cr.Model.VPCPDR != dev.Model.VPCPDR {
+		if 	!isCorrectVersion(cr,dev) {
 			//Не совпало ПО
-			logger.Info.Printf("Не совпали версии ПО id %d", dev.ID)
-			time.Sleep(time.Duration(10 * time.Second))
+			logger.Info.Printf("Не совпали версии ПО id %d %d.%d  %d.%d", dev.ID,dev.Model.VPCPDL,dev.Model.VPCPDR,cr.Model.VPCPDL,cr.Model.VPCPDR)
+			time.Sleep(time.Duration(1 * time.Minute))
 			continue
 		}
 		if dev.Local {
@@ -143,7 +142,7 @@ func oneCross(reg pudge.Region) {
 			dev.Local = false
 			pudge.SetController(dev)
 			logger.Info.Printf("массивы передали %d", dev.ID)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Обновлены привязки на устройстве"}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type:-1,Time:time.Now(),LogString: "Обновлены привязки на устройстве"}
 
 		}
 		//Все переслали все совпало можно и поспать
@@ -251,7 +250,7 @@ func sendLocalOn(dev *pudge.Controller) {
 	cmd.ID = 0
 	cmd.Number = 0
 	ch <- *cmd
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Начата передача массивов"}
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID,Type:-1,Time:time.Now(), LogString: "Начата передача массивов"}
 }
 func sendLocalOff(dev *pudge.Controller) {
 	ch, is := comm.GetChanArray(dev.ID)
@@ -263,7 +262,7 @@ func sendLocalOff(dev *pudge.Controller) {
 	cmd.ID = 0
 	cmd.Number = 1
 	ch <- *cmd
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, LogString: "Окончена передача массивов"}
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID,Type:-1,Time: time.Now(), LogString: "Окончена передача массивов"}
 }
 func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	//Спросить у коммуникационного сервера канал для отправки сообщения
@@ -278,4 +277,15 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
 	ch <- *cmd
+}
+func isCorrectVersion(cr pudge.Cross,dev *pudge.Controller) bool {
+	c:=cr.Model.VPCPDL*100+cr.Model.VPCPDR
+	d:=dev.Model.VPCPDL*100+dev.Model.VPCPDR
+	if c<=1203 && d<=1203 {
+		return  true
+	}
+	if c>=1204 && d>=1204 {
+		return  true
+	}
+	return false
 }
