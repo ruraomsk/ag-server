@@ -279,21 +279,22 @@ type UserCross struct {
 
 //Cross описание перекрестка
 type Cross struct {
-	Region       int    `json:"region"`  //Регион
-	Area         int    `json:"area"`    //Район
-	SubArea      int    `json:"subarea"` //подрайон
-	ID           int    `json:"id"`      //Номер перекрестка
-	IDevice      int    `json:"idevice"` // Назначенное на перекресток устройство
-	Dgis         string `json:"dgis"`    //Координаты перекрестка
-	ConType      string `json:"contype"` //Тип соединения устройства
-	NumDev       int    `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
-	Name         string `json:"name"`
-	Phone        string `json:"phone"`  //Телефон
-	StatusDevice int    `json:"status"` // Статус устройства
-	WriteToDB    bool   `json:"-"`      //Если истина то еще не записана в БД
-	PK           int    `json:"pk"`     //Номер плана координации
-	CK           int    `json:"ck"`     //Номер суточной карты
-	NK           int    `json:"nk"`     //Номер недельной карты
+	Region       int     `json:"region"`  //Регион
+	Area         int     `json:"area"`    //Район
+	SubArea      int     `json:"subarea"` //подрайон
+	ID           int     `json:"id"`      //Номер перекрестка
+	IDevice      int     `json:"idevice"` // Назначенное на перекресток устройство
+	Dgis         string  `json:"dgis"`    //Координаты перекрестка
+	ConType      string  `json:"contype"` //Тип соединения устройства
+	NumDev       int     `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
+	Scale        float64 `json:"scale"`   //Масштаб
+	Name         string  `json:"name"`
+	Phone        string  `json:"phone"`  //Телефон
+	StatusDevice int     `json:"status"` // Статус устройства
+	WriteToDB    bool    `json:"-"`      //Если истина то еще не записана в БД
+	PK           int     `json:"pk"`     //Номер плана координации
+	CK           int     `json:"ck"`     //Номер суточной карты
+	NK           int     `json:"nk"`     //Номер недельной карты
 	Model        Model
 	//Statistics   []Statistic    `json:"statis"` //Накопленная статистика
 	Arrays binding.Arrays `json:"arrays"` //Файлы привязки
