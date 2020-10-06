@@ -17,7 +17,7 @@ import (
 var devs map[int]*device
 var mutex sync.Mutex
 var writeArch chan pudge.ArchStat
-
+var sendPhases chan DevPhases
 // var answare chan string
 // var request chan int
 
@@ -45,9 +45,12 @@ func StartListen() {
 	go listenArmArray()
 	// //Запускаем слушателя для настройки протокола
 	go listenChangeProtocol()
+	writeArch = make(chan pudge.ArchStat, 1000)
 	// Запускаем записывателя архива
 	go writerArch()
-	writeArch = make(chan pudge.ArchStat, 1000)
+	// Запускаем посылку фаз
+	sendPhases=make(chan DevPhases,1000)
+	go listenSendingPhazes()
 	count := 0
 	devs = make(map[int]*device)
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.Port))
@@ -205,7 +208,7 @@ func newConnect(soc net.Conn) {
 	//_ = hs.UpackMessages(mss)
 	//hout <- hs
 
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: "Подключен"}
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -252,7 +255,7 @@ func newConnect(soc net.Conn) {
 				ctrl.StatusConnection = false
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.id, readTout.Seconds())
-				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: w}
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: w}
 				logger.Error.Print(w)
 				delete(devs, ctrl.ID)
 				return
@@ -260,8 +263,8 @@ func newConnect(soc net.Conn) {
 			if pTime.Day() != time.Now().Day() {
 				//Новые сутки Нужно спасти статистику
 				key := pudge.IsRegistred(ctrl.ID)
-				if key==nil{
-					logger.Error.Printf("Странно но у меня отменили регистрацию id=%d",ctrl.ID)
+				if key == nil {
+					logger.Error.Printf("Странно но у меня отменили регистрацию id=%d", ctrl.ID)
 					delete(devs, ctrl.ID)
 					return
 				}
@@ -282,7 +285,7 @@ func newConnect(soc net.Conn) {
 
 		case <-dd.context.Done():
 			transport.Stoped = true
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID,Type:-1,Time:time.Now(), LogString: "Остановлен сервер"}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 
 			return
@@ -432,6 +435,9 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
 			}
+			if c.StatusCommandDU.IsReqSFDK1 || c.StatusCommandDU.IsReqSFDK2 {
+				sendPhases <-DevPhases{ID:c.ID,FDK: c.DK.FDK,TDK: c.DK.TDK}
+			}
 		case 0x10:
 			need = true
 			err := mes.Get0x10Device(c)
@@ -450,6 +456,9 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 			err := mes.Get0x12Device(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
+			}
+			if c.StatusCommandDU.IsReqSFDK1 || c.StatusCommandDU.IsReqSFDK2 {
+				sendPhases <-DevPhases{ID:c.ID,FDK: c.DK.FDK,TDK: c.DK.TDK}
 			}
 		case 0x13:
 			//Массив приявязки

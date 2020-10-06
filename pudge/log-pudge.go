@@ -81,8 +81,8 @@ func writeLog() {
 			}
 
 		}
-		mapMessages[reg.ToKey()]=crm
-		time.Sleep(100*time.Millisecond)
+		mapMessages[reg.ToKey()] = crm
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 func writeLogDB(cr *Cross, ch RecLogCtrl, tup int) {

@@ -167,11 +167,11 @@ func (cc *Controller) calcStatus() int {
 		//Локальное управление 5
 		return 5
 	}
-	if (rezim == 9 ) && (err == 0 || err == 1) && (faza == 0 ) && door == 0 {
+	if (rezim == 9) && (err == 0 || err == 1) && (faza == 0) && door == 0 {
 		//Локальное управление 5
 		return 5
 	}
-	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0 ) && door == 0 {
+	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0) && door == 0 {
 		//Локальное управление 5
 		return 5
 	}
@@ -308,7 +308,7 @@ func (cc *Controller) calcStatus() int {
 		//Нет информации о работе перекрестка
 		return 38
 	}
-	logger.Debug.Printf("Режим=%v Фаза=%v Ошибка=%v Устройство=%v Лампа=%v Дверь=%v ID %v", rezim, faza, err, dev, lamp, door,cc.ID)
+	logger.Debug.Printf("Режим=%v Фаза=%v Ошибка=%v Устройство=%v Лампа=%v Дверь=%v ID %v", rezim, faza, err, dev, lamp, door, cc.ID)
 	return 39
 }
 func (cc *Controller) calcJournal() int {
@@ -352,11 +352,11 @@ func (cc *Controller) calcJournal() int {
 		//Локальное управление 5
 		return 5
 	}
-	if (rezim == 9 ) && (err == 0 || err == 1) && (faza == 0 )  {
+	if (rezim == 9) && (err == 0 || err == 1) && (faza == 0) {
 		//Локальное управление 5
 		return 5
 	}
-	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0 )  {
+	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0) {
 		//Локальное управление 5
 		return 5
 	}

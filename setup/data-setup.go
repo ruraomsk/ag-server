@@ -37,6 +37,7 @@ type CommServer struct {
 	PortCommand  int   `toml:"portc"`         //Порт приема команд от сервера АРМ
 	PortArray    int   `toml:"porta"`         //Порт приема массивов привязки от сервера АРМ
 	PortProtocol int   `toml:"portp"`         //Порт приема изменения протокола от сервера АРМ
+	PortDevices  int   `toml:"portd"`         //Порт передачи номера фазы и времени фазы серверу АРМ
 	TimeOutRead  int64 `toml:"read_timeout"`  //Таймаут на чтение если данные должны быть получены
 	TimeOutWrite int64 `toml:"write_timeout"` //Таймаут на запись если данные должны быть переданы
 	ID           int   `toml:"id"`

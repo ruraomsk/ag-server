@@ -19,6 +19,8 @@ type CommandArray struct {
 	NElem  int   `json:"nelem"`
 	Elems  []int `json:"elems"`
 }
+
+//ChangeProtocol для изменения протокола
 type ChangeProtocol struct {
 	ID       int    `json:"id"` // Уникальный номер контроллера
 	User     string `json:"user"`

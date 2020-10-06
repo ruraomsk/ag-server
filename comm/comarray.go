@@ -9,9 +9,19 @@ import (
 	"time"
 
 	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 )
+
+//DevPhases для передачи фаз
+type DevPhases struct {
+	ID  int `json:"idevice"`
+	FDK int `json:"fdk"`
+	TDK int `json:"tdk"`
+}
+
+var countSenders = 0
 
 func listenArmCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortCommand))
@@ -63,6 +73,55 @@ func listenArmArray() {
 		go workerArray(socket)
 	}
 }
+func listenSendingPhazes() {
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortDevices))
+
+	if err != nil {
+		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
+		return
+	}
+	//defer ln.Close()
+	for {
+		socket, err := ln.Accept()
+		if err != nil {
+			logger.Error.Printf("Ошибка accept %s", err.Error())
+			continue
+		}
+		go workerDevices(socket)
+	}
+}
+func workerDevices(soc net.Conn) {
+	defer soc.Close()
+	logger.Info.Printf("Новый клиент фаз устройства %s", soc.RemoteAddr().String())
+	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
+	// writer := bufio.NewWriter(soc)
+	for {
+		select {
+		case <-timer.C:
+			_, err := fmt.Fprintf(soc, "0\n")
+			// n, err := writer.WriteString("0\n")
+			// logger.Info.Printf("Keep alive %d", n)
+			if err != nil {
+				logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
+				return
+			}
+		case d := <-sendPhases:
+			array, err := json.Marshal(&d)
+			if err != nil {
+				logger.Error.Printf("Ошибка json %s", err.Error())
+				continue
+			}
+			_, err = fmt.Fprintf(soc, string(array)+"\n")
+			// n, err := writer.WriteString(string(array) + "\n")
+			// logger.Info.Printf("%v %d", d, n)
+			if err != nil {
+				logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
+				return
+			}
+		}
+	}
+
+}
 func workerCommand(soc net.Conn) {
 	defer soc.Close()
 	var command CommandARM
@@ -94,14 +153,14 @@ func workerCommand(soc net.Conn) {
 			ctrl, _ := pudge.GetController(command.ID)
 			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			w := fmt.Sprintf(" %s  заказал перезагрузку всех массивов", command.User)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID,Type:-1,Time: time.Now(), LogString: w}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: -1, Time: time.Now(), LogString: w}
 			pudge.SetController(ctrl)
 
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {
 			if command.Command != 4 {
 				w := fmt.Sprintf("%s  %s", command.User, getDescription(command))
-				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID,Type:0,Time:time.Now(), LogString: w}
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: 0, Time: time.Now(), LogString: w}
 			}
 			dev.CommandARM <- command
 		}
@@ -140,7 +199,7 @@ func workerArray(soc net.Conn) {
 			}
 			logger.Info.Printf("Удаление перекрестка %d %d %d %d", state.State.Region, state.State.Area, state.State.ID, last.IDevice)
 			w := fmt.Sprintf("%s удаление перекрестка %d %d %d ", state.User, state.State.Region, state.State.Area, state.State.ID)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: last.IDevice,Type:0,Time:time.Now(), LogString: w}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: last.IDevice, Type: 0, Time: time.Now(), LogString: w}
 			time.Sleep(1 * time.Second)
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			continue
@@ -154,7 +213,7 @@ func workerArray(soc net.Conn) {
 			logger.Info.Print(w)
 			pudge.SetCross(&state.State)
 			time.Sleep(1 * time.Second)
-			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice,Type:0,Time:time.Now(), LogString: w}
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}
 			continue
 		}
 		// logger.Info.Printf("Write new state ")
@@ -162,7 +221,7 @@ func workerArray(soc net.Conn) {
 		pudge.SetCross(&state.State)
 		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
 		logger.Info.Print(w)
-		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice,Type:0,Time:time.Now(), LogString: w}
+		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}
 	}
 }
 func workerProtocol(soc net.Conn) {
@@ -192,7 +251,7 @@ func workerProtocol(soc net.Conn) {
 		}
 		w := fmt.Sprintf("%s send command %v", protocol.User, protocol)
 		logger.Info.Print(w)
-		pudge.ChanLog <- pudge.RecLogCtrl{ID: protocol.ID,Type:1,Time:time.Now(), LogString: w}
+		pudge.ChanLog <- pudge.RecLogCtrl{ID: protocol.ID, Type: 1, Time: time.Now(), LogString: w}
 		dev.ChangeProtocol <- protocol
 	}
 }
