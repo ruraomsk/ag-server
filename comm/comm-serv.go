@@ -18,6 +18,7 @@ var devs map[int]*device
 var mutex sync.Mutex
 var writeArch chan pudge.ArchStat
 var sendPhases chan DevPhases
+
 // var answare chan string
 // var request chan int
 
@@ -49,7 +50,7 @@ func StartListen() {
 	// Запускаем записывателя архива
 	go writerArch()
 	// Запускаем посылку фаз
-	sendPhases=make(chan DevPhases,1000)
+	sendPhases = make(chan DevPhases, 1000)
 	go listenSendingPhazes()
 	count := 0
 	devs = make(map[int]*device)
@@ -436,7 +437,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("При разборе команды 0x0f id %d %s", hDev.ID, err.Error())
 			}
 			if c.StatusCommandDU.IsReqSFDK1 || c.StatusCommandDU.IsReqSFDK2 {
-				sendPhases <-DevPhases{ID:c.ID,FDK: c.DK.FDK,TDK: c.DK.TDK}
+				sendPhases <- DevPhases{ID: c.ID, DK: c.DK}
 			}
 		case 0x10:
 			need = true
@@ -458,7 +459,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
 			}
 			if c.StatusCommandDU.IsReqSFDK1 || c.StatusCommandDU.IsReqSFDK2 {
-				sendPhases <-DevPhases{ID:c.ID,FDK: c.DK.FDK,TDK: c.DK.TDK}
+				sendPhases <- DevPhases{ID: c.ID, DK: c.DK}
 			}
 		case 0x13:
 			//Массив приявязки

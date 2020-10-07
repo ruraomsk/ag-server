@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/JanFant/TLServer/logger"
@@ -16,12 +17,13 @@ import (
 
 //DevPhases для передачи фаз
 type DevPhases struct {
-	ID  int `json:"idevice"`
-	FDK int `json:"fdk"`
-	TDK int `json:"tdk"`
+	ID int      `json:"idevice"`
+	DK pudge.DK `json:"dk"`
 }
 
 var countSenders = 0
+var connectMap map[string]net.Conn
+var cMutex sync.Mutex
 
 func listenArmCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortCommand))
@@ -75,7 +77,8 @@ func listenArmArray() {
 }
 func listenSendingPhazes() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortDevices))
-
+	connectMap = make(map[string]net.Conn)
+	go workerDevices()
 	if err != nil {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
@@ -87,23 +90,26 @@ func listenSendingPhazes() {
 			logger.Error.Printf("Ошибка accept %s", err.Error())
 			continue
 		}
-		go workerDevices(socket)
+		logger.Info.Printf("Новый клиент фаз устройства %s", socket.RemoteAddr().String())
+		cMutex.Lock()
+		connectMap[socket.RemoteAddr().String()] = socket
+		cMutex.Unlock()
 	}
 }
-func workerDevices(soc net.Conn) {
-	defer soc.Close()
-	logger.Info.Printf("Новый клиент фаз устройства %s", soc.RemoteAddr().String())
+func workerDevices() {
 	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 	// writer := bufio.NewWriter(soc)
 	for {
 		select {
 		case <-timer.C:
-			_, err := fmt.Fprintf(soc, "0\n")
-			// n, err := writer.WriteString("0\n")
-			// logger.Info.Printf("Keep alive %d", n)
-			if err != nil {
-				logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
-				return
+			for _, soc := range connectMap {
+				_, err := fmt.Fprintf(soc, "0\n")
+				if err != nil {
+					logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
+					cMutex.Lock()
+					delete(connectMap, soc.RemoteAddr().String())
+					cMutex.Unlock()
+				}
 			}
 		case d := <-sendPhases:
 			array, err := json.Marshal(&d)
@@ -111,12 +117,14 @@ func workerDevices(soc net.Conn) {
 				logger.Error.Printf("Ошибка json %s", err.Error())
 				continue
 			}
-			_, err = fmt.Fprintf(soc, string(array)+"\n")
-			// n, err := writer.WriteString(string(array) + "\n")
-			// logger.Info.Printf("%v %d", d, n)
-			if err != nil {
-				logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
-				return
+			for _, soc := range connectMap {
+				_, err = fmt.Fprintf(soc, string(array)+"\n")
+				if err != nil {
+					logger.Error.Printf("Ошибка передачи tcp %s %s", soc.RemoteAddr().String(), err.Error())
+					cMutex.Lock()
+					delete(connectMap, soc.RemoteAddr().String())
+					cMutex.Unlock()
+				}
 			}
 		}
 	}
