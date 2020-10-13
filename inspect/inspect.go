@@ -114,7 +114,7 @@ func oneCross(reg pudge.Region) {
 				if d.Number == ac.Number && d.NElem == ac.NElem {
 					found = true
 					if !d.Compare(&ac) {
-						// logger.Info.Printf("не совпали\n%v\n%v\n", d, ac)
+						logger.Info.Printf("на устройстве %d не совпали\n%v\n%v\n", dev.ID, d, ac)
 						sending = append(sending, ac)
 						dev.Arrays[i] = ac
 					}
@@ -192,6 +192,7 @@ func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 		r = appBuffer(r, buffer)
 	}
 	for i := 1; i < 13; i++ {
+		cr.Arrays.SetDK.CorrectPk()
 		if !cr.Arrays.SetDK.IsEmpty(1, i) {
 			buffer := cr.Arrays.SetDK.DK[i-1].ToBuffer() //
 			r = appBuffer(r, buffer)
@@ -276,6 +277,7 @@ func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
 	cmd.Number = array.Number
 	cmd.NElem = array.NElem
 	cmd.Elems = array.Array
+	logger.Debug.Printf("На устройство %d передали %v", dev.ID, cmd)
 	ch <- *cmd
 }
 func isCorrectVersion(cr pudge.Cross, dev *pudge.Controller) bool {

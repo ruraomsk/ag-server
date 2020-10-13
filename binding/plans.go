@@ -19,6 +19,11 @@ type SetDK struct {
 func (sd *SetDK) Compare(ss *SetDK) bool {
 	return reflect.DeepEqual(sd, ss)
 }
+func (sd *SetDK) CorrectPk() {
+	//for i := 0; i < 12; i++ {
+	//	sd.DK[i].Pk=i+1
+	//}
+}
 
 //GetPhases возращает список доступных фаз
 func (sd *SetDK) GetPhases() []int {
@@ -246,8 +251,16 @@ func (st *SetPk) ToBuffer() []int {
 			r[pos] += 32 // 9 - ВДК
 		}
 		pos++
+		for pos >= len(r) {
+			//logger.Debug.Printf("Массив %v",st)
+			pos--
+		}
 		r[pos] = s.Stop
 		pos++
+		for pos >= len(r) {
+			//logger.Debug.Printf("Массив %v",st)
+			pos--
+		}
 	}
 	return r
 }

@@ -172,6 +172,7 @@ func newConnect(soc net.Conn) {
 	//Обновим состояние в pudge
 	ctrl.StatusConnection = true
 	ctrl.LastOperation = time.Now()
+	ctrl.IPHost = soc.RemoteAddr().String()
 	dd := new(device)
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
