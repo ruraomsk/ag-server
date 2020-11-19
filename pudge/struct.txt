@@ -1,0 +1,195 @@
+// Cross и Controller описываю собственно перекресток и состяние контроллера
+// Разделены из-за того что на перекрестоке могут быть замены
+
+//Cross описание перекрестка
+type Cross struct {
+	Region       int     `json:"region"`  //Регион
+	Area         int     `json:"area"`    //Район
+	SubArea      int     `json:"subarea"` //подрайон
+	ID           int     `json:"id"`      //Номер перекрестка
+	IDevice      int     `json:"idevice"` // Назначенное на перекресток устройство
+	Dgis         string  `json:"dgis"`    //Координаты перекрестка (центр)
+	ConType      string  `json:"contype"` //Тип соединения устройства
+	NumDev       int     `json:"numdev"`  //Номер устройства (УСДК,ДК-А,С12УСДК)
+	Scale        float64 `json:"scale"`   //Масштаб
+	Name         string  `json:"name"`    //Обычно адрес
+	Phone        string  `json:"phone"`  //Телефон
+	StatusDevice int     `json:"status"` // Статус устройства
+	WriteToDB    bool    `json:"-"`      //Если истина то еще не записана в БД
+	PK           int     `json:"pk"`     //Номер плана координации
+	CK           int     `json:"ck"`     //Номер суточной карты
+	NK           int     `json:"nk"`     //Номер недельной карты
+	Model        Model
+	Arrays binding.Arrays `json:"arrays"` //Файлы привязки
+}
+//Controller внутренне представление контроллера
+type Controller struct {
+	ID               int       `json:"id"`       // Уникальный номер контроллера
+	Name             string    `json:"name"`     //Имя перекрестка если привязан
+	StatusConnection bool      `json:"scon"`     // Статус соединения
+	LastOperation    time.Time `json:"ltime"`    // Время последней операции обмена с устройством
+	TimeDevice       time.Time `json:"dtime"`    // Время устройства
+	WriteToDB        bool      `json:"-"`        //Если истина то еще не записана в БД
+	TechMode         int       `json:"techmode"` //Технологический режим
+
+	// Технологический режим
+
+	// 1 - выбор ПК по времени по суточной карте ВР-СК;
+	// 2 - выбор ПК по недельной карте ВР-НК;
+	// 3 - выбор ПК по времени по суточной карте, назначенной
+	// оператором ДУ-СК;
+	// 4 - выбор ПК по недельной карте, назначенной оператором
+	// ДУ-НК;
+	// 5 - план по запросу оператора ДУ-ПК;
+	// 6 - резервный план (отсутствие точного времени) РП;
+	// 7 – коррекция привязки с ИП;
+	// 8 – коррекция привязки с сервера;
+	// 9 – выбор ПК по годовой карте;
+	// 10 – выбор ПК по ХТ;
+	// 11 – выбор ПК по картограмме;
+	// 12 – противозаторовое управление.
+
+	Local           bool   `json:"local"` //Если истина то контроллер находится в режиме загрузки файлов привязки
+	Base            bool   `json:"base"`  //Если истина то работает по базовой привязке
+	PK              int    `json:"pk"`    //Номер плана координации
+	CK              int    `json:"ck"`    //Номер суточной карты
+	NK              int    `json:"nk"`    //Номер недельной карты
+	IPHost          string `json:"ip"`    //IP адресс контроллера
+	StatusCommandDU StatusCommandDU
+	DK              DK
+	TMax            int64 `json:"tmax"` //Максимальное время ожидания ответа от сервера в секундах
+	TimeOut         int64 `json:"tout"` //TimeOut на чтение от контроллера в секундах
+	Model           Model               // смотри ниже
+	Error           ErrorDevice         // смотри ниже
+	GPS             GPS                 // смотри ниже
+	Input           Input               // смотри ниже
+	Status          Status              // смотри ниже
+	Statistics      []Statistic         // смотри ниже
+	Arrays          []ArrayPriv `json:"arrays"` //Собственно привязки приведены в отдельном документе
+	LogLines        []LogLine           // Внутренний лог контроллера
+}
+
+//DK диагностика состояния по ДК
+type DK struct {
+	RDK int `json:"rdk"` //Режим ДК
+	// 1 2 Ручное управление
+	// 3 Зеленая улица
+	// 4 Диспетчерское управление
+	// 5 6 Локальное управление
+	// 8 9 Координированное управление
+	FDK int `json:"fdk"` //Фаза ДК
+	// от 1 до 8 номера рабочих фаз
+	// 9 промежуточный такт
+	// 10 желтое мигание
+	// 11 отключен светофор
+	// 12 кругом краснный
+	DDK   int  `json:"ddk"`   //Устройство ДК
+	EDK   int  `json:"edk"`   //Неисправность ДК
+	PDK   bool `json:"pdk"`   //Признак переходного периода ДК
+	EEDK  int  `json:"eedk"`  //дополнительный код неисправности
+	ODK   bool `json:"odk"`   //Открыта дверь ДК
+	LDK   int  `json:"ldk"`   //Номер фазы на которой сгорели лампы
+	FTUDK int  `json:"ftudk"` //Фаза ТУ ДК на момент передачи
+	TDK   int  `json:"tdk"`   //Время отработки ТУ в секундах
+	FTSDK int  `json:"ftsdk"` //Фаза ТС ДК
+	TTCDK int  `json:"ttcdk"` //Время от начала фазы ТС в секундах
+}
+//Model Описание модели устройства
+type Model struct {
+	VPCPDL int  `json:"vpcpdl"` //Версия ПО платы ПСПД до точки
+	VPCPDR int  `json:"vpcpdr"` //Версия ПО платы ПСПД после точки
+	VPBSL  int  `json:"vpbsl"`  //Версия ПО платы ПБС до точки
+	VPBSR  int  `json:"vpbsr"`  //Версия ПО платы ПБС после точки
+	C12    bool //Субблок С12
+	STP    bool //Разрешение накопление статистики по ТП
+	DKA    bool //Контроллер ДК-А
+	DTA    bool //Детектор транспорта
+}
+
+//ErrorDevice описание ошибок устройства
+type ErrorDevice struct {
+	V220DK1 bool //Срабатывание входа контроля 220В DK1
+	V220DK2 bool //Срабатывание входа контроля 220В DK2
+	RTC     bool // Неисправность часов RTC
+	TVP1    bool //Неисправность ТВП1
+	TVP2    bool //Неисправность ТВП2
+	FRAM    bool //Неисправность FRAM
+}
+
+//GPS описание состояния модуля GPS устройства
+type GPS struct {
+	Ok   bool //Исправно
+	E01  bool // Нет связи с приемником
+	E02  bool // Ошибка CRC
+	E03  bool // Нет валидного времени
+	E04  bool // Мало спутников
+	Seek bool // Поиск спутников после включения
+}
+
+
+//Input описание состояния входов устройства
+type Input struct {
+	V1 bool //Неисправность входа 1
+	V2 bool //Неисправность входа 2
+	V3 bool //Неисправность входа 3
+	V4 bool //Неисправность входа 4
+	V5 bool //Неисправность входа 5
+	V6 bool //Неисправность входа 6
+	V7 bool //Неисправность входа 7
+	V8 bool //Неисправность входа 8
+}
+
+//ArchStat архивная статистика
+type ArchStat struct {
+	Region     int         `json:"region"` //Регион
+	Area       int         `json:"area"`   //Район
+	ID         int         `json:"id"`     //Номер перекрестка
+	Date       time.Time   `json:"date"`
+	Statistics []Statistic //Накопленная статистика
+}
+
+//Statistic статистика
+type Statistic struct {
+	Period int //Номер периода усреднения от начала суток
+	Type   int //Тип статистики 1-интенсивность скорость
+	TLen   int //Величина времения усреднения мин
+	Hour   int //Час окончания периода
+	Min    int //Минуты окончания периода
+	Datas  []DataStat
+}
+
+
+//DataStat статистика по канально
+type DataStat struct {
+	Chanel   int //Номер канала
+	Status   int // Состояние 0-исправен 1-обрыв 2 - замыкание
+	Intensiv int //Интенсивность
+}
+
+//StatusCommandDU команды ДУ
+type StatusCommandDU struct {
+	IsPK       bool //Назначен ПК
+	IsCK       bool // назначена карта выбора по времени суток
+	IsNK       bool //Назначена недельная карта
+	IsDUDK1    bool //на 1 ДК есть команда ДУ
+	IsDUDK2    bool //на 2 ДК есть команда ДУ
+	IsReqSFDK1 bool //Есть запрос на передачу фаз по 1 ДК СФДК
+	IsReqSFDK2 bool //Есть запрос на передачу фаз по 2 ДК СФДК
+}
+
+
+
+//Status описание статуса устройства
+type Status struct {
+	StatusV200    int  `json:"s220"`     // Состояние питания
+	StatusGPS     int  `json:"sGPS"`     // Состояние GPS
+	StatusServer  int  `json:"sServer"`  // Состояние связи с сервером
+	StatusPSPD    int  `json:"sPSPD"`    // Состояние связи с платой ПСПД
+	ErrorLastConn int  `json:"elc"`      // Код последней причины разрыва связи
+	Ethernet      bool `json:"ethernet"` // true если связь через Ethernet
+	TObmen        int  `json:"tobm"`     // Интервал обмена с сервером (минуты)
+	LevelGSMNow   int  `json:"lnow"`     // уровень сигнала GSM  в текущей сессии
+	LevelGSMLast  int  `json:"llast"`    // уровень сигнала GSM  в предыдущей сессии
+	Motiv         int  `json:"motiv"`    // Мотив разрыва связи
+}
+

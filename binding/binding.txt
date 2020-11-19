@@ -1,0 +1,149 @@
+
+//Arrays масиссивы привязок
+type Arrays struct {
+	TypeDevice int `json:"type"` //Тип устройства 1 C12УСДК 2 УСДК 4 ДКА 8 ДТ СК
+	SetupDK    SetupDK
+	SetDK      SetDK
+	MonthSets  MonthSets
+	WeekSets   WeekSets
+	DaySets    DaySets
+	SetCtrl    SetCtrl
+	SetTimeUse SetTimeUse
+	TimeDivice TimeDevice `json:"timedev"`   //Настройки времени
+	StatDefine StatDefine `json:"defstatis"` // Описание настройки сбора статистики
+	PointSet   PointSet   `json:"pointset"`  //Точки сбора статистики
+	UseInput   UseInput   `json:"useinput"`  //Назначение входов для сбора статистики
+}
+
+//SetupDK настройка ДК
+type SetupDK struct {
+	DKNum    int  `json:"dkn"`     //Номер ДК
+	TMaxF    int  `json:"tmaxf"`   //Максимальное время ожидания смены фаз
+	TMinF    int  `json:"tminf"`   //Минимальное время ожидания смены фаз
+	TmaxTmin int  `json:"tminmax"` // Максимальное время ожидания включения фазы
+	DKType   int  `json:"dktype"`  //Тип ДК
+	ExtNum   int  `json:"extn"`    //Внешний номер ДК
+	Tprom    int  `json:"tprom"`   //Максимальное время промежуточного такта
+	IsPreset bool `json:"preset"`  // Прищнак наличия контроллера на линии
+}
+//TimeDevice Описание времени устройства
+type TimeDevice struct {
+	TimeZone int  `json:"tz"`     //Смещение от Гринвича
+	Summer   bool `json:"summer"` // Есть ди переход на летнее время
+}
+//SetCtrl массив контроля входов
+type SetCtrl struct {
+	Stage []CtrlStage
+}
+
+//StageTime время в массиве контроля
+type StageTime struct {
+	Hour   int `json:"hour"`
+	Minute int `json:"min"`
+}
+
+//CtrlStage один интервал контроля
+type CtrlStage struct {
+	Nline  int       `json:"line"`   //Номер строки
+	Start  StageTime `json:"start"`  //Время начала контроля
+	End    StageTime `json:"end"`    //Время конца контроля
+	TVPLen int       `json:"lenTVP"` //Длительность секунд контроля ТВП
+	MGRLen int       `json:"lenMGR"` //Длительность секунд контроля МГР
+}
+
+//DaySets все суточные планы
+type DaySets struct {
+	DaySets []*OneDay `json:"daysets"`
+}
+//OneDay Один день плана
+type OneDay struct {
+	Number int     `json:"num"`
+	Count  int     `json:"count"` //Счетчик переключений
+	Lines  []*Line `json:"lines"`
+}
+
+//Line структура одного периода времени
+type Line struct {
+	PKNom int `json:"npk"`
+	Hour  int `json:"hour"`
+	Min   int `json:"min"`
+}
+
+//Планы координации
+
+//SetDK наборы планов координации для обеих ДК перекрестка
+type SetDK struct {
+	DK []SetPk `json:"dk"` // Наборы для ДК1
+}
+
+
+//SetPk набор планов координации перекрестка
+type SetPk struct {
+	DK          int     `json:"dk"`         //Номер ДК
+	Pk          int     `json:"pk"`         //Номер программы от 1 до 12
+	Description string  `json:"desc"`       //Описание плана координации
+	TypePU      int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
+	RazLen      bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
+	Tc          int     `json:"tc"`         //Время цикла программы
+	Shift       int     `json:"shift"`      //Сдвиг начала цикла
+	LastType    int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
+	LastNumber  int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
+	TwoT        bool    `json:"twot"`       //Признак 2Т
+	Stages      []Stage `json:"sts"`        //Фазы переключения
+}
+
+//Stage описание одной фазы плана координации
+type Stage struct {
+	Nline  int `json:"line"`  //Номер строки
+	Start  int `json:"start"` //Время начала фазы
+	Number int `json:"num"`   //Номер фазы
+	Tf     int `json:"tf"`    //Тип фазы 0 -простая
+	// 1 - МГР
+	// 2 - 1ТВП
+	// 3 - 2ТВП
+	// 4 - 1,2ТВП
+	// 5 - Зам 1 ТВП
+	// 6 - Зам 2 ТВП
+	// 7 - Зам
+	// 8 - МДК
+	// 9 - ВДК
+	Stop int  `json:"stop"` //Завершение фазы
+	Plus bool `json:"plus"` //Признак переноса времени на следующую фазу
+}
+
+//SetTimeUse хранение настроек внешних входов
+type SetTimeUse struct {
+	Uses       []Use `json:"uses"`
+	IntervalTE int   `json:"ite"` //Интервал между ТЕ
+	//Tuin       int   `json:"tuin"` //Т уср ИН
+	MGRNotWork []int `json:"notwork"`
+}
+
+//Use один вход
+type Use struct {
+	Name  string  `json:"name"`
+	Type  int     `json:"type"`
+	Tvps  int     `json:"tvps"`
+	Dk    int     `json:"dk"`
+	Fazes string  `json:"fazes"`
+	Long  float32 `json:"long"`
+}
+//WeekSets все недельные планы
+type WeekSets struct {
+	WeekSets []OneWeek `json:"wsets"`
+}
+//OneWeek Одна строка недельных планов
+type OneWeek struct {
+	Number int   `json:"num"`
+	Days   []int `json:"days"`
+}
+
+//MonthSets все месячные планы
+type MonthSets struct {
+	MonthSets []*OneMonth `json:"monthset"`
+}
+//OneMonth Одна строка недельных планов
+type OneMonth struct {
+	Number int   `json:"num"`
+	Days   []int `json:"days"`
+}
