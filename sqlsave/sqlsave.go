@@ -107,7 +107,7 @@ func Start() {
 		}
 		for tabs.Next() {
 			var nameTable string
-			tabs.Scan(&nameTable)
+			err := tabs.Scan(&nameTable)
 			//fmt.Printf("Table :%s", nameTable)
 
 			if !isTable(nameTable) {
@@ -127,7 +127,7 @@ func Start() {
 				cols.Scan(&n.ColumnName, &n.DataType)
 				addName(nameTable, n.ColumnName, n.DataType)
 			}
-			cols.Close()
+			_ = cols.Close()
 		}
 		file, err := os.Create(setup.Set.Saver.File)
 		if err != nil {
@@ -136,7 +136,7 @@ func Start() {
 		}
 		defer file.Close()
 		for _, s := range setup.Set.Saver.PreSQL {
-			file.WriteString(s + "\n")
+			_, _ = file.WriteString(s + "\n")
 		}
 		for nameTab, names := range tables {
 			//fmt.Printf("Table %s\n", nameTab)
@@ -148,16 +148,16 @@ func Start() {
 			}
 			for rows.Next() {
 				del, insert, update, key := readOneRecord(rows, nameTab, names)
-				file.WriteString(del + "\n")
-				file.WriteString(insert + "\n")
+				_, _ = file.WriteString(del + "\n")
+				_, _ = file.WriteString(insert + "\n")
 				//file.WriteString(update + "\n")
 				r := new(Record)
 				r.Hash = md5.New()
-				io.WriteString(r.Hash, update)
+				_, _ = io.WriteString(r.Hash, update)
 				useTables[nameTab].Records[key] = r
 			}
 		}
-		file.Close()
+		_ = file.Close()
 
 		if !sender() {
 			continue

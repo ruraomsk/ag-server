@@ -35,14 +35,14 @@ func sender() bool {
 	}
 	if stat.Size() == 0 {
 		//Send a keep alive
-		soc.Write([]byte("0\n"))
+		_, _ = soc.Write([]byte("0\n"))
 		return true
 	}
 	scanner := bufio.NewScanner(file)
 	buf := make([]byte, 256*1024)
 	scanner.Buffer(buf, 512*1024)
 	for scanner.Scan() {
-		soc.SetWriteDeadline(time.Now().Add(time.Duration(5 * time.Second)))
+		_ = soc.SetWriteDeadline(time.Now().Add(time.Duration(5 * time.Second)))
 		_, errSoc = soc.Write(append(scanner.Bytes(), '\n'))
 		if errSoc != nil {
 			logger.Error.Printf("Error send data %s %s", scanner.Text(), errSoc.Error())

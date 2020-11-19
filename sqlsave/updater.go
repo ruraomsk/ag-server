@@ -40,25 +40,25 @@ func updater() bool {
 				r := new(Record)
 				r.Hash = md5.New()
 				r.Used = true
-				io.WriteString(r.Hash, update)
+				_, _ = io.WriteString(r.Hash, update)
 				useTables[nameTab].Records[key] = r
-				file.WriteString(insert + "\n")
+				_, _ = file.WriteString(insert + "\n")
 			} else {
 				//запись есть
 				hnew := md5.New()
-				io.WriteString(hnew, update)
+				_, _ = io.WriteString(hnew, update)
 				rec.Used = true
 				if !reflect.DeepEqual(&rec.Hash, &hnew) {
-					file.WriteString(update + "\n")
+					_, _ = file.WriteString(update + "\n")
 					rec.Hash = hnew
 				}
 			}
 		}
-		rows.Close()
+		_ = rows.Close()
 
 		for k, rec := range dTable.Records {
 			if !rec.Used {
-				file.WriteString(fmt.Sprintf("delete from public.%s where %s;\n", nameTab, k))
+				_, _ = file.WriteString(fmt.Sprintf("delete from public.%s where %s;\n", nameTab, k))
 				delete(useTables[nameTab].Records, k)
 			}
 		}

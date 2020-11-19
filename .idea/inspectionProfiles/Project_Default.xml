@@ -18,6 +18,8 @@
         <method importPath="net" receiver="Listener" name="Close" />
         <method importPath="net" receiver="Conn" name="Close" />
         <method importPath="database/sql" receiver="*DB" name="Close" />
+        <method importPath="database/sql" receiver="*Rows" name="Scan" />
+        <method importPath="os" receiver="*File" name="Close" />
       </methods>
     </inspection_tool>
   </profile>
