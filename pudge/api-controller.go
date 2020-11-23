@@ -63,7 +63,7 @@ func setStatusCross() {
 		if !is {
 			status = 0
 		}
-		if statusDevice != status {
+		if statusDevice != status && cc.DK.FDK != 9 {
 			ChanLog <- RecLogCtrl{ID: cc.ID, Type: -1, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
 			nowstatus[reg.ToKey()] = statusDevice
 		}

@@ -19,5 +19,9 @@
             <area id="1" name="Правый берег"/>
             <area id="2" name="Левый берег"/>
         </reg>
+        <reg id="6" name="Иркутск" file="Irkutsk.mrk">
+            <area id="1" name="Правый берег"/>
+            <area id="2" name="Левый берег"/>
+        </reg>
     </regions>
 </create>
