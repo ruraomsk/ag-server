@@ -262,6 +262,20 @@ func newConnect(soc net.Conn) {
 				delete(devs, ctrl.ID)
 				return
 			}
+			if ctrl.Status.StatusV220 != 0 {
+				ctrl.StatusConnection = false
+				pudge.SetController(ctrl)
+				w := ""
+				if ctrl.Status.StatusV220 == 25 {
+					w = fmt.Sprintf("Устройство %d сбой 220В ", dd.id)
+				} else {
+					w = fmt.Sprintf("Устройство %d отключено ", dd.id)
+				}
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: w}
+				logger.Error.Print(w)
+				delete(devs, ctrl.ID)
+				return
+			}
 			if pTime.Day() != time.Now().Day() {
 				//Новые сутки Нужно спасти статистику
 				key := pudge.IsRegistred(ctrl.ID)
@@ -289,7 +303,6 @@ func newConnect(soc net.Conn) {
 			transport.Stoped = true
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
-
 			return
 		case changeProtocol := <-dd.ChangeProtocol:
 			hs, err := makeChangeProtocol(dd, changeProtocol)

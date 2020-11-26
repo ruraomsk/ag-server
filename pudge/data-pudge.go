@@ -323,7 +323,7 @@ type RecLogCtrl struct {
 
 //Status описание статуса устройства
 type Status struct {
-	StatusV200    int  `json:"s220"`     // Состояние питания
+	StatusV220    int  `json:"s220"`     // Состояние питания 0 норма  25 - авария 220В 26 - выключен
 	StatusGPS     int  `json:"sGPS"`     // Состояние GPS
 	StatusServer  int  `json:"sServer"`  // Состояние связи с сервером
 	StatusPSPD    int  `json:"sPSPD"`    // Состояние связи с платой ПСПД

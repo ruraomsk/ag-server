@@ -458,7 +458,7 @@ func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x1D {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.Status.StatusV200 = int(s.Message[1])
+	c.Status.StatusV220 = int(s.Message[1])
 	c.Status.StatusGPS = int(s.Message[2])
 	c.Status.StatusServer = int(s.Message[3])
 	c.Status.StatusPSPD = int(s.Message[4])
@@ -477,7 +477,7 @@ func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Type = 0x1D
 	s.Message = make([]uint8, 13)
 	s.Message[0] = 0x1D
-	s.Message[1] = uint8(c.Status.StatusV200)
+	s.Message[1] = uint8(c.Status.StatusV220)
 	s.Message[2] = uint8(c.Status.StatusGPS)
 	s.Message[3] = uint8(c.Status.StatusServer)
 	s.Message[4] = uint8(c.Status.StatusPSPD)
@@ -497,7 +497,7 @@ func (s *SubMessage) Get0x1BDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x1B {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
 	}
-	c.Status.StatusV200 = int(s.Message[1])
+	c.Status.StatusV220 = int(s.Message[1])
 	c.Status.StatusGPS = int(s.Message[2])
 	c.Status.StatusServer = int(s.Message[3])
 	c.Status.StatusPSPD = int(s.Message[4])
@@ -514,7 +514,7 @@ func (s *SubMessage) Set0x1BDevice(c *pudge.Controller) {
 	s.Type = 0x1D
 	s.Message = make([]uint8, 9)
 	s.Message[0] = 0x1D
-	s.Message[1] = uint8(c.Status.StatusV200)
+	s.Message[1] = uint8(c.Status.StatusV220)
 	s.Message[2] = uint8(c.Status.StatusGPS)
 	s.Message[3] = uint8(c.Status.StatusServer)
 	s.Message[4] = uint8(c.Status.StatusPSPD)
