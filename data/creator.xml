@@ -7,14 +7,6 @@
             <area id="2" name="Вторая половина"/>
             <area id="3" name="Третий кусок"/>
         </reg>
-        <reg id="2" name="Чукотка" file="Chukotka.mrk">
-            <area id="1" name="Перший"/>
-            <area id="2" name="Вторый"/>
-            <area id="3" name="Треший"/>
-        </reg>
-        <reg id="3" name="Сахалин" file="Сахалин.mrk">
-            <area id="1" name="Без районов" />
-        </reg>
         <reg id="5" name="Воронеж" file="Voronez.mrk">
             <area id="1" name="Правый берег"/>
             <area id="2" name="Левый берег"/>
@@ -22,6 +14,10 @@
         <reg id="6" name="Иркутск" file="Irkutsk.mrk">
             <area id="1" name="Правый берег"/>
             <area id="2" name="Левый берег"/>
+        </reg>
+        <reg id="2" name="Хабаровск" file="Khabarovsk.mrk">
+            <area id="1" name="Город"/>
+            <area id="2" name="Область"/>
         </reg>
     </regions>
 </create>
