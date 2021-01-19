@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/JanFant/TLServer/logger"
 	"github.com/ruraomsk/ag-server/setup"
-	"math/rand"
-	"sort"
+	//"math/rand"
+	//"sort"
 	"time"
 )
 
@@ -18,84 +18,84 @@ func (s *State) calculate() {
 		s.Release = false
 		return
 	}
-	s.Results = make([]Result, 0)
-	for _ = range s.Calculates {
-		r := new(Result)
-		r.Ileft, r.Iright = rand.Intn(900), rand.Intn(900)
-		s.Results = append(s.Results, *r)
-	}
-	if len(s.Results) < len(s.Calculates)/2 {
-		//Точек получено в два раза меньше чем задано
-		s.PKCalc = 0
-		return
-	}
-	columns := make([]int, 3)
-	for _, r := range s.Results {
-		d := float64(r.Ileft) / float64(r.Iright)
-		if d < s.LeftRel {
-			columns[0] = columns[0] + 1
-		}
-		if d <= s.RightRel && d >= s.LeftRel {
-			columns[1] = columns[1] + 1
-		}
-		if d > s.RightRel {
-			columns[2] = columns[2] + 1
-		}
-	}
-	col := 1
-	if columns[0] > columns[1] && columns[0] > columns[2] {
-		col = 0
-	}
-	if columns[2] > columns[1] && columns[2] > columns[0] {
-		col = 2
-	}
-	max := 0
-	for _, r := range s.Results {
-		switch col {
-		case 0:
-			if r.Ileft > max {
-				max = r.Ileft
-			}
-		case 1:
-			if r.Ileft > max {
-				max = r.Ileft
-			}
-			if r.Iright > max {
-				max = r.Iright
-			}
-		case 2:
-			if r.Iright > max {
-				max = r.Iright
-			}
-		}
-	}
-	sort.Slice(s.Strategys, func(i, j int) bool { return s.Strategys[i].XLeft < s.Strategys[j].XLeft })
-	for _, st := range s.Strategys {
-		s.LastTime = time.Now()
-		s.PKCalc = -1
-		if max >= st.XLeft && max < st.XRight {
-			switch col {
-			case 0:
-				s.PKCalc = st.PKL
-			case 1:
-				s.PKCalc = st.PKS
-			case 2:
-				s.PKCalc = st.PKR
-			}
-		}
-	}
-	if s.PKCalc < 0 {
-		//Не нашли берем последний известный
-		st := s.Strategys[len(s.Strategys)-1]
-		switch col {
-		case 0:
-			s.PKCalc = st.PKL
-		case 1:
-			s.PKCalc = st.PKS
-		case 2:
-			s.PKCalc = st.PKR
-		}
-	}
+	//s.Results = make([]Result, 0)
+	//for _ = range s.Calculates {
+	//	r := new(Result)
+	//	r.Ileft, r.Iright = rand.Intn(900), rand.Intn(900)
+	//	s.Results = append(s.Results, *r)
+	//}
+	//if len(s.Results) < len(s.Calculates)/2 {
+	//	//Точек получено в два раза меньше чем задано
+	//	s.PKCalc = 0
+	//	return
+	//}
+	//columns := make([]int, 3)
+	//for _, r := range s.Results {
+	//	d := float64(r.Ileft) / float64(r.Iright)
+	//	if d < s.LeftRel {
+	//		columns[0] = columns[0] + 1
+	//	}
+	//	if d <= s.RightRel && d >= s.LeftRel {
+	//		columns[1] = columns[1] + 1
+	//	}
+	//	if d > s.RightRel {
+	//		columns[2] = columns[2] + 1
+	//	}
+	//}
+	//col := 1
+	//if columns[0] > columns[1] && columns[0] > columns[2] {
+	//	col = 0
+	//}
+	//if columns[2] > columns[1] && columns[2] > columns[0] {
+	//	col = 2
+	//}
+	//max := 0
+	//for _, r := range s.Results {
+	//	switch col {
+	//	case 0:
+	//		if r.Ileft > max {
+	//			max = r.Ileft
+	//		}
+	//	case 1:
+	//		if r.Ileft > max {
+	//			max = r.Ileft
+	//		}
+	//		if r.Iright > max {
+	//			max = r.Iright
+	//		}
+	//	case 2:
+	//		if r.Iright > max {
+	//			max = r.Iright
+	//		}
+	//	}
+	//}
+	//sort.Slice(s.Strategys, func(i, j int) bool { return s.Strategys[i].XLeft < s.Strategys[j].XLeft })
+	//for _, st := range s.Strategys {
+	//	s.LastTime = time.Now()
+	//	s.PKCalc = -1
+	//	if max >= st.XLeft && max < st.XRight {
+	//		switch col {
+	//		case 0:
+	//			s.PKCalc = st.PKL
+	//		case 1:
+	//			s.PKCalc = st.PKS
+	//		case 2:
+	//			s.PKCalc = st.PKR
+	//		}
+	//	}
+	//}
+	//if s.PKCalc < 0 {
+	//	//Не нашли берем последний известный
+	//	st := s.Strategys[len(s.Strategys)-1]
+	//	switch col {
+	//	case 0:
+	//		s.PKCalc = st.PKL
+	//	case 1:
+	//		s.PKCalc = st.PKS
+	//	case 2:
+	//		s.PKCalc = st.PKR
+	//	}
+	//}
 }
 func (s *State) change() {
 	if s.Release {
@@ -167,7 +167,7 @@ func Calculator() {
 			logger.Error.Printf("Запрос begin %s", err.Error())
 			return
 		}
-		Corrector()
+		_ = Corrector()
 		w := "select state from public.xctrl;"
 		rows, err := conDB.Query(w)
 		if err != nil {

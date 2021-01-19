@@ -156,8 +156,8 @@ func saveControllers() error {
 }
 func saveCrosees() error {
 	// logger.Debug.Println("saveCrossers")
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	count := 0
 	for _, c := range crosses {
 		if !c.WriteToDB {

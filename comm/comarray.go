@@ -138,7 +138,7 @@ func workerCommand(soc net.Conn) {
 	for {
 		c, err := reader.ReadString('\n')
 		if err != nil {
-			logger.Error.Println("При чтении команд сервера АРМ ", err.Error())
+			logger.Error.Printf("При чтении команд сервера АРМ %s $s ", soc.RemoteAddr().String(), err.Error())
 			return
 		}
 		if c[0:1] == "0" {
@@ -155,7 +155,7 @@ func workerCommand(soc net.Conn) {
 			logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
 			continue
 		}
-		logger.Info.Printf("Команда %v", command)
+		logger.Info.Printf("Команда %v %s", command, soc.RemoteAddr().String())
 		if command.Command == 1 {
 			//Принудительная отправка всех массивов
 			ctrl, _ := pudge.GetController(command.ID)
@@ -168,7 +168,7 @@ func workerCommand(soc net.Conn) {
 		} else {
 			if command.Command != 4 {
 				w := fmt.Sprintf("%s  %s", command.User, getDescription(command))
-				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: 0, Time: time.Now(), LogString: w}
+				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: -1, Time: time.Now(), LogString: w}
 			}
 			dev.CommandARM <- command
 		}

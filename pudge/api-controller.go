@@ -24,8 +24,8 @@ func IsRegistred(id int) *Region {
 var cCount int
 
 func setStatusCross() {
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	//mutexCtrl.Lock()
+	//defer mutexCtrl.Unlock()
 	// logger.Debug.Print("setStatusCross start")
 	result := make(map[string]*Cross, 0)
 	for _, cr := range crosses {
@@ -57,15 +57,18 @@ func setStatusCross() {
 			reg := Region{cr.Region, cr.Area, cr.ID}
 			result[reg.ToKey()] = cr
 		}
-		statusDevice = cc.calcJournal()
+		t := 0
+		t, statusDevice = cc.calcJournal()
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		status, is := nowstatus[reg.ToKey()]
 		if !is {
 			status = 0
 		}
 		if statusDevice != status && cc.DK.FDK != 9 {
-			ChanLog <- RecLogCtrl{ID: cc.ID, Type: -1, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
+			//if !cc.DK.PDK {
+			ChanLog <- RecLogCtrl{ID: cc.ID, Type: t, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
 			nowstatus[reg.ToKey()] = statusDevice
+			//}
 		}
 		w := "Лампы "
 		if cc.DK.LDK == 0 {

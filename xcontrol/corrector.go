@@ -52,13 +52,18 @@ func Corrector() error {
 			logger.Error.Printf("json %s %s", string(stat), err.Error())
 			return err
 		}
-		//Проверим правильность заполнения Стратегии
-		for _, s := range v.Strategys {
-			if s.XRight <= s.XLeft {
-				status = append(status, fmt.Sprintf("В стратегии левое %d больше правого %d", s.XLeft, s.XRight))
+		//Проверим правильность заполнения Стратегии A
+		if v.UseStrategy {
+			for _, s := range v.StrategysA {
+				if s.XLeft < 0 || s.XRight < 0 {
+					status = append(status, fmt.Sprintf("В стратегии A %d %d отрицательно", s.XLeft, s.XRight))
+				}
 			}
-			if s.XLeft < 0 || s.XRight < 0 {
-				status = append(status, fmt.Sprintf("В стратегии %d %d отрицательно", s.XLeft, s.XRight))
+		} else {
+			for _, s := range v.StrategysB {
+				if s.XLeft < 0 || s.XRight < 0 {
+					status = append(status, fmt.Sprintf("В стратегии B %d %d отрицательно", s.XLeft, s.XRight))
+				}
 			}
 		}
 		w = fmt.Sprintf("select id,state from public.cross where region = %d and area=%d and subarea = %d;", v.Region, v.Area, v.SubArea)
@@ -81,28 +86,46 @@ func Corrector() error {
 				logger.Error.Printf("json %s %s", string(state), err.Error())
 				return err
 			}
-			for _, p := range v.Strategys {
-				if p.PKL == 0 || p.PKR == 0 || p.PKS == 0 {
-					flag = true
-					s := fmt.Sprintf("В стратегии есть ноль {%d %d %d} ", p.PKL, p.PKS, p.PKR)
-					status = append(status, s)
-					continue
+			if !v.UseStrategy {
+				for _, p := range v.StrategysB {
+					if p.PKL == 0 || p.PKR == 0 || p.PKS == 0 {
+						flag = true
+						s := fmt.Sprintf("В стратегии B есть ноль {%d %d %d} ", p.PKL, p.PKS, p.PKR)
+						status = append(status, s)
+						continue
+					}
+					if c.Arrays.SetDK.IsEmpty(1, p.PKL) {
+						flag = true
+						s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKL)
+						status = append(status, s)
+					}
+					if c.Arrays.SetDK.IsEmpty(1, p.PKS) {
+						flag = true
+						s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKS)
+						status = append(status, s)
+					}
+					if c.Arrays.SetDK.IsEmpty(1, p.PKR) {
+						flag = true
+						s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKR)
+						status = append(status, s)
+					}
 				}
-				if c.Arrays.SetDK.IsEmpty(1, p.PKL) {
-					flag = true
-					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKL)
-					status = append(status, s)
+			}
+			if v.UseStrategy {
+				for _, p := range v.StrategysA {
+					if p.PK == 0 {
+						flag = true
+						s := fmt.Sprintf("В стратегии A есть ноль {%d } ", p.PK)
+						status = append(status, s)
+						continue
+					}
+					if c.Arrays.SetDK.IsEmpty(1, p.PK) {
+						flag = true
+						s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PK)
+						status = append(status, s)
+					}
 				}
-				if c.Arrays.SetDK.IsEmpty(1, p.PKS) {
-					flag = true
-					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKS)
-					status = append(status, s)
-				}
-				if c.Arrays.SetDK.IsEmpty(1, p.PKR) {
-					flag = true
-					s := fmt.Sprintf("Перекресток {%d %d %d} не имеет плана координации %d", v.Region, v.Area, id, p.PKR)
-					status = append(status, s)
-				}
+
 			}
 		}
 		equal := true

@@ -16,7 +16,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var mutexCross sync.Mutex
+//var mutexCross sync.Mutex
 var mutexCtrl sync.Mutex
 var controllers map[int]*Controller
 var crosses map[string]*Cross
@@ -38,8 +38,8 @@ var err error
 
 //GetCross возвращает копию перекрестка
 func GetCross(region, area, id int) (Cross, bool) {
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
 	if !is {
@@ -51,8 +51,8 @@ func GetCross(region, area, id int) (Cross, bool) {
 
 //GetCrosses возвращает все перекрестки
 func GetCrosses() []Region {
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	r := make([]Region, 0)
 	for _, cr := range crosses {
 		reg := Region{Region: cr.Region, Area: cr.Area, ID: cr.ID}
@@ -62,8 +62,8 @@ func GetCrosses() []Region {
 }
 
 func getNameCross(idevice int) string {
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == idevice {
 			return c.Name
@@ -74,10 +74,10 @@ func getNameCross(idevice int) string {
 
 //DeleteCross Удаляет перекресток
 func DeleteCross(region, area, id int) {
-	mutexCross.Lock()
+	mutexCtrl.Lock()
 	reg := Region{Region: region, Area: area, ID: id}
 	delete(crosses, reg.ToKey())
-	mutexCross.Unlock()
+	mutexCtrl.Unlock()
 	w := fmt.Sprintf("DELETE FROM public.\"cross\" WHERE region=%d and area=%d and id=%d;", region, area, id)
 	_, err = conCross.Exec(w)
 
@@ -97,8 +97,8 @@ func GetController(id int) (*Controller, bool) {
 
 //SetCrossNewDevice деляет новую привязку контроллера
 func SetCrossNewDevice(reg Region, idevice int) error {
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	c, is := crosses[reg.ToKey()]
 	if !is {
 		return fmt.Errorf("нет такого перекрестка %v", reg)
@@ -113,14 +113,14 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 func SetCross(c *Cross) {
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 	insert := false
-	mutexCross.Lock()
+	mutexCtrl.Lock()
 	_, is := crosses[reg.ToKey()]
 	if !is {
 		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
 	}
-	mutexCross.Unlock()
+	mutexCtrl.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
 		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
@@ -132,11 +132,11 @@ func SetCross(c *Cross) {
 			return
 		}
 	} else {
-		mutexCross.Lock()
+		mutexCtrl.Lock()
 		c.WriteToDB = true
 		crosses[reg.ToKey()] = c
 		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
-		mutexCross.Unlock()
+		mutexCtrl.Unlock()
 	}
 	return
 }
@@ -180,7 +180,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
 	statuses = make(map[int]string)
-	ChanLog = make(chan RecLogCtrl, 10000)
+	ChanLog = make(chan RecLogCtrl, 1000)
 	controls = make(map[int]bool)
 	nowstatus = make(map[string]int)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",

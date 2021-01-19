@@ -3,12 +3,10 @@ package pudge
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/JanFant/TLServer/logger"
 	"github.com/lib/pq"
+	"strconv"
+	"strings"
 )
 
 //JSONLog структура для хранения адреса
@@ -24,13 +22,17 @@ var mapMessages map[string]map[int]string
 
 func getCross(idevice int) *Cross {
 	// logger.Debug.Printf("region om %d", idevice)
-	mutexCross.Lock()
-	defer mutexCross.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == idevice {
+			//mutexCross.Unlock()
+			//mutexCtrl.Unlock()
 			return c
 		}
 	}
+	//mutexCross.Unlock()
+	//mutexCtrl.Unlock()
 	return nil
 }
 
@@ -42,7 +44,11 @@ func writeLog() {
 		ch := <-ChanLog
 		cr := getCross(ch.ID)
 		if cr == nil {
+			logger.Error.Printf("error %v", ch)
 			continue
+		}
+		if ch.Type != 2 {
+			logger.Info.Printf("log message %v", ch)
 		}
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		crm, is := mapMessages[reg.ToKey()]
@@ -82,14 +88,14 @@ func writeLog() {
 
 		}
 		mapMessages[reg.ToKey()] = crm
-		time.Sleep(100 * time.Millisecond)
+		//time.Sleep(100 * time.Millisecond)
 	}
 }
 func writeLogDB(cr *Cross, ch RecLogCtrl, tup int) {
 	j := JSONLog{Region: strconv.Itoa(cr.Region), Area: strconv.Itoa(cr.Area), ID: cr.ID, Description: cr.Name, Type: tup}
 	result, _ := json.Marshal(j)
 	w := fmt.Sprintf("insert into public.logdevice (id,tm,crossinfo,txt) values(%d,'%s','%s','%s');",
-		ch.ID, string(pq.FormatTimestamp(time.Now())), result, ch.LogString)
+		ch.ID, string(pq.FormatTimestamp(ch.Time)), result, ch.LogString)
 	_, err = conLog.Exec(w)
 	if err != nil {
 		logger.Error.Printf("Ошибка записи в БД логгирования %s \n%s", err.Error(), w)

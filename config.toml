@@ -62,7 +62,7 @@ steppudge=1						#Шаг сохранения в pudge
         "delete from public.statistics where region=5;",
         "delete from public.statistics where region=6;"
     ]
-    step=5         #Шаг проверки изменения в БД
+    step=60         #Шаг проверки изменения в БД
     keys=[["cross","region","area","subarea","id"],
           ["devices","id"],
           ["region","region","area"],

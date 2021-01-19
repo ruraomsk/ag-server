@@ -46,11 +46,11 @@ func StartListen() {
 	go listenArmArray()
 	// //Запускаем слушателя для настройки протокола
 	go listenChangeProtocol()
-	writeArch = make(chan pudge.ArchStat, 1000)
+	writeArch = make(chan pudge.ArchStat)
 	// Запускаем записывателя архива
 	go writerArch()
 	// Запускаем посылку фаз
-	sendPhases = make(chan DevPhases, 1000)
+	sendPhases = make(chan DevPhases)
 	go listenSendingPhazes()
 	count := 0
 	devs = make(map[int]*device)
