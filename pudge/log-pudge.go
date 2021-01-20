@@ -47,9 +47,9 @@ func writeLog() {
 			logger.Error.Printf("error %v", ch)
 			continue
 		}
-		if ch.Type != 2 {
-			logger.Info.Printf("log message %v", ch)
-		}
+		//if ch.Type != 2 {
+		//	//logger.Info.Printf("log message %v", ch)
+		//}
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		crm, is := mapMessages[reg.ToKey()]
 		if !is {

@@ -167,11 +167,7 @@ func (cc *Controller) calcStatus() int {
 		//Локальное управление 5
 		return 5
 	}
-	if (rezim == 9) && (err == 0 || err == 1) && (faza == 0) && door == 0 {
-		//Локальное управление 5
-		return 5
-	}
-	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0) && door == 0 {
+	if (rezim == 9 || rezim == 4 || rezim == 6) && (err == 0 || err == 1) && (faza == 0) && door == 0 {
 		//Локальное управление 5
 		return 5
 	}
@@ -192,7 +188,7 @@ func (cc *Controller) calcStatus() int {
 		//Желтое мигание по расписанию 9
 		return 9
 	}
-	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && faza == 12 && door == 0 {
+	if (rezim == 8 || rezim == 9 || rezim == 4) && (err == 0 || err == 1) && faza == 12 && door == 0 {
 		//Кругом красный 10
 		return 10
 	}
@@ -352,11 +348,7 @@ func (cc *Controller) calcJournal() (int, int) {
 		//Локальное управление 5
 		return -1, 5
 	}
-	if (rezim == 9) && (err == 0 || err == 1) && (faza == 0) {
-		//Локальное управление 5
-		return -1, 5
-	}
-	if (rezim == 6) && (err == 0 || err == 1) && (faza == 0) {
+	if (rezim == 9 || rezim == 4 || rezim == 6) && (err == 0 || err == 1) && (faza == 0) {
 		//Локальное управление 5
 		return -1, 5
 	}
@@ -376,7 +368,7 @@ func (cc *Controller) calcJournal() (int, int) {
 		//Желтое мигание по расписанию 9
 		return -1, 9
 	}
-	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && faza == 12 {
+	if (rezim == 8 || rezim == 9 || rezim == 4) && (err == 0 || err == 1) && faza == 12 {
 		//Кругом красный 10
 		return 1, 10
 	}
@@ -492,12 +484,7 @@ func (cc *Controller) calcJournal() (int, int) {
 	return -1, 39
 }
 func (cc *Controller) coderr() int {
-	if cc.DK.EDK != 0 {
-		return cc.DK.EDK
-	}
-	if cc.DK.PDK {
-		return 1
-	}
+	return cc.DK.EDK
 	return 0
 }
 

@@ -2,6 +2,7 @@ package pudge
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -12,6 +13,8 @@ func (c *Controller) IsConnected() bool {
 
 //IsRegistred проверяет зарегистрирован ли Id на перекрестке
 func IsRegistred(id int) *Region {
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == id {
 			reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
@@ -24,12 +27,12 @@ func IsRegistred(id int) *Region {
 var cCount int
 
 func setStatusCross() {
-	//mutexCtrl.Lock()
-	//defer mutexCtrl.Unlock()
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	// logger.Debug.Print("setStatusCross start")
 	result := make(map[string]*Cross, 0)
 	for _, cr := range crosses {
-		cc, is := GetController(cr.IDevice)
+		cc, is := controllers[cr.IDevice]
 
 		if !is {
 			continue
@@ -62,27 +65,31 @@ func setStatusCross() {
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		status, is := nowstatus[reg.ToKey()]
 		if !is {
-			status = 0
+			status = ""
 		}
-		if statusDevice != status && cc.DK.FDK != 9 {
-			//if !cc.DK.PDK {
-			ChanLog <- RecLogCtrl{ID: cc.ID, Type: t, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
-			nowstatus[reg.ToKey()] = statusDevice
-			//}
+		if strings.Compare(makeMessage(cc, statusDevice), status) != 0 && cc.DK.FDK != 9 {
+			if cc.coderr() != 1 {
+				ChanLog <- RecLogCtrl{ID: cc.ID, Type: t, Time: time.Now(), LogString: makeMessage(cc, statusDevice)}
+				nowstatus[reg.ToKey()] = makeMessage(cc, statusDevice)
+			} else {
+				nowstatus[reg.ToKey()] = ""
+			}
 		}
-		w := "Лампы "
-		if cc.DK.LDK == 0 {
-			w += "исправны "
-		} else {
-			w += "не исправны "
+		if controls[statusDevice] {
+			w := "Лампы "
+			if cc.DK.LDK == 0 {
+				w += "исправны "
+			} else {
+				w += "не исправны "
+			}
+			w += " Двери "
+			if !cc.DK.ODK {
+				w += "закрыты "
+			} else {
+				w += "открыты "
+			}
+			ChanLog <- RecLogCtrl{ID: cc.ID, Type: 2, Time: time.Now(), LogString: w}
 		}
-		w += " Двери "
-		if !cc.DK.ODK {
-			w += "закрыты "
-		} else {
-			w += "открыты "
-		}
-		ChanLog <- RecLogCtrl{ID: cc.ID, Type: 2, Time: time.Now(), LogString: w}
 	}
 	for key, cr := range result {
 		crosses[key] = cr

@@ -22,7 +22,7 @@ var controllers map[int]*Controller
 var crosses map[string]*Cross
 var statuses map[int]string
 var controls map[int]bool
-var nowstatus map[string]int
+var nowstatus map[string]string
 
 //Works флаг готовности pudge
 var Works bool
@@ -182,7 +182,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	statuses = make(map[int]string)
 	ChanLog = make(chan RecLogCtrl, 1000)
 	controls = make(map[int]bool)
-	nowstatus = make(map[string]int)
+	nowstatus = make(map[string]string)
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)

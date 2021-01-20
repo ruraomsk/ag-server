@@ -91,7 +91,7 @@ func loadCrosees() error {
 
 		reg := Region{Region: region, Area: area, ID: id}
 		crosses[reg.ToKey()] = c
-		nowstatus[reg.ToKey()] = 0
+		nowstatus[reg.ToKey()] = ""
 	}
 	return nil
 }
@@ -118,7 +118,8 @@ func loadControllers() error {
 		c.WriteToDB = true
 		c.StatusConnection = false
 		c.LastOperation = time.Unix(0, 0)
-
+		c.DK.EDK = 0
+		c.DK.PDK = false
 		_, is := controllers[id]
 		if is {
 			logger.Error.Printf("Дубликатный id  устройства %d", id)

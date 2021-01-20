@@ -46,11 +46,11 @@ func StartListen() {
 	go listenArmArray()
 	// //Запускаем слушателя для настройки протокола
 	go listenChangeProtocol()
-	writeArch = make(chan pudge.ArchStat)
+	writeArch = make(chan pudge.ArchStat, 1000)
 	// Запускаем записывателя архива
 	go writerArch()
 	// Запускаем посылку фаз
-	sendPhases = make(chan DevPhases)
+	sendPhases = make(chan DevPhases, 1000)
 	go listenSendingPhazes()
 	count := 0
 	devs = make(map[int]*device)
@@ -184,6 +184,7 @@ func newConnect(soc net.Conn) {
 	devs[dd.id] = dd
 	mutex.Unlock()
 	updateController(ctrl, &hDev)
+	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Подключен"}
 	if ctrl.Base {
 		ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 	}
@@ -210,7 +211,6 @@ func newConnect(soc net.Conn) {
 	//_ = hs.UpackMessages(mss)
 	//hout <- hs
 
-	pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Подключен"}
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
 	//Ждем сообщения о состоянии устройства
@@ -469,6 +469,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		case 0x12:
 			//Состояние ДК v3
 			err := mes.Get0x12Device(c)
+			//logger.Debug.Printf("Команда 0x12 от %d Переход %d %b",hDev.ID,c.DK.EDK,c.DK.PDK)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x12 id %d %s", hDev.ID, err.Error())
 			}
