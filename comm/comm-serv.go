@@ -99,8 +99,10 @@ func newConnect(soc net.Conn) {
 	hDev := <-hin
 	logger.Debug.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
 	mutex.Lock()
-	_, ok := devs[hDev.ID]
+	d, ok := devs[hDev.ID]
 	if ok {
+		//Остановим текущее
+		d.ExitCommand <- 1
 		delete(devs, hDev.ID)
 	}
 	mutex.Unlock()
@@ -178,6 +180,7 @@ func newConnect(soc net.Conn) {
 	dd.CommandARM = make(chan CommandARM)
 	dd.CommandArray = make(chan CommandArray)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
+	dd.ExitCommand = make(chan int)
 	dd.addNumber()
 	dd.context, _ = extcon.NewContext("device" + strconv.Itoa(dd.id))
 	mutex.Lock()
@@ -264,13 +267,16 @@ func newConnect(soc net.Conn) {
 			}
 			if ctrl.Status.StatusV220 != 0 {
 				ctrl.StatusConnection = false
-				pudge.SetController(ctrl)
 				w := ""
+				ctrl.DK.EDK = 11
 				if ctrl.Status.StatusV220 == 25 {
-					w = fmt.Sprintf("Устройство %d сбой 220В ", dd.id)
+					w = fmt.Sprintf("Устройство %d авария 220В ", dd.id)
+					ctrl.DK.DDK = 3
 				} else {
-					w = fmt.Sprintf("Устройство %d отключено ", dd.id)
+					w = fmt.Sprintf("Устройство %d выключено ", dd.id)
+					ctrl.DK.DDK = 5
 				}
+				pudge.SetController(ctrl)
 				pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: w}
 				logger.Error.Print(w)
 				delete(devs, ctrl.ID)
@@ -303,6 +309,11 @@ func newConnect(soc net.Conn) {
 			transport.Stoped = true
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
+			return
+		case <-dd.ExitCommand:
+			transport.Stoped = true
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
+			logger.Info.Printf("Устройство %d появилось новое подключение", dd.id)
 			return
 		case changeProtocol := <-dd.ChangeProtocol:
 			hs, err := makeChangeProtocol(dd, changeProtocol)

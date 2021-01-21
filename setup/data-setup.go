@@ -20,6 +20,7 @@ type ApiServer struct {
 	PortOut int `toml:"portout"` //Порт запросов для получения изменений cross
 }
 type Saver struct {
+	Make    bool       `toml:"make"`     //true если выполнять
 	Remote  string     `toml:"remote"`   //TCP до сервера приема
 	Svg     string     `toml:"svg"`      //TCP до сервера приема SVG
 	File    string     `toml:"file"`     //Имя и путь для файла сохраниея команд SQL

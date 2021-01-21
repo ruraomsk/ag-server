@@ -46,6 +46,7 @@ type device struct {
 	CommandARM     chan CommandARM
 	CommandArray   chan CommandArray
 	ChangeProtocol chan ChangeProtocol
+	ExitCommand    chan int
 }
 
 func (d *device) addNumber() {

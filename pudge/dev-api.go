@@ -142,6 +142,14 @@ func (cc *Controller) calcStatus() int {
 	// 	ldoor = door
 	// }
 	if !cc.IsConnected() {
+		if err == 11 && dev == 3 {
+			//Авария 220 16
+			return 16
+		}
+		if err == 11 && dev == 5 { //Спросить как узнать ошибки контроллера УСДК
+			//Выключен УСДК/ДК 17
+			return 17
+		}
 		return 18
 	}
 	if cc.Base {
@@ -323,6 +331,15 @@ func (cc *Controller) calcJournal() (int, int) {
 	// 	ldoor = door
 	// }
 	if !cc.IsConnected() {
+		if err == 11 && dev == 3 {
+			//Авария 220 16
+			return -1, 16
+		}
+		if err == 11 && dev == 5 { //Спросить как узнать ошибки контроллера УСДК
+			//Выключен УСДК/ДК 17
+			return -1, 17
+		}
+
 		return -1, 18
 	}
 	if cc.Base {
