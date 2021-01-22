@@ -311,7 +311,7 @@ func newConnect(soc net.Conn) {
 			logger.Info.Printf("Устройство %d приказано умереть", dd.id)
 			return
 		case <-dd.ExitCommand:
-			transport.Stoped = true
+			//transport.Stoped = true
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
 			logger.Info.Printf("Устройство %d появилось новое подключение", dd.id)
 			return

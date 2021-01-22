@@ -77,6 +77,20 @@ func writeLog() {
 				crm[2] = ch.LogString
 			}
 		case -1:
+			if strings.Contains(ch.LogString, "Координированное управление ПК=") {
+				if strings.Compare(crm[1], "Координированное управление") != 0 {
+					temp := ch.LogString
+					ch.LogString = "Координированное управление"
+					writeLogDB(cr, ch, 1)
+					crm[1] = ch.LogString
+					ch.LogString = temp
+				}
+				if strings.Compare(crm[0], ch.LogString) != 0 {
+					writeLogDB(cr, ch, 0)
+					crm[0] = ch.LogString
+				}
+				break
+			}
 			if strings.Compare(crm[0], ch.LogString) != 0 {
 				writeLogDB(cr, ch, 0)
 				crm[0] = ch.LogString

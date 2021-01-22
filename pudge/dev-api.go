@@ -347,7 +347,7 @@ func (cc *Controller) calcJournal() (int, int) {
 	}
 	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) {
 		//Координированное управление 1
-		return 1, 1
+		return -1, 1
 	}
 	if rezim == 4 && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) {
 		//Диспетчерское управление 2
