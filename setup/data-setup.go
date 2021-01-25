@@ -14,6 +14,7 @@ type Setup struct {
 	Controller Controller `toml:"controller"`
 	XCtrl      XCtrl      `toml:"xctrl"`
 	Saver      Saver      `toml:"saver"`
+	Dumper     Dumper     `toml:"dumper"`
 }
 type ApiServer struct {
 	PortAPI int `toml:"portapi"` //Порт приема подключений для API
@@ -68,4 +69,9 @@ type XCtrl struct {
 	Calculate bool `toml:"calculate"`
 	StepCalc  int  `toml:"stepCalc"`
 	StepSend  int  `toml:"stepSend"`
+}
+type Dumper struct {
+	Make bool   `toml:"make"`
+	Path string `toml:"path"`
+	Time string `toml:"time"`
 }

@@ -264,7 +264,7 @@ func (cc *Controller) calcStatus() int {
 		//Несуществующий код
 		return 26
 	}
-	if (rezim == 8 || rezim == 9) && (faza > 0 && faza < 10) && lamp == 0 {
+	if (rezim == 8 || rezim == 9) && (faza > 0 && faza < 10) && lamp == 1 {
 		//Координированное управление и перегоревшая лампа
 		return 27
 	}

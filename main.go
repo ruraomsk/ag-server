@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/dumper"
 	"github.com/ruraomsk/ag-server/sqlsave"
 	"github.com/ruraomsk/ag-server/svgsave"
 	"os"
@@ -82,6 +83,7 @@ func main() {
 	go inspect.Start(i, stop)
 	x, _ := extcon.NewContext("xcontrol")
 	go xcontrol.Start(x, stop)
+	go dumper.Start()
 	if setup.Set.Saver.Make {
 		go sqlsave.Start()
 		go svgsave.Start()
