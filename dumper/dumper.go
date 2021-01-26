@@ -25,6 +25,9 @@ func makeDump() {
 	path := setup.Set.Dumper.Path + "/dump" + date + ".sql"
 	file.WriteString("pg_dump -U" + setup.Set.DataBase.User + " -d" + setup.Set.DataBase.DBname +
 		" -C -c --column-inserts --if-exists --no-comments -f" + path + "\n")
+	path = setup.Set.Dumper.Path + "/cross" + date + ".tar"
+	file.WriteString("tar -cvf " + path + " " + setup.Set.Dumper.PathSVG + "\n")
+
 	file.Close()
 	cmd := exec.Command("save.bat")
 	err = cmd.Run()

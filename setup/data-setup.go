@@ -71,7 +71,8 @@ type XCtrl struct {
 	StepSend  int  `toml:"stepSend"`
 }
 type Dumper struct {
-	Make bool   `toml:"make"`
-	Path string `toml:"path"`
-	Time string `toml:"time"`
+	Make    bool   `toml:"make"`
+	Path    string `toml:"path"`
+	Time    string `toml:"time"`
+	PathSVG string `toml:"pathSVG"` //Путь для каталога рисунков перекрестков
 }

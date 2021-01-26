@@ -39,6 +39,7 @@ steppudge=1						#Шаг сохранения в pudge
     make=true       #Включить создание dump
     path="h:\\dump"     #Путь для хранения дампов
     time="04:00"    #Время в которое делается дамп
+    pathSVG="d:/TLServer/resources/static/cross"
 [saver]
     make=false
     remote="192.168.1.1:2005"

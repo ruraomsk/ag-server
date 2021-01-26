@@ -138,7 +138,7 @@ func Calculator() {
 		}
 		err = json.Unmarshal(vv, &v)
 		if err != nil {
-			logger.Error.Printf("Запрос unmurhal %v %s", vv, err.Error())
+			logger.Error.Printf("Запрос unmarshal %v %s", vv, err.Error())
 			return
 		}
 		v.Remain = v.Step
@@ -148,7 +148,7 @@ func Calculator() {
 		v.Results = make([]Result, 0)
 		s, err := json.Marshal(&v)
 		if err != nil {
-			logger.Error.Printf("Запрос marhal %v %s", vv, err.Error())
+			logger.Error.Printf("Запрос marshal %v %s", vv, err.Error())
 			return
 		}
 		w = fmt.Sprintf("update public.xctrl set state='%s' where region=%d and area=%d and subarea=%d;",

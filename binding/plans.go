@@ -110,23 +110,7 @@ func NewSetPk(pk int) SetPk {
 
 //IsEmpty если план координации для данного ДК нулеыой то истина
 func (sd *SetDK) IsEmpty(dk, pk int) bool {
-
-	if dk == 1 {
-		return isEmpty(sd.DK, pk)
-	}
-	return true
-}
-func isEmpty(set []SetPk, p int) bool {
-	pk := set[p-1]
-	// if pk.Tc != 0 || pk.Shift != 0 || pk.TypePU != 0 {
-	// 	return false
-	// }
-	for _, st := range pk.Stages {
-		if st.Start != 0 || st.Number != 0 || st.Tf != 0 || st.Stop != 0 {
-			return false
-		}
-	}
-	return true
+	return false
 }
 
 //ToBuffer выгружает в буфер
@@ -142,11 +126,14 @@ func (st *SetPk) ToBuffer() []int {
 	if st.DK == 2 {
 		r[4] += 128
 	}
-	if st.Tc == 0 {
-		logger.Error.Printf("Время цикла =0 %v", st)
-		st.Tc = 30
-	}
+	//if st.Tc == 0 {
+	//	logger.Error.Printf("Время цикла =0 %v", st)
+	//	st.Tc = 30
+	//}
 	r[5] = st.Tc
+	if st.Tc < 3 {
+		return r
+	}
 	r[6] = 256 % st.Tc
 	r[7] = (256 * 256) % st.Tc
 	l := 0
@@ -169,6 +156,7 @@ func (st *SetPk) ToBuffer() []int {
 
 		l++
 	}
+
 	r[8] = 192 + l
 	if st.Shift != 0 {
 		r[9] += 16 //Есть переход фаз
