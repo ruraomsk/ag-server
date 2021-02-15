@@ -39,7 +39,7 @@ func Sender() {
 	}
 	defer conDB.Exec("rollback;")
 	for true {
-		time.Sleep(time.Duration(setup.Set.XCtrl.StepSend) * time.Second)
+		time.Sleep(time.Duration(setup.Set.XCtrl.StepCalc) * time.Second)
 		//logger.Info.Printf("Управление по характерным точка стадия 2....")
 		_, err = conDB.Exec("begin;")
 		if err != nil {

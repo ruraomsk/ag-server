@@ -55,7 +55,7 @@ func oneCross(reg pudge.Region) {
 	count := 0
 	// logger.Info.Printf("запустили инспектора %v", reg)
 	for {
-		time.Sleep(time.Duration(1 * time.Second))
+		time.Sleep(time.Duration(3 * time.Second))
 		cr, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
 		if !is {
 			//Перекресток удалили
@@ -87,16 +87,17 @@ func oneCross(reg pudge.Region) {
 		if !isCorrectVersion(cr, dev) {
 			//Не совпало ПО
 			logger.Info.Printf("Не совпали версии ПО id %d %d.%d  %d.%d", dev.ID, dev.Model.VPCPDL, dev.Model.VPCPDR, cr.Model.VPCPDL, cr.Model.VPCPDR)
-			time.Sleep(time.Duration(1 * time.Minute))
+			time.Sleep(time.Duration(10 * time.Minute))
 			continue
 		}
-		if dev.Local {
-			//Беда у нас в прошлый обмен связь порвалась в опасном месте
-			//Необходимо перепослать все массивы привязки
-			dev.Arrays = make([]pudge.ArrayPriv, 0)
-			dev.Local = false
-			pudge.SetController(dev)
-		}
+		//if dev.Local {
+		//	//Беда у нас в прошлый обмен связь порвалась в опасном месте
+		//	//Необходимо перепослать все массивы привязки
+		//	logger.Info.Printf("Устройство %d не вышло из привязки!", dev.ID)
+		//	dev.Arrays = make([]pudge.ArrayPriv, 0)
+		//	dev.Local = false
+		//	pudge.SetController(dev)
+		//}
 		_, is = comm.GetChanArray(dev.ID)
 		if !is {
 			logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
@@ -121,39 +122,23 @@ func oneCross(reg pudge.Region) {
 				}
 			}
 			if !found {
-				// logger.Info.Printf("не найден %v", ac)
 				sending = append(sending, ac)
 				dev.Arrays = append(dev.Arrays, ac)
 			}
 		}
 		if len(sending) != 0 {
-			// logger.Info.Printf("массивы создали %v", reg)
-			dev.Local = true
-			pudge.SetController(dev)
+			time.Sleep(time.Duration(1 * time.Second))
 			sendLocalOn(dev)
-
+			time.Sleep(1000 * time.Millisecond)
 			for _, ac := range sending {
-				// logger.Info.Printf("id %d массив -> %v", dev.ID, ac)
-
 				sendArray(dev, ac)
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(1000 * time.Millisecond)
 			}
-			sendLocalOff(dev)
-			dev.Local = false
-			pudge.SetController(dev)
-			logger.Info.Printf("массивы передали %d", dev.ID)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Обновлены привязки на устройстве"}
-
+			sendLocalOff(dev)
+			logger.Info.Printf("массивы передали %d", dev.ID)
 		}
 		//Все переслали все совпало можно и поспать
-		// logger.Info.Printf("все совпало %v", reg)
-		// pudge.SetController(dev)
-
-		// Посмотрим на статистику
-		//if !reflect.DeepEqual(&cr.Statistics, &dev.Statistics){
-		//	cr.Statistics=dev.Statistics
-		//}
-		time.Sleep(time.Duration(10 * time.Second))
 		flagError = 0
 		count = 0
 	}
@@ -233,14 +218,6 @@ func makePriv(buffer []int) pudge.ArrayPriv {
 	return *r
 }
 
-//func notZerro(buffer []int) bool {
-//	for i := 5; i < len(buffer); i++ {
-//		if buffer[i] != 0 {
-//			return true
-//		}
-//	}
-//	return false
-//}
 func sendLocalOn(dev *pudge.Controller) {
 	ch, is := comm.GetChanArray(dev.ID)
 	if !is {

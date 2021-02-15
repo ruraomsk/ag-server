@@ -65,10 +65,15 @@ type Controller struct {
 
 //XCtrl настройки подсистемы характерных точек
 type XCtrl struct {
-	Switch    bool `toml:"switch"`
-	Calculate bool `toml:"calculate"`
-	StepCalc  int  `toml:"stepCalc"`
-	StepSend  int  `toml:"stepSend"`
+	Port        int    `toml:"port"` //Порт ожидания команд от системы
+	Switch      bool   `toml:"switch"`
+	StepDev     int    `toml:"stepdev"`  //Шаг опроса устройств в минутах
+	StepCalc    int    `toml:"stepcalc"` //Шаг расчета
+	ShiftDevice string `toml:"shdev"`    //Смещение от шага секунды
+	ShiftCtrl   string `toml:"shctrl"`   //Смещение для запуска управления секунды
+	ClearTime   string `toml:"tclear"`   //С этого момента все начинаем сначала
+	NameUser    string `toml:"nameuser"`
+	FullHost    string `toml:"fullhost"`
 }
 type Dumper struct {
 	Make    bool   `toml:"make"`

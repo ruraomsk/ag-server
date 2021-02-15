@@ -82,7 +82,7 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 			s.Uses = s.Uses[0:8]
 		}
 		if len(buffer) == 38 {
-			s.Uses = s.Uses[0:10]
+			s.Uses = s.Uses[0:18]
 		}
 		pos := 5
 		for i := 0; i < len(s.Uses); i++ {
@@ -148,7 +148,7 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 			s.Uses[j].Tvps = tvps
 			s.Uses[j].Dk = dk
 			s.Uses[j].Fazes = fazes
-			if tp == 1 {
+			if tvps == 3 {
 				s.Uses[j].Long = float32(buffer[pos+2]) / 10.0
 			} else {
 				s.Uses[j].Long = float32(buffer[pos+2])
@@ -192,20 +192,9 @@ func (s *SetTimeUse) ToBuffer(num int) []int {
 	r[2] = 23
 	r[3] = len(s.Uses)*3 + 4
 	pos := 5
-	if len(s.Uses) > 12 {
-		for i := 0; i < len(s.Uses); i++ {
-			r = makeElem(r, pos, s.Uses[i])
-			pos += 3
-		}
-	} else {
-		for i := 2; i < len(s.Uses); i++ {
-			r = makeElem(r, pos, s.Uses[i])
-			pos += 3
-		}
-		for i := 0; i < 2; i++ {
-			r = makeElem(r, pos, s.Uses[i])
-			pos += 3
-		}
+	for i := 0; i < len(s.Uses); i++ {
+		r = makeElem(r, pos, s.Uses[i])
+		pos += 3
 	}
 	r[pos] = s.IntervalTE
 	return r
@@ -217,14 +206,23 @@ func makeElem(r []int, pos int, ss Use) []int {
 	if ss.Dk == 2 {
 		r[pos] |= 2
 	}
-	if ss.Type == 1 {
-		r[pos] |= 1
-	}
 	if ss.Tvps == 1 {
 		r[pos] |= 130
 	}
 	if ss.Tvps == 2 {
 		r[pos] |= 2
+	}
+	if ss.Tvps == 3 {
+		r[pos] |= 1
+	}
+	if ss.Tvps == 4 {
+		r[pos] |= 16
+	}
+	if ss.Tvps == 5 {
+		r[pos] |= 64
+	}
+	if ss.Tvps == 6 {
+		r[pos] |= 128
 	}
 	fs := strings.Split(ss.Fazes, ",")
 	for _, ff := range fs {
@@ -238,7 +236,7 @@ func makeElem(r []int, pos int, ss Use) []int {
 		f--
 		r[pos+1] |= 1 << f
 	}
-	if ss.Type == 1 {
+	if ss.Tvps == 3 {
 		r[pos+2] = int(ss.Long * 10)
 	} else {
 		r[pos+2] = int(ss.Long)

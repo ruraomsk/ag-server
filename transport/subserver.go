@@ -376,10 +376,16 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 //SetArray возвращает номер и массив от сервера
 func (s *SubMessage) SetArray(num int, nelem int, array []int) {
 	s.Type = uint8(num)
+	if num == 133 {
+		s.Type = 5
+	}
+	if num == 137 {
+		s.Type = 9
+	}
 	s.Message = make([]uint8, len(array)-1)
 	s.Message[0] = uint8(nelem)
 	for i := 2; i < len(array); i++ {
 		s.Message[i-1] = uint8(array[i])
 	}
-
+	//logger.Debug.Printf("massiv :%v",s)
 }

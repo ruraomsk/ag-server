@@ -114,7 +114,10 @@ func (sd *StatDefine) ToBuffer() []int {
 		pos++
 		buffer[pos] = l.Period
 		pos++
+		buffer[pos] = l.Ninput
+		pos++
 		buffer[pos] = l.Count
+		pos++
 	}
 	return buffer
 }
@@ -172,7 +175,10 @@ func (sd *StatDefine) FromBuffer(buffer []int) error {
 		pos++
 		sd.Levels[n].Period = buffer[pos]
 		pos++
+		sd.Levels[n].Ninput = buffer[pos]
+		pos++
 		sd.Levels[n].Count = buffer[pos]
+		pos++
 	}
 	return nil
 }

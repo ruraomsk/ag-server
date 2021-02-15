@@ -91,14 +91,8 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		//logger.Info.Print("Модуль управления по характерным точкам будет отключен!")
 		//return
 	}
-	if !setup.Set.XCtrl.Calculate {
-		//Не нужен расчет управления по характерным точкам
-		logger.Info.Print("Модуль расчета характерных точек отключен... ")
-		return
-	} else {
-		logger.Info.Print("Модуль расчета характерных точек запущен... ")
-		go Calculator()
-	}
+	logger.Info.Print("Модуль расчета характерных точек запущен... ")
+	go Calculator()
 	logger.Info.Print("Модуль управления по характерным точкам запущен... ")
 	go Sender()
 	select {

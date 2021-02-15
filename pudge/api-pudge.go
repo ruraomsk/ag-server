@@ -105,7 +105,7 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 	}
 	c.IDevice = idevice
 	c.WriteToDB = true
-	crosses[reg.ToKey()] = c
+	//crosses[reg.ToKey()] = c
 	return nil
 }
 
@@ -238,7 +238,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 					ChanLog <- RecLogCtrl{ID: d.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 				}
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 			return
 		}
 	}

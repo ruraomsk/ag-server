@@ -12,7 +12,7 @@ import (
 var Stoped = false
 
 //GetMessagesFromDevice принять сообщение
-func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.Duration) {
+func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.Duration, errTcp chan int) {
 	defer socket.Close()
 	var h HeaderDevice
 	for {
@@ -27,10 +27,12 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		}
 		if err == nil && n != len(buf) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
+			errTcp <- 1
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- 1
 			return
 		}
 		buf2 := make([]byte, buf[18]+2)
@@ -40,10 +42,12 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		}
 		if err == nil && n != len(buf2) {
 			logger.Error.Printf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf2))
+			errTcp <- 1
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- 1
 			return
 		}
 		buffer := append(buf, buf2...)
@@ -51,6 +55,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		err = h.Parse(buffer)
 		if err != nil {
 			logger.Error.Printf("при раскодировании от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- 1
 			return
 
 		}
@@ -108,7 +113,7 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.
 }
 
 //SendMessagesToDevice передать сообщение на устройство
-func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Duration) {
+func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Duration, errTcp chan int) {
 	defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
@@ -127,10 +132,12 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 			}
 			if err != nil {
 				logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+				errTcp <- 1
 				return
 			}
 			if n != len(buffer) {
 				logger.Error.Printf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
+				errTcp <- 1
 				return
 			}
 		}

@@ -47,6 +47,7 @@ type device struct {
 	CommandArray   chan CommandArray
 	ChangeProtocol chan ChangeProtocol
 	ExitCommand    chan int
+	ErrorTCP       chan int
 }
 
 func (d *device) addNumber() {

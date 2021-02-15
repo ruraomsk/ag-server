@@ -115,6 +115,14 @@ func (sd *SetDK) IsEmpty(dk, pk int) bool {
 
 //ToBuffer выгружает в буфер
 func (st *SetPk) ToBuffer() []int {
+	sts := make([]Stage, 0)
+	for _, s := range st.Stages {
+		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
+			continue
+		}
+		sts = append(sts, s)
+	}
+	sort.Slice(sts, func(i int, j int) bool { return sts[i].Start < sts[j].Start })
 	r := make([]int, 34)
 	r[0] = st.Pk + 99
 	if st.DK == 2 {
@@ -140,7 +148,7 @@ func (st *SetPk) ToBuffer() []int {
 	mgr := false
 	mdk := false
 	plus := false
-	for _, s := range st.Stages {
+	for _, s := range sts {
 		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
 			break
 		}
@@ -158,7 +166,7 @@ func (st *SetPk) ToBuffer() []int {
 	}
 
 	r[8] = 192 + l
-	if st.Shift != 0 {
+	if st.Shift != 0 && sts[0].Start != 0 {
 		r[9] += 16 //Есть переход фаз
 		r[8]++
 	}
@@ -181,7 +189,7 @@ func (st *SetPk) ToBuffer() []int {
 		r[9] = 0
 	}
 	pos := 10
-	if st.Shift != 0 {
+	if st.Shift != 0 && sts[0].Start != 0 {
 		//Есть сдвиг формируем запись сдвига
 		//Находим последнюю фазу
 		r[pos] = st.LastNumber
@@ -204,10 +212,10 @@ func (st *SetPk) ToBuffer() []int {
 			r[pos] += 16 //  7 - Зам
 		}
 		pos++
-		r[pos] = st.Shift
+		r[pos] = sts[0].Start
 		pos++
 	}
-	for _, s := range st.Stages {
+	for _, s := range sts {
 		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
 			break
 		}
@@ -231,9 +239,9 @@ func (st *SetPk) ToBuffer() []int {
 			r[pos] += 16 //  7 - Зам
 		}
 		if s.Tf == 8 {
-			// if r[9] != 0 {
-			// 	r[pos] += 45 //МДК
-			// }
+			if r[9] != 0 {
+				r[pos] += 45 //МДК
+			}
 		}
 		if s.Tf == 9 {
 			r[pos] += 32 // 9 - ВДК

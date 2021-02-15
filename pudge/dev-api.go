@@ -216,10 +216,6 @@ func (cc *Controller) calcStatus() int {
 		//Отключение светофора по расписанию ДК 14
 		return 14
 	}
-	if door != 0 {
-		//Двери открыты 15
-		return 15
-	}
 	if err == 11 && dev == 3 {
 		//Авария 220 16
 		return 16
@@ -311,6 +307,10 @@ func (cc *Controller) calcStatus() int {
 	if err == 3 {
 		//Нет информации о работе перекрестка
 		return 38
+	}
+	if door != 0 {
+		//Двери открыты 15
+		return 15
 	}
 	logger.Debug.Printf("Режим=%v Фаза=%v Ошибка=%v Устройство=%v Лампа=%v Дверь=%v ID %v", rezim, faza, err, dev, lamp, door, cc.ID)
 	return 39

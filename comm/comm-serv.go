@@ -16,7 +16,8 @@ import (
 
 var devs map[int]*device
 var mutex sync.Mutex
-var writeArch chan pudge.ArchStat
+
+//var writeArch chan pudge.ArchStat
 var sendPhases chan DevPhases
 
 // var answare chan string
@@ -46,9 +47,9 @@ func StartListen() {
 	go listenArmArray()
 	// //Запускаем слушателя для настройки протокола
 	go listenChangeProtocol()
-	writeArch = make(chan pudge.ArchStat, 1000)
+	//writeArch = make(chan pudge.ArchStat, 1000)
 	// Запускаем записывателя архива
-	go writerArch()
+	//go writerArch()
 	// Запускаем посылку фаз
 	sendPhases = make(chan DevPhases, 1000)
 	go listenSendingPhazes()
@@ -94,8 +95,10 @@ func newConnect(soc net.Conn) {
 	defer soc.Close()
 	readTout := time.Duration(setup.Set.CommServer.TimeOutRead * int64(time.Second))
 	writeTout := time.Duration(setup.Set.CommServer.TimeOutWrite * int64(time.Second))
-	go transport.GetMessagesFromDevice(soc, hin, &readTout)
-	go transport.SendMessagesToDevice(soc, hout, &writeTout)
+	dd := new(device)
+	dd.ErrorTCP = make(chan int)
+	go transport.GetMessagesFromDevice(soc, hin, &readTout, dd.ErrorTCP)
+	go transport.SendMessagesToDevice(soc, hout, &writeTout, dd.ErrorTCP)
 	hDev := <-hin
 	logger.Debug.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
 	mutex.Lock()
@@ -110,6 +113,7 @@ func newConnect(soc net.Conn) {
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
 		logger.Error.Printf("Устройствo %s %s", soc.RemoteAddr().String(), err.Error())
+		time.Sleep(3 * time.Minute)
 		return
 	}
 	if ctrl.TimeOut != 0 {
@@ -131,31 +135,31 @@ func newConnect(soc net.Conn) {
 		if m.Type == 0x1D {
 			flag = true
 			_ = m.Get0x1DDevice(ctrl)
-			logger.Info.Printf("Заголовок команда 0x1D id %d ", ctrl.ID)
+			//logger.Info.Printf("Заголовок команда 0x1D id %d ", ctrl.ID)
 
 		}
 		if m.Type == 0x10 {
 			flag = true
 			_ = m.Get0x10Device(ctrl)
-			logger.Info.Printf("Заголовок команда 0x10 id %d ", ctrl.ID)
+			//logger.Info.Printf("Заголовок команда 0x10 id %d ", ctrl.ID)
 
 		}
 		if m.Type == 0x12 {
 			flag = true
 			_ = m.Get0x12Device(ctrl)
-			logger.Info.Printf("Заголовок команда 0x12 id %d ", ctrl.ID)
+			//logger.Info.Printf("Заголовок команда 0x12 id %d ", ctrl.ID)
 		}
 		if m.Type == 0x1B {
 			flag = true
 			//hren = true
 			_ = m.Get0x1BDevice(ctrl)
-			logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
+			//logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
 
 		}
 		if m.Type == 0x11 {
 			flag = true
-			m.Get0x11Device(ctrl)
-			logger.Info.Printf("Заголовок команда 0x11 id %d ", ctrl.ID)
+			_ = m.Get0x11Device(ctrl)
+			//logger.Info.Printf("Заголовок команда 0x11 id %d ", ctrl.ID)
 		}
 		if m.Type == 0x1C {
 			flag = true
@@ -175,7 +179,6 @@ func newConnect(soc net.Conn) {
 	ctrl.StatusConnection = true
 	ctrl.LastOperation = time.Now()
 	ctrl.IPHost = soc.RemoteAddr().String()
-	dd := new(device)
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
 	dd.CommandArray = make(chan CommandArray)
@@ -203,7 +206,7 @@ func newConnect(soc net.Conn) {
 	//}
 	mss := make([]transport.SubMessage, 0)
 	_ = hs.UpackMessages(mss)
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 	hout <- hs
 	logger.Info.Printf("Подключено устройство: id %d ", ctrl.ID)
 	//hs = transport.CreateHeaderServer(0, int(hDev.Code))
@@ -240,7 +243,6 @@ func newConnect(soc net.Conn) {
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	pTime := time.Now() //Для контроля новых суток
 	for {
 		select {
 		case hDev = <-hin:
@@ -253,6 +255,14 @@ func newConnect(soc net.Conn) {
 			if len(hs.Message) != 0 || need {
 				hout <- hs
 			}
+		case <-dd.ErrorTCP:
+			ctrl.StatusConnection = false
+			pudge.SetController(ctrl)
+			w := fmt.Sprintf("Устройство %d отключается ошибки ввода/вывода ", dd.id)
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: w}
+			logger.Error.Print(w)
+			delete(devs, ctrl.ID)
+			return
 		case <-timer.C:
 			if time.Now().Sub(ctrl.LastOperation) > readTout {
 				//Уже пять минут нет связи с устройством
@@ -281,28 +291,6 @@ func newConnect(soc net.Conn) {
 				logger.Error.Print(w)
 				delete(devs, ctrl.ID)
 				return
-			}
-			if pTime.Day() != time.Now().Day() {
-				//Новые сутки Нужно спасти статистику
-				key := pudge.IsRegistred(ctrl.ID)
-				if key == nil {
-					logger.Error.Printf("Странно но у меня отменили регистрацию id=%d", ctrl.ID)
-					delete(devs, ctrl.ID)
-					return
-				}
-				arch := new(pudge.ArchStat)
-				arch.Region = key.Region
-				arch.Area = key.Area
-				arch.ID = key.ID
-				arch.Date = pTime
-				arch.Statistics = make([]pudge.Statistic, 0)
-				for _, s := range ctrl.Statistics {
-					arch.Statistics = append(arch.Statistics, s)
-				}
-				ctrl.Statistics = make([]pudge.Statistic, 0)
-				pTime = time.Now()
-				pudge.SetController(ctrl)
-				writeArch <- *arch
 			}
 
 		case <-dd.context.Done():
@@ -337,14 +325,19 @@ func newConnect(soc net.Conn) {
 			if comArray.ID == 0 && comArray.Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
-				// logger.Debug.Printf("Local on %d", dd.id)
+				//ctrl.Local = true
+				//pudge.SetController(ctrl)
+
+				//logger.Debug.Printf("Local on %d", dd.id)
 				hout <- hs
 				break
 			}
 			if comArray.ID == 0 && comArray.Number == 1 {
 				//Команда выйти из локального режима
 				hs := makeLocalOff(dd)
-				// logger.Debug.Printf("Local off %d", dd.id)
+				//logger.Debug.Printf("Local off %d", dd.id)
+				//ctrl.Local = false
+				//pudge.SetController(ctrl)
 				hout <- hs
 				break
 			}
@@ -467,7 +460,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 		case 0x10:
 			need = true
 			err := mes.Get0x10Device(c)
-			logger.Info.Printf("Пришла команда 0x10 id %d ", hDev.ID)
+			//logger.Info.Printf("Пришла команда 0x10 id %d ", hDev.ID)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x10 id %d %s", hDev.ID, err.Error())
 			}
