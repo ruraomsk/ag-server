@@ -53,17 +53,17 @@ func (sd *SetDK) GetPhases() []int {
 
 //SetPk набор планов координации перекрестка
 type SetPk struct {
-	DK          int     `json:"dk"`         //Номер ДК
-	Pk          int     `json:"pk"`         //Номер программы от 1 до 12
-	Description string  `json:"desc"`       //Описание плана координации
-	TypePU      int     `json:"tpu"`        //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
-	RazLen      bool    `json:"razlen"`     //Признак наличия разнодлительных фаз
-	Tc          int     `json:"tc"`         //Время цикла программы
-	Shift       int     `json:"shift"`      //Сдвиг начала цикла
-	LastType    int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
-	LastNumber  int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
-	TwoT        bool    `json:"twot"`       //Признак 2Т
-	Stages      []Stage `json:"sts"`        //Фазы переключения
+	DK          int    `json:"dk"`     //Номер ДК
+	Pk          int    `json:"pk"`     //Номер программы от 1 до 12
+	Description string `json:"desc"`   //Описание плана координации
+	TypePU      int    `json:"tpu"`    //Тип программы управления управления 0-ЛПУ (локальная) 1-ПК(координации)
+	RazLen      bool   `json:"razlen"` //Признак наличия разнодлительных фаз
+	Tc          int    `json:"tc"`     //Время цикла программы
+	Shift       int    `json:"shift"`  //Сдвиг начала цикла
+	//LastType    int     `json:"lasttype"`   //Тип переходной фазы при сдвиге
+	//LastNumber  int     `json:"lastnumber"` //Номер переходной фазы при сдвиге
+	TwoT   bool    `json:"twot"` //Признак 2Т
+	Stages []Stage `json:"sts"`  //Фазы переключения
 }
 
 //Stage описание одной фазы плана координации
@@ -83,6 +83,7 @@ type Stage struct {
 	// 9 - ВДК
 	Stop int  `json:"stop"` //Завершение фазы
 	Plus bool `json:"plus"` //Признак переноса времени на следующую фазу
+	Trs  bool `json:"trs"`
 }
 
 //NewSetDK создание нового набора планов координации
@@ -122,7 +123,13 @@ func (st *SetPk) ToBuffer() []int {
 		}
 		sts = append(sts, s)
 	}
-	sort.Slice(sts, func(i int, j int) bool { return sts[i].Start < sts[j].Start })
+	sort.Slice(sts, func(i int, j int) bool {
+		if sts[i].Start != sts[j].Start {
+			return sts[i].Start < sts[j].Start
+		} else {
+			return sts[i].Tf != sts[j].Tf
+		}
+	})
 	r := make([]int, 34)
 	r[0] = st.Pk + 99
 	if st.DK == 2 {
@@ -164,11 +171,16 @@ func (st *SetPk) ToBuffer() []int {
 
 		l++
 	}
-
+	count := 0
+	for _, s := range sts {
+		if s.Trs {
+			count++
+		}
+	}
 	r[8] = 192 + l
 	if st.Shift != 0 && sts[0].Start != 0 {
 		r[9] += 16 //Есть переход фаз
-		r[8]++
+		r[8] += count
 	}
 	if st.TypePU == 1 {
 		r[9] += 128 //Есть ЛПУ
@@ -191,29 +203,35 @@ func (st *SetPk) ToBuffer() []int {
 	pos := 10
 	if st.Shift != 0 && sts[0].Start != 0 {
 		//Есть сдвиг формируем запись сдвига
-		//Находим последнюю фазу
-		r[pos] = st.LastNumber
-		if st.LastType == 2 {
-			r[pos] += 160 // 2 - 1ТВП
+		//Находим переносные фазы
+		for _, s := range sts {
+			if !s.Trs {
+				continue
+			}
+			r[pos] = s.Number
+			if s.Tf == 2 {
+				r[pos] += 160 // 2 - 1ТВП
+			}
+			if s.Tf == 3 {
+				r[pos] += 96 // 3 - 2ТВП
+			}
+			if s.Tf == 4 {
+				r[pos] += 224 // 4 - 1,2ТВП
+			}
+			if s.Tf == 5 {
+				r[pos] += 128 // 5 - Зам 1 ТВП
+			}
+			if s.Tf == 6 {
+				r[pos] += 64 //  6 - Зам 2 ТВП
+			}
+			if s.Tf == 7 {
+				r[pos] += 16 //  7 - Зам
+			}
+			pos++
+			r[pos] = s.Start
+			pos++
+
 		}
-		if st.LastType == 3 {
-			r[pos] += 96 // 3 - 2ТВП
-		}
-		if st.LastType == 4 {
-			r[pos] += 224 // 4 - 1,2ТВП
-		}
-		if st.LastType == 5 {
-			r[pos] += 128 // 5 - Зам 1 ТВП
-		}
-		if st.LastType == 6 {
-			r[pos] += 64 //  6 - Зам 2 ТВП
-		}
-		if st.LastType == 7 {
-			r[pos] += 16 //  7 - Зам
-		}
-		pos++
-		r[pos] = sts[0].Start
-		pos++
 	}
 	for _, s := range sts {
 		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
@@ -401,8 +419,8 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	j := 0
 	for n := range ss {
 		if Shift && n == 0 {
-			st.LastType = ss[n].Tf
-			st.LastNumber = ss[n].Number
+			//st.LastType = ss[n].Tf
+			//st.LastNumber = ss[n].Number
 			continue
 		}
 		st.Stages[j].Nline = j + 1
