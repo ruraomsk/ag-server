@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/setup"
 	//"math/rand"
 	//"sort"

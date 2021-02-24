@@ -1,7 +1,7 @@
 package xcontrol
 
 import (
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 	//Инициализатор постргресса
 	_ "github.com/lib/pq"
 	"github.com/ruraomsk/ag-server/extcon"
@@ -80,6 +80,7 @@ type key struct {
 
 //Start главный модуль инспектора
 func Start(context *extcon.ExtContext, stop chan int) {
+
 	if !setup.Set.XCtrl.Switch {
 		//Не нужен модель управления по характерным точкам
 		logger.Info.Print("Модуль управления по характерным точкам отключен... ")

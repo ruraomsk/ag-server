@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/extcon"
 )
 

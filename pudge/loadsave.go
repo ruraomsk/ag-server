@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 )
 
 func loadDBase() error {

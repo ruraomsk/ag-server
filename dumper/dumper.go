@@ -1,8 +1,9 @@
 package dumper
 
 import (
-	"github.com/JanFant/TLServer/logger"
 	"github.com/jasonlvhit/gocron"
+	"github.com/ruraomsk/TLServer/logger"
+	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"os"
 	"os/exec"
@@ -38,7 +39,43 @@ func makeDump() {
 	logger.Info.Printf("Dump writed..")
 
 }
+func makeStatistics() {
+	regs := pudge.GetCrosses()
+	for _, reg := range regs {
+		cross, is := pudge.GetCross(reg.Region, reg.Area, reg.ID)
+		if !is {
+			continue
+		}
+		ctrl, is := pudge.GetController(cross.IDevice)
+		if !is {
+			continue
+		}
+		arch := new(pudge.ArchStat)
+		arch.Region = reg.Region
+		arch.Area = reg.Area
+		arch.ID = reg.ID
+		arch.Date = time.Now().Add(-time.Hour * 24)
+		arch.Statistics = make([]pudge.Statistic, 0)
+		for _, s := range ctrl.Statistics {
+			arch.Statistics = append(arch.Statistics, s)
+		}
+		if len(arch.Statistics) != 0 {
+			ctrl.Statistics = make([]pudge.Statistic, 0)
+			pudge.SetController(ctrl)
+			writeArch <- *arch
+		}
+	}
+}
+func Statistics() {
+	logger.Info.Printf("Statistics starting..")
+	go writerArch()
+	gocron.Every(1).Day().At(setup.Set.XCtrl.ClearTime).Do(makeStatistics)
+	<-gocron.Start()
+	logger.Info.Printf("Statistics working..")
+
+}
 func Start() {
+
 	if !setup.Set.Dumper.Make {
 		logger.Info.Printf("Dumper dont start..")
 

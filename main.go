@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/controller"
 	"github.com/ruraomsk/ag-server/creator"
@@ -34,7 +34,6 @@ func init() {
 	if _, err := toml.DecodeFile("config.toml", &setup.Set); err != nil {
 		fmt.Println("Can't load config file - ", err.Error())
 	}
-
 }
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -84,12 +83,12 @@ func main() {
 	x, _ := extcon.NewContext("xcontrol")
 	go xcontrol.Start(x, stop)
 	go dumper.Start()
+	go dumper.Statistics()
 	if setup.Set.Saver.Make {
 		go sqlsave.Start()
 		go svgsave.Start()
 	}
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
-
 	fmt.Println("\nExit ag-server working...")
 }

@@ -1,6 +1,6 @@
 package pudge
 
-import "github.com/JanFant/TLServer/logger"
+import "github.com/ruraomsk/TLServer/logger"
 
 //Make создает байт для передачи статуса команд ДУ
 func (s *StatusCommandDU) Make() (command uint8) {

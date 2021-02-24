@@ -3,8 +3,8 @@ package pudge
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/JanFant/TLServer/logger"
 	"github.com/lib/pq"
+	"github.com/ruraomsk/TLServer/logger"
 	"strconv"
 	"strings"
 )

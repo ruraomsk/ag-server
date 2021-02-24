@@ -3,7 +3,7 @@ package sqlsave
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/setup"
 	"io"
 	"reflect"

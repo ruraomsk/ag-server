@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/JanFant/TLServer/logger"
+	"github.com/ruraomsk/TLServer/logger"
 )
 
 //Планы координации
@@ -127,7 +127,7 @@ func (st *SetPk) ToBuffer() []int {
 		if sts[i].Start != sts[j].Start {
 			return sts[i].Start < sts[j].Start
 		} else {
-			return sts[i].Tf != sts[j].Tf
+			return sts[i].Tf < sts[j].Tf
 		}
 	})
 	r := make([]int, 34)
@@ -228,7 +228,7 @@ func (st *SetPk) ToBuffer() []int {
 				r[pos] += 16 //  7 - Зам
 			}
 			pos++
-			r[pos] = s.Start
+			r[pos] = sts[0].Start
 			pos++
 
 		}
