@@ -114,13 +114,13 @@ func SetCross(c *Cross) {
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
 	insert := false
 	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	_, is := crosses[reg.ToKey()]
 	if !is {
 		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
 	}
-	mutexCtrl.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
 		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
@@ -132,11 +132,10 @@ func SetCross(c *Cross) {
 			return
 		}
 	} else {
-		mutexCtrl.Lock()
 		c.WriteToDB = true
+		delete(crosses, reg.ToKey())
 		crosses[reg.ToKey()] = c
 		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
-		mutexCtrl.Unlock()
 	}
 	return
 }
@@ -162,9 +161,8 @@ func SetController(c *Controller) {
 			return
 		}
 	} else {
-		c.WriteToDB = true
 		mutexCtrl.Lock()
-		controllers[c.ID] = c
+		c.WriteToDB = true
 		mutexCtrl.Unlock()
 	}
 	// logger.Debug.Printf("end setController %d", c.ID)

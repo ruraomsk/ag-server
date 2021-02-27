@@ -48,6 +48,7 @@ type Region struct {
 	ID    int    `xml:"id,attr" json:"id"`
 	Name  string `xml:"name,attr" json:"name"`
 	File  string `xml:"file,attr" json:"file"`
+	Type  string `xml:"type,attr" json:"type"`
 	Areas []Area `xml:"area" json:"area"`
 }
 
@@ -106,10 +107,28 @@ func regionCreate(path string) error {
 			}
 
 		}
-		err = loadCross(reg.ID, path+"/"+reg.File)
-		if err != nil {
-			logger.Error.Printf("Error loadCross  %s\n", err.Error())
-			return err
+		if !strings.Contains(reg.Type, "SQL") {
+			err = loadCross(reg.ID, path+"/"+reg.File)
+			if err != nil {
+				logger.Error.Printf("Error loadCross  %s\n", err.Error())
+				return err
+			}
+		} else {
+			nfile := path + "/" + reg.File
+			cmd, err := ioutil.ReadFile(nfile)
+			if err != nil {
+				logger.Error.Printf("Error reading file %s! %s\n", path, err.Error())
+				return err
+			}
+			logger.Info.Printf("Обрабатываем файл %s", nfile)
+			// fmt.Println(string(cmd))
+			_, err = con.Exec(string(cmd))
+
+			if err != nil {
+				logger.Error.Printf("Error create  %s\n", err.Error())
+				return err
+			}
+
 		}
 	}
 	return nil
@@ -172,7 +191,7 @@ func loadCross(region int, nfile string) error {
 		if strings.HasPrefix(str, "@u,") {
 			//Начало нового перекрестка
 			if !isempty {
-				saveState(state, dgis)
+				_ = saveState(state, dgis)
 			}
 			isempty = false
 			state = pudge.NewCross()
@@ -347,7 +366,7 @@ func loadCross(region int, nfile string) error {
 
 	}
 	if !isempty {
-		saveState(state, dgis)
+		_ = saveState(state, dgis)
 	}
 	return nil
 }

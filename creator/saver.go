@@ -104,7 +104,11 @@ func SaveAll(path string, sreg string) error {
 		if iregion > 0 && iregion != reg.ID {
 			continue
 		}
+		logger.Info.Println(reg.ID, reg.Name, reg.Type)
 		file, err := os.Create(path + "/" + reg.File)
+		if err != nil {
+			logger.Error.Printf("Не могу создать файл %s", err.Error())
+		}
 		defer file.Close()
 		// fmt.Println(path + "/" + st.Regions.Path + "/" + reg.File)
 		w := fmt.Sprintf("select state from public.\"cross\" where region=%d order by region,area,id;", reg.ID)
@@ -127,60 +131,67 @@ func SaveAll(path string, sreg string) error {
 				logger.Error.Printf("%s\n", err.Error())
 				return err
 			}
-			str := fmt.Sprintf("@u,%d,1,%s%08d,%d,%d,%d,0\n", state.ID, state.ConType, state.IDevice, state.Area, state.SubArea, state.ID)
-			_, _ = file.WriteString(str)
-			_, _ = file.WriteString(fmt.Sprintf("@C,%s\n", state.Dgis))
-			_, _ = file.WriteString(fmt.Sprintf("@S,%s\n", state.Name))
-			str = fmt.Sprintf("@P,%d,%d,%d,%d,%d\n", state.Model.VPCPDL, state.Model.VPCPDR, state.Model.VPBSL, state.Model.VPBSR, state.NumDev)
-			_, _ = file.WriteString(str)
+			if strings.Contains(reg.Type, "SQL") {
+				str := fmt.Sprintf("INSERT INTO public.\"cross\"(region, area, subarea, id, idevice, dgis, describ, status, state) VALUES (%d,%d,%d,%d,%d,'%s','%s',%d,'%s');\n",
+					state.Region, state.Area, state.SubArea, state.ID, state.IDevice, state.Dgis, state.Name, state.StatusDevice, string(c))
+				_, _ = file.WriteString(str)
+			} else {
+				str := fmt.Sprintf("@u,%d,1,%s%08d,%d,%d,%d,0\n", state.ID, state.ConType, state.IDevice, state.Area, state.SubArea, state.ID)
+				_, _ = file.WriteString(str)
+				_, _ = file.WriteString(fmt.Sprintf("@C,%s\n", state.Dgis))
+				_, _ = file.WriteString(fmt.Sprintf("@S,%s\n", state.Name))
+				str = fmt.Sprintf("@P,%d,%d,%d,%d,%d\n", state.Model.VPCPDL, state.Model.VPCPDR, state.Model.VPBSL, state.Model.VPBSR, state.NumDev)
+				_, _ = file.WriteString(str)
 
-			_, _ = file.WriteString(fmt.Sprintf("@N,%s\n", state.Phone))
-			//Теперь начинаем выгружать массивы привязки
-			if !state.Arrays.StatDefine.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.StatDefine.ToBuffer())))
-			}
-			if !state.Arrays.PointSet.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.PointSet.ToBuffer())))
-			}
-			if !state.Arrays.UseInput.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.UseInput.ToBuffer())))
-			}
-			if !state.Arrays.TimeDivice.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.TimeDivice.ToBuffer())))
-			}
-			if !state.Arrays.SetupDK.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetupDK.ToBuffer())))
-			}
-			for _, ws := range state.Arrays.WeekSets.WeekSets {
-				if !ws.IsEmpty() {
-					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ws.ToBuffer())))
+				_, _ = file.WriteString(fmt.Sprintf("@N,%s\n", state.Phone))
+				//Теперь начинаем выгружать массивы привязки
+				if !state.Arrays.StatDefine.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.StatDefine.ToBuffer())))
 				}
-			}
-			for _, ds := range state.Arrays.DaySets.DaySets {
-				if !ds.IsEmpty() {
-					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ds.ToBuffer())))
+				if !state.Arrays.PointSet.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.PointSet.ToBuffer())))
 				}
-			}
-			for _, ms := range state.Arrays.MonthSets.MonthSets {
-				if !ms.IsEmpty() {
-					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ms.ToBuffer())))
+				if !state.Arrays.UseInput.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.UseInput.ToBuffer())))
 				}
-			}
-			for i := 1; i < 13; i++ {
-				if !state.Arrays.SetDK.IsEmpty(1, i) {
-					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetDK.DK[i-1].ToBuffer())))
+				if !state.Arrays.TimeDivice.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.TimeDivice.ToBuffer())))
 				}
+				if !state.Arrays.SetupDK.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetupDK.ToBuffer())))
+				}
+				for _, ws := range state.Arrays.WeekSets.WeekSets {
+					if !ws.IsEmpty() {
+						_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ws.ToBuffer())))
+					}
+				}
+				for _, ds := range state.Arrays.DaySets.DaySets {
+					if !ds.IsEmpty() {
+						_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ds.ToBuffer())))
+					}
+				}
+				for _, ms := range state.Arrays.MonthSets.MonthSets {
+					if !ms.IsEmpty() {
+						_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(ms.ToBuffer())))
+					}
+				}
+				for i := 1; i < 13; i++ {
+					if !state.Arrays.SetDK.IsEmpty(1, i) {
+						_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetDK.DK[i-1].ToBuffer())))
+					}
+				}
+				if !state.Arrays.SetTimeUse.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetTimeUse.ToBuffer(148))))
+				}
+				if !state.Arrays.SetCtrl.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetCtrl.ToBuffer())))
+				}
+				if !state.Arrays.SetTimeUse.IsEmpty() {
+					_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetTimeUse.ToBuffer(157))))
+				}
+				_, _ = file.WriteString("\n")
+
 			}
-			if !state.Arrays.SetTimeUse.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetTimeUse.ToBuffer(148))))
-			}
-			if !state.Arrays.SetCtrl.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetCtrl.ToBuffer())))
-			}
-			if !state.Arrays.SetTimeUse.IsEmpty() {
-				_, _ = file.WriteString(fmt.Sprintf("@k1,%s\n", toLine(state.Arrays.SetTimeUse.ToBuffer(157))))
-			}
-			_, _ = file.WriteString("\n")
 		}
 		file.Close()
 	}
@@ -211,21 +222,21 @@ func saveDataRouters(path string) error {
 	}
 	defer file.Close()
 	file.WriteString("\n")
-	tabs, err := con.Query("select region,id,description,box,listtl from public.routes order by region; ")
+	tabs, err := con.Query("select region,description,box,listtl from public.routes order by region; ")
 	if err != nil {
 		logger.Error.Printf("Error %s", err.Error())
 		return err
 	}
 	for tabs.Next() {
-		var region, id int
+		var region int
 		var desc string
 		var box, listtl []byte
-		_ = tabs.Scan(&region, &id, &desc, &box, &listtl)
+		_ = tabs.Scan(&region, &desc, &box, &listtl)
 		if iregion > 0 && iregion != region {
 			continue
 		}
-		w := fmt.Sprintf("insert into public.routes ( region, id, description, box, listtl) VALUES (%d,%d,'%s','%s','%s');\n",
-			region, id, desc, string(box), string(listtl))
+		w := fmt.Sprintf("insert into public.routes ( region,  description, box, listtl) VALUES (%d,'%s','%s','%s');\n",
+			region, desc, string(box), string(listtl))
 		file.WriteString(w)
 	}
 	return nil

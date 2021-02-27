@@ -54,7 +54,7 @@ func main() {
 		}
 		if strings.Contains(os.Args[1], "save") {
 			if len(os.Args[2]) == 0 {
-				fmt.Println("Нужно запускать с параметом all для всех регионов или указать код региона")
+				fmt.Println("Нужно запускать с параметром all для всех регионов или указать код региона")
 				return
 			}
 			err = creator.SaveAll(path+"/save", os.Args[2])

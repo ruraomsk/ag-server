@@ -30,7 +30,7 @@ func setStatusCross() {
 	mutexCtrl.Lock()
 	defer mutexCtrl.Unlock()
 	// logger.Debug.Print("setStatusCross start")
-	result := make(map[string]*Cross, 0)
+	//result := make(map[string]*Cross, 0)
 	for _, cr := range crosses {
 		cc, is := controllers[cr.IDevice]
 
@@ -56,10 +56,10 @@ func setStatusCross() {
 			cr.NK = cc.NK
 			cr.WriteToDB = true
 		}
-		if cr.WriteToDB {
-			reg := Region{cr.Region, cr.Area, cr.ID}
-			result[reg.ToKey()] = cr
-		}
+		//if cr.WriteToDB {
+		//	reg := Region{cr.Region, cr.Area, cr.ID}
+		//	result[reg.ToKey()] = cr
+		//}
 		t := 0
 		t, statusDevice = cc.calcJournal()
 		reg := Region{cr.Region, cr.Area, cr.ID}
@@ -91,9 +91,10 @@ func setStatusCross() {
 			ChanLog <- RecLogCtrl{ID: cc.ID, Type: 2, Time: time.Now(), LogString: w}
 		}
 	}
-	for key, cr := range result {
-		crosses[key] = cr
-	}
+	//crosses=make(map[string]*Cross)
+	//for key, cr := range result {
+	//	crosses[key] = cr
+	//}
 }
 func makeMessage(cc *Controller, statusDevice int) string {
 	switch statusDevice {

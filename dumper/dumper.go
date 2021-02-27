@@ -30,6 +30,7 @@ func makeDump() {
 	file.WriteString("tar -cvf " + path + " " + setup.Set.Dumper.PathSVG + "\n")
 
 	file.Close()
+	time.Sleep(5 * time.Second)
 	cmd := exec.Command("save.bat")
 	err = cmd.Run()
 	if err != nil {

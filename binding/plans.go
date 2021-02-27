@@ -84,6 +84,7 @@ type Stage struct {
 	Stop int  `json:"stop"` //Завершение фазы
 	Plus bool `json:"plus"` //Признак переноса времени на следующую фазу
 	Trs  bool `json:"trs"`
+	Dt   int  `json:"dt"` //Дополнительное время если ТВП и замещение
 }
 
 //NewSetDK создание нового набора планов координации
@@ -209,26 +210,37 @@ func (st *SetPk) ToBuffer() []int {
 				continue
 			}
 			r[pos] = s.Number
+			tvpflag := false
 			if s.Tf == 2 {
 				r[pos] += 160 // 2 - 1ТВП
+				tvpflag = true
 			}
 			if s.Tf == 3 {
 				r[pos] += 96 // 3 - 2ТВП
+				tvpflag = true
 			}
 			if s.Tf == 4 {
 				r[pos] += 224 // 4 - 1,2ТВП
+				tvpflag = true
 			}
 			if s.Tf == 5 {
 				r[pos] += 128 // 5 - Зам 1 ТВП
+				tvpflag = true
 			}
 			if s.Tf == 6 {
 				r[pos] += 64 //  6 - Зам 2 ТВП
+				tvpflag = true
 			}
 			if s.Tf == 7 {
 				r[pos] += 16 //  7 - Зам
+				tvpflag = true
 			}
 			pos++
-			r[pos] = sts[0].Start
+			if tvpflag && s.Dt != 0 {
+				r[pos] = s.Dt
+			} else {
+				r[pos] = sts[0].Start
+			}
 			pos++
 
 		}

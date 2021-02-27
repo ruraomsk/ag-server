@@ -408,6 +408,16 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("Разбор x09 от устройства %d %s", hDev.ID, err.Error())
 				continue
 			}
+			for _, s := range st.Datas {
+				if s.Chanel < 1 || s.Chanel > len(c.Input.S) {
+					continue
+				}
+				if s.Status != 0 {
+					c.Input.S[s.Chanel-1] = true
+				} else {
+					c.Input.S[s.Chanel-1] = false
+				}
+			}
 			flag := false
 			for n, stt := range c.Statistics {
 				if stt.Period == st.Period {

@@ -26,13 +26,9 @@ func getCross(idevice int) *Cross {
 	defer mutexCtrl.Unlock()
 	for _, c := range crosses {
 		if c.IDevice == idevice {
-			//mutexCross.Unlock()
-			//mutexCtrl.Unlock()
 			return c
 		}
 	}
-	//mutexCross.Unlock()
-	//mutexCtrl.Unlock()
 	return nil
 }
 
@@ -47,9 +43,6 @@ func writeLog() {
 			logger.Error.Printf("error %v", ch)
 			continue
 		}
-		//if ch.Type != 2 {
-		//	//logger.Info.Printf("log message %v", ch)
-		//}
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		crm, is := mapMessages[reg.ToKey()]
 		if !is {
