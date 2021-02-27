@@ -17,7 +17,7 @@ type record struct {
 	region  int
 	area    int
 	cross   int
-	svg     byte     //0 svg 1 map
+	svg     byte     //0 svg 1 map 2 - template.tmpl
 	hash    [16]byte //Hash на весь файл
 	used    bool     //True если он существует
 	receive bool     //Истина если нужно отправить
@@ -97,7 +97,7 @@ func (r *record) bufferSendFile() []byte {
 	// 0	-region
 	// 1	-area
 	// 2-3 	-cross
-	// 4 	-type 0 cross.svg 1-map.png
+	// 4 	-type 0 cross.svg 1-map.png 2 - template.tmpl
 	// 5-8  -длина файла
 	// 9+длина файла - данные файла
 	// Если длина файла == 0 то удалить такой файл
@@ -125,7 +125,7 @@ func (r *record) bufferDeleteFile() []byte {
 	// 0	-region
 	// 1	-area
 	// 2-3 	-cross
-	// 4 	-type 0 cross.svg 1-map.png
+	// 4 	-type 0 cross.svg 1-map.png 2 - template.tmpl
 	// 5-8  -длина файла
 	// 9+длина файла - данные файла
 	// Если длина файла == 0 то удалить такой файл
@@ -157,7 +157,7 @@ func bufferKeepAlive() []byte {
 	// 0	-region
 	// 1	-area
 	// 2-3 	-cross
-	// 4 	-type 0 cross.svg 1-map.png
+	// 4 	-type 0 cross.svg 1-map.png 2 template.tmpl
 	// 5-8  -длина файла
 	// 9+длина файла - данные файла
 	// Если длина файла == 0 то удалить такой файл
@@ -180,7 +180,7 @@ func send(buf []byte) bool {
 	l = l | (int(buf[7]) << 8)
 	l = l | int(buf[8])
 	//logger.Info.Printf("%v len=%d", buf[0:9],l)
-	socket.SetWriteDeadline(time.Now().Add(1 * time.Second))
+	socket.SetWriteDeadline(time.Now().Add(30 * time.Second))
 	n, err := socket.Write(buf)
 	if err != nil {
 		logger.Error.Printf("При передаче на %s ошибка %s", socket.RemoteAddr().String(), err.Error())

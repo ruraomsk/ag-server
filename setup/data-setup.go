@@ -15,6 +15,23 @@ type Setup struct {
 	XCtrl      XCtrl      `toml:"xctrl"`
 	Saver      Saver      `toml:"saver"`
 	Dumper     Dumper     `toml:"dumper"`
+	Statistic  Statistic  `toml:"statistic"`
+	Loader     Loader     `toml:"loader"`
+}
+
+//Loader описание загрузчика
+type Loader struct {
+	Make    bool       `toml:"make"`     //Делать ли прием со стороны
+	Port    int        `toml:"port"`     //Стартовый номер порта на прием
+	SVGPort int        `toml:"svgPort"`  //номер порта на прием свг
+	Path    string     `toml:"pathSVG"`  //Путь для каталога рисунков перекрестков
+	Files   [][]string `toml:"filesSVG"` //Файлы которые описывают перекресток
+}
+
+//Statistic описание статистики
+type Statistic struct {
+	Make    bool       `toml:"make"`    //true если выполнять
+	Regions [][]string `toml:"regions"` //Перечень регионов с временами старта во времени сервера и признаком какую дату использовать
 }
 type ApiServer struct {
 	PortAPI int `toml:"portapi"` //Порт приема подключений для API
@@ -65,15 +82,15 @@ type Controller struct {
 
 //XCtrl настройки подсистемы характерных точек
 type XCtrl struct {
-	Port        int    `toml:"port"` //Порт ожидания команд от системы
-	Switch      bool   `toml:"switch"`
-	StepDev     int    `toml:"stepdev"`  //Шаг опроса устройств в минутах
-	StepCalc    int    `toml:"stepcalc"` //Шаг расчета
-	ShiftDevice string `toml:"shdev"`    //Смещение от шага секунды
-	ShiftCtrl   string `toml:"shctrl"`   //Смещение для запуска управления секунды
-	ClearTime   string `toml:"tclear"`   //С этого момента все начинаем сначала
-	NameUser    string `toml:"nameuser"`
-	FullHost    string `toml:"fullhost"`
+	Port        int     `toml:"port"` //Порт ожидания команд от системы
+	Switch      bool    `toml:"switch"`
+	StepDev     int     `toml:"stepdev"`  //Шаг опроса устройств в минутах
+	StepCalc    int     `toml:"stepcalc"` //Шаг расчета
+	ShiftDevice string  `toml:"shdev"`    //Смещение от шага секунды
+	ShiftCtrl   string  `toml:"shctrl"`   //Смещение для запуска управления секунды
+	NameUser    string  `toml:"nameuser"`
+	FullHost    string  `toml:"fullhost"`
+	Regions     [][]int `toml:"regions"` //Перечень регионов с временами старта во времени сервера и признаком какую дату использовать
 }
 type Dumper struct {
 	Make    bool   `toml:"make"`

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/ruraomsk/ag-server/dumper"
+	"github.com/ruraomsk/ag-server/loader"
 	"github.com/ruraomsk/ag-server/sqlsave"
 	"github.com/ruraomsk/ag-server/svgsave"
 	"os"
@@ -84,6 +85,7 @@ func main() {
 	go xcontrol.Start(x, stop)
 	go dumper.Start()
 	go dumper.Statistics()
+	go loader.RemoteLoader()
 	if setup.Set.Saver.Make {
 		go sqlsave.Start()
 		go svgsave.Start()

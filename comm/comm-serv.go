@@ -408,16 +408,6 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("Разбор x09 от устройства %d %s", hDev.ID, err.Error())
 				continue
 			}
-			for _, s := range st.Datas {
-				if s.Chanel < 1 || s.Chanel > len(c.Input.S) {
-					continue
-				}
-				if s.Status != 0 {
-					c.Input.S[s.Chanel-1] = true
-				} else {
-					c.Input.S[s.Chanel-1] = false
-				}
-			}
 			flag := false
 			for n, stt := range c.Statistics {
 				if stt.Period == st.Period {
@@ -439,6 +429,17 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 					err := mes.Get0x0ADevice(&stt)
 					if err != nil {
 						logger.Error.Printf("При разборе команды 0x0a id %d %s", hDev.ID, err.Error())
+					}
+					//logger.Info.Printf("Пришла статистика %d %v",c.ID,stt)
+					for _, s := range stt.Datas {
+						if s.Chanel < 1 || s.Chanel > len(c.Input.S) {
+							continue
+						}
+						if s.Status != 0 {
+							c.Input.S[s.Chanel-1] = true
+						} else {
+							c.Input.S[s.Chanel-1] = false
+						}
 					}
 					c.Statistics[n] = stt
 					break
