@@ -2,6 +2,7 @@ package comm
 
 import (
 	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/pudge"
 )
 
 //CommandARM Команды от Сервера АРМ
@@ -44,7 +45,7 @@ type device struct {
 	NumServ        uint8              //Номер сообщения от сервера
 	WaitNum        uint8              //Номер ожидаемого сообщения
 	CommandARM     chan CommandARM
-	CommandArray   chan CommandArray
+	CommandArray   chan []pudge.ArrayPriv
 	ChangeProtocol chan ChangeProtocol
 	ExitCommand    chan int
 	ErrorTCP       chan int

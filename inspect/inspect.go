@@ -129,10 +129,23 @@ func oneCross(reg pudge.Region) {
 		if len(sending) != 0 {
 			time.Sleep(time.Duration(1 * time.Second))
 			sendLocalOn(dev)
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(1 * time.Second)
+			l := 0
+			acc := make([]pudge.ArrayPriv, 0)
 			for _, ac := range sending {
-				sendArray(dev, ac)
-				time.Sleep(1000 * time.Millisecond)
+				if l+len(ac.Array) < 200 {
+					acc = append(acc, ac)
+					l += len(ac.Array)
+					continue
+				}
+				sendArray(dev, acc)
+				time.Sleep(1 * time.Second)
+				acc = make([]pudge.ArrayPriv, 0)
+				l = 0
+			}
+			if len(acc) > 0 {
+				sendArray(dev, acc)
+				time.Sleep(1 * time.Second)
 			}
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Обновлены привязки на устройстве"}
 			sendLocalOff(dev)
@@ -224,10 +237,11 @@ func sendLocalOn(dev *pudge.Controller) {
 		logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
 		return
 	}
-	cmd := new(comm.CommandArray)
-	cmd.ID = 0
-	cmd.Number = 0
-	ch <- *cmd
+	cmd := make([]pudge.ArrayPriv, 0)
+	locOn := new(pudge.ArrayPriv)
+	locOn.Number = 0
+	cmd = append(cmd, *locOn)
+	ch <- cmd
 	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Начата передача массивов"}
 }
 func sendLocalOff(dev *pudge.Controller) {
@@ -236,26 +250,27 @@ func sendLocalOff(dev *pudge.Controller) {
 		logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
 		return
 	}
-	cmd := new(comm.CommandArray)
-	cmd.ID = 0
-	cmd.Number = 1
-	ch <- *cmd
+	cmd := make([]pudge.ArrayPriv, 0)
+	locOff := new(pudge.ArrayPriv)
+	locOff.Number = -1
+	cmd = append(cmd, *locOff)
+	ch <- cmd
 	pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Окончена передача массивов"}
 }
-func sendArray(dev *pudge.Controller, array pudge.ArrayPriv) {
+func sendArray(dev *pudge.Controller, array []pudge.ArrayPriv) {
 	//Спросить у коммуникационного сервера канал для отправки сообщения
 	ch, is := comm.GetChanArray(dev.ID)
 	if !is {
 		logger.Info.Printf("Нет канала слать массив на %d", dev.ID)
 		return
 	}
-	cmd := new(comm.CommandArray)
-	cmd.ID = dev.ID
-	cmd.Number = array.Number
-	cmd.NElem = array.NElem
-	cmd.Elems = array.Array
-	logger.Debug.Printf("На устройство %d передали %v", dev.ID, cmd)
-	ch <- *cmd
+	//cmd := new(comm.CommandArray)
+	//cmd.ID = dev.ID
+	//cmd.Number = array.Number
+	//cmd.NElem = array.NElem
+	//cmd.Elems = array.Array
+	//logger.Debug.Printf("На устройство %d передали %v", dev.ID, cmd)
+	ch <- array
 }
 func isCorrectVersion(cr pudge.Cross, dev *pudge.Controller) bool {
 	c := cr.Model.VPCPDL*100 + cr.Model.VPCPDR

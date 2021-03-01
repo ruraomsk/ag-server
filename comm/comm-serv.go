@@ -27,7 +27,7 @@ var sendPhases chan DevPhases
 //Слушает входящие сообщения и распределяет их на устройства
 
 //GetChanArray возвращает канал для присылки массивов для данного устройства
-func GetChanArray(id int) (chan CommandArray, bool) {
+func GetChanArray(id int) (chan []pudge.ArrayPriv, bool) {
 	d, is := devs[id]
 	if !is {
 		return nil, false
@@ -181,7 +181,7 @@ func newConnect(soc net.Conn) {
 	ctrl.IPHost = soc.RemoteAddr().String()
 	dd.id = ctrl.ID
 	dd.CommandARM = make(chan CommandARM)
-	dd.CommandArray = make(chan CommandArray)
+	dd.CommandArray = make(chan []pudge.ArrayPriv)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int)
 	dd.addNumber()
@@ -322,7 +322,7 @@ func newConnect(soc net.Conn) {
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
-			if comArray.ID == 0 && comArray.Number == 0 {
+			if comArray[0].Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
 				//ctrl.Local = true
@@ -332,7 +332,7 @@ func newConnect(soc net.Conn) {
 				hout <- hs
 				break
 			}
-			if comArray.ID == 0 && comArray.Number == 1 {
+			if comArray[0].Number == -1 {
 				//Команда выйти из локального режима
 				hs := makeLocalOff(dd)
 				//logger.Debug.Printf("Local off %d", dd.id)
@@ -341,27 +341,28 @@ func newConnect(soc net.Conn) {
 				hout <- hs
 				break
 			}
-
-			is := false
-			for n, ap := range ctrl.Arrays {
-				if ap.Number == comArray.Number && ap.NElem == comArray.NElem {
-					ctrl.Arrays[n].Array = comArray.Elems
-					is = true
-					break
+			for _, arp := range comArray {
+				is := false
+				for n, ap := range ctrl.Arrays {
+					if ap.Number == arp.Number && ap.NElem == arp.NElem {
+						ctrl.Arrays[n].Array = arp.Array
+						is = true
+						break
+					}
 				}
-			}
-			if !is {
-				ap := new(pudge.ArrayPriv)
-				ap.Number = comArray.Number
-				ap.NElem = comArray.NElem
-				ap.Array = comArray.Elems
-				ctrl.Arrays = append(ctrl.Arrays, *ap)
+				if !is {
+					ap := new(pudge.ArrayPriv)
+					ap.Number = arp.Number
+					ap.NElem = arp.NElem
+					ap.Array = arp.Array
+					ctrl.Arrays = append(ctrl.Arrays, *ap)
+				}
 			}
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
 			// logger.Debug.Printf("send array %d", dd.id)
-
 			hout <- hs
+
 		}
 	}
 
@@ -645,13 +646,16 @@ func makeLocalOff(dd *device) transport.HeaderServer {
 	return hs
 
 }
-func makeArrayToDevice(dd *device, comArray CommandArray) transport.HeaderServer {
+func makeArrayToDevice(dd *device, comArrays []pudge.ArrayPriv) transport.HeaderServer {
 	dd.addNumber()
-	var ms transport.SubMessage
 	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
 	mss := make([]transport.SubMessage, 0)
-	ms.SetArray(comArray.Number, comArray.NElem, comArray.Elems)
-	mss = append(mss, ms)
+	for _, arp := range comArrays {
+		ms := new(transport.SubMessage)
+		ms.SetArray(arp.Number, arp.NElem, arp.Array)
+		mss = append(mss, *ms)
+		logger.Info.Printf("Передали на устройство %d привязку %v", dd.id, arp.Array)
+	}
 	_ = hs.UpackMessages(mss)
 	return hs
 }

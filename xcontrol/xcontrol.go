@@ -1,12 +1,23 @@
 package xcontrol
 
 import (
+	"bufio"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"github.com/jasonlvhit/gocron"
 	"github.com/ruraomsk/TLServer/logger"
+	"github.com/ruraomsk/ag-server/comm"
+	"github.com/ruraomsk/ag-server/pudge"
+	"net"
+	"strconv"
+	"strings"
+	"time"
+
 	//Инициализатор постргресса
 	_ "github.com/lib/pq"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/setup"
-	"time"
 )
 
 //Данный пакет производит управление по характерным точкам
@@ -14,93 +25,211 @@ import (
 // 	в первом разделе производится расчет характерной точки и выбор стратегии
 // 	во втором разделе производится выполнение выбранной стратегии для каждого района и подрайона
 
-//StateSubArea описание выбранной стратегии для одного подрайона
-type State struct {
-	Region      int       `json:"region"`
-	Area        int       `json:"area"`
-	SubArea     int       `json:"subarea"`
-	Switch      bool      `json:"switch"`  //true призводим расчет нового плана
-	Release     bool      `json:"release"` //true выполняем план
-	UseStrategy bool      `json:"use"`     //true выполняем стратегию А иначе стратегия B
-	Step        int       `json:"step"`    //Время цикла для данного подрайона
-	Remain      int       `json:"rem"`     //Остаток времени для нового расчета
-	LastTime    time.Time `json:"ltime"`   //Последний расчет характерной точки
-	PKCalc      int       `json:"pkcalc"`  //Расчитанный ПК
-	PKNow       int       `json:"pknow"`   //Текущий ПК
-	PKLast      int       `json:"pklast"`  //Предыдущий ПК
-	Status      []string  `json:"status"`  //Состояние расчетов и итоги проверки
+var command chan int
+var commARM chan comm.CommandARM
+var work = false
+var dbb *sql.DB
+var err error
+var mainTable *Table
+var stats []ExtState
 
-	Left  int `json:"left"`  //Максимум для прямого направления
-	Right int `json:"right"` //Максимум для обратного направления
-
-	StrategysA []StrategyA //Правила перехода по схеме А (области)
-	StrategysB []StrategyB //Правила перехода по схеме B (лучи)
-	Calculates []Calc      //Правила расчета характерной точки
-	Results    []Result    //Промежуточные результаты
-}
-type Result struct {
-	Ileft  int `json:"il"` //Интенсивность прямого направления
-	Iright int `json:"ir"` //Интенсивность обратного направления
+func listenCommand() {
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.XCtrl.Port))
+	if err != nil {
+		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
+		command <- -1
+		return
+	}
+	defer ln.Close()
+	for {
+		socket, err := ln.Accept()
+		if err != nil {
+			logger.Error.Printf("Ошибка accept %s", err.Error())
+			continue
+		}
+		go worker(socket)
+	}
 }
 
-//StrategyB описание стратегии
-type StrategyB struct {
-	XLeft       int     `json:"xleft"`  //Интенсивность в прямом направлении
-	XRight      int     `json:"xright"` //Интенсивность в обратном направлении
-	VLeft       float32 `json:"vleft"`  //Луч левый
-	VRight      float32 `json:"vright"` //Луч правый
-	PKL         int     `json:"pkl"`    // Назначенный план прямой
-	PKS         int     `json:"pks"`    // Назначенный план средний
-	PKR         int     `json:"pkr"`    // Назначенный план обратный
-	Description string  `json:"desc"`   //Описание
+//символ 0 keep alive
+//setup - возвращаем настроечные параметры системы
+//restart
+//list,# - список перекрестков региона возвращаем список
+//get,#,#,# регион,район и номер перекрестка возврат json конкретного перекрестка
+func worker(soc net.Conn) {
+	defer soc.Close()
+
+	logger.Info.Printf("Новый клиент удаленного сервера %s", soc.RemoteAddr().String())
+	reader := bufio.NewReader(soc)
+	writer := bufio.NewWriter(soc)
+
+	for {
+		cmd, err := reader.ReadString('\n')
+		if err != nil {
+			logger.Error.Printf("При чтении команд удаленного сервера %s", err.Error())
+			return
+		}
+		cmd = strings.Replace(cmd, "\n", "", 1)
+		if cmd[0:1] == "0" {
+			logger.Info.Println("Keep alive")
+			continue
+		}
+		logger.Error.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
+		if strings.Contains(cmd, "restart") {
+			command <- 1
+			continue
+		}
+		if strings.HasPrefix(cmd, "setup") {
+			result, err := json.Marshal(setup.Set.XCtrl)
+			if err != nil {
+				logger.Error.Println(err.Error())
+				writer.WriteString("{}")
+			} else {
+				_, _ = writer.WriteString(string(result))
+			}
+			_, _ = writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "crosslist") {
+			_, _ = writer.WriteString(mainTable.listTables())
+			_, _ = writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "statelist") {
+			_, _ = writer.WriteString(listStates())
+			_, _ = writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "crossget") {
+			ls := strings.Split(cmd, ",")
+			region, _ := strconv.Atoi(ls[1])
+			area, _ := strconv.Atoi(ls[2])
+			id, _ := strconv.Atoi(ls[3])
+			writer.WriteString(mainTable.getXCross(pudge.Region{
+				Region: region,
+				Area:   area,
+				ID:     id,
+			}))
+			writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "stateget") {
+			ls := strings.Split(cmd, ",")
+			region, _ := strconv.Atoi(ls[1])
+			area, _ := strconv.Atoi(ls[2])
+			id, _ := strconv.Atoi(ls[3])
+			writer.WriteString(getState(pudge.Region{
+				Region: region,
+				Area:   area,
+				ID:     id,
+			}))
+			writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "dataget") {
+			ls := strings.Split(cmd, ",")
+			region, _ := strconv.Atoi(ls[1])
+			area, _ := strconv.Atoi(ls[2])
+			id, _ := strconv.Atoi(ls[3])
+			writer.WriteString(getData(pudge.Region{
+				Region: region,
+				Area:   area,
+				ID:     id,
+			}, ls[4]))
+			writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+
+	}
+
+}
+func startCron() {
+	<-gocron.Start()
 }
 
-//StrategyA описание стратегии
-type StrategyA struct {
-	XLeft       int    `json:"xleft"`  //Некое число для центра области
-	XRight      int    `json:"xright"` //Некое число для центра области
-	PK          int    `json:"pk"`     // Назначенный план
-	Description string `json:"desc"`   //Описание
-}
-
-//Calc расчет одной позиции точки
-type Calc struct {
-	Region int   `json:"region"`
-	Area   int   `json:"area"`
-	ID     int   `json:"id"`    //Перекресток по которому принимается решение
-	ChanL  []int `json:"chanL"` //Номера каналов по статистике прямой направление
-	ChanR  []int `json:"chanR"` //Номера каналов по статистике обратное направление
-}
-
-type key struct {
-	Region  int `json:"region"`
-	Area    int `json:"area"`
-	SubArea int `json:"subarea"`
-}
-
-//Start главный модуль инспектора
+//Start главный модуль регулятора
 func Start(context *extcon.ExtContext, stop chan int) {
-
 	if !setup.Set.XCtrl.Switch {
 		//Не нужен модель управления по характерным точкам
 		logger.Info.Print("Модуль управления по характерным точкам отключен... ")
 		return
 	}
-	err := Corrector()
+	logger.Info.Print("Модуль управления по характерным старт... ")
+	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		setup.Set.DataBase.Host, setup.Set.DataBase.User,
+		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
+	dbb, err = sql.Open("postgres", dbinfo)
 	if err != nil {
-		logger.Error.Printf("Контроль управленя  %s", err.Error())
-		//logger.Info.Print("Модуль управления по характерным точкам будет отключен!")
-		//return
+		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
+		command <- -1
+		return
 	}
-	logger.Info.Print("Модуль расчета характерных точек запущен... ")
-	go Calculator()
-	logger.Info.Print("Модуль управления по характерным точкам запущен... ")
-	go Sender()
-	select {
-	case <-context.Done():
+	defer dbb.Close()
+	if err = dbb.Ping(); err != nil {
+		logger.Error.Printf("Ping %s", err.Error())
+		command <- -1
 		return
-	case <-stop:
+	}
+	work = true
+	mainTable = new(Table)
+	stats = make([]ExtState, 0)
+	err := makeTable()
+	if err != nil {
+		logger.Error.Printf("Ошибка создания таблицы %s", err.Error())
 		return
+	}
+	loadTable()
+	go listenCommand()
+	fmt.Println("Можно загружать просмотр...")
+	for {
+		t := time.Now()
+		if t.Minute()%setup.Set.XCtrl.StepDev == 0 && t.Second() == 0 {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+	logger.Info.Print("Скорректировали время запуска... ")
+	for _, reg := range setup.Set.Statistic.Regions {
+		region, _ := strconv.Atoi(reg[0])
+		_ = gocron.Every(1).Day().At(reg[1]).Do(clearRegion, region)
+	}
+	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(loadTable)
+	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(calculate)
+	go startCron()
+	command = make(chan int)
+	commARM = make(chan comm.CommandARM, 1000)
+	go sender()
+	for {
+		err := makeTable()
+		if err != nil {
+			logger.Error.Printf("Ошибка создания таблицы %s", err.Error())
+			return
+		}
+		calculate()
+		logger.Info.Print("Модуль расчета характерных точек запущен... ")
+		logger.Info.Print("Модуль управления по характерным точкам запущен... ")
+		needRestart := false
+		for !needRestart {
+			select {
+			case <-context.Done():
+				work = false
+				time.Sleep(5 * time.Second)
+				return
+			case <-stop:
+				return
+			case <-command:
+				needRestart = true
+
+			}
+
+		}
+
 	}
 
 }
