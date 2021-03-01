@@ -2,11 +2,9 @@ package xcontrol
 
 import (
 	"encoding/json"
-	"sort"
-	"time"
-
 	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/pudge"
+	"sort"
 )
 
 //State описание xctrs
@@ -18,7 +16,7 @@ type State struct {
 	Release     bool       `json:"release"` //true выполняем план
 	UseStrategy bool       `json:"use"`     //true выполняем стратегию А иначе стратегия B
 	Step        int        `json:"step"`    //Время цикла для данного подрайона
-	LastTime    time.Time  `json:"ltime"`   //Последний расчет характерной точки
+	LastTime    int        `json:"ltime"`   //Последний расчет характерной точки
 	PKCalc      int        `json:"pkcalc"`  //Посчитанный ПК
 	PKNow       int        `json:"pknow"`   //Текущий ПК
 	PKLast      int        `json:"pklast"`  //Предыдущий ПК

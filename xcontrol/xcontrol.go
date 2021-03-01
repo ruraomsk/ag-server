@@ -59,14 +59,14 @@ func listenCommand() {
 func worker(soc net.Conn) {
 	defer soc.Close()
 
-	logger.Info.Printf("Новый клиент удаленного сервера %s", soc.RemoteAddr().String())
+	logger.Info.Printf("Новый клиент сервера ХТ %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 
 	for {
 		cmd, err := reader.ReadString('\n')
 		if err != nil {
-			logger.Error.Printf("При чтении команд удаленного сервера %s", err.Error())
+			logger.Error.Printf("При чтении команд сервера ХТ от клиента %s %s", soc.RemoteAddr().String(), err.Error())
 			return
 		}
 		cmd = strings.Replace(cmd, "\n", "", 1)
@@ -145,7 +145,12 @@ func worker(soc net.Conn) {
 			_ = writer.Flush()
 			continue
 		}
-
+		if strings.HasPrefix(cmd, "messages") {
+			_, _ = writer.WriteString(getMessages())
+			_, _ = writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
 	}
 
 }
@@ -185,6 +190,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		return
 	}
 	loadTable()
+	clearError()
 	go listenCommand()
 	fmt.Println("Можно загружать просмотр...")
 	for {
@@ -199,6 +205,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		region, _ := strconv.Atoi(reg[0])
 		_ = gocron.Every(1).Day().At(reg[1]).Do(clearRegion, region)
 	}
+	_ = gocron.Every(1).Day().At("0:00").Do(clearError)
 	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(loadTable)
 	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(calculate)
 	go startCron()

@@ -49,6 +49,7 @@ func (e *ExtState) init() {
 }
 
 func (e *ExtState) calculate() {
+	logger.Info.Printf(" Управление %d %d %d", e.State.Region, e.State.Area, e.State.SubArea)
 	if !e.State.Switch {
 		return
 	}
@@ -61,7 +62,7 @@ func (e *ExtState) calculate() {
 	}
 	t := time.Now().Add(time.Duration(s) * time.Hour)
 	e.Time = t.Hour()*60 + t.Minute()
-	logger.Info.Printf(" Смотрим %d:%d для региона %d", e.Time/60, e.Time%60, e.State.Region)
+	logger.Info.Printf(" Смотрим %d:%d для  %d %d %d", e.Time/60, e.Time%60, e.State.Region, e.State.Area, e.State.SubArea)
 
 	for _, r := range e.Results["result"] {
 		if r.Time == e.Time {

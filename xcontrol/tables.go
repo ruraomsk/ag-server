@@ -179,10 +179,14 @@ func clearRegion(region int) {
 		}
 	}
 	for i, e := range stats {
-		if e.State.Region != region {
+		if stats[i].State.Region != region {
 			continue
 		}
 		stats[i].Time = 0
+		for _, s := range stats[i].State.Xctrls {
+			stats[i].Results[s.Name] = initLineResult(e.State.Step, 3)
+		}
+		e.Results["result"] = initLineResult(e.State.Step, 2+len(e.State.Xctrls))
 	}
 
 }
@@ -217,7 +221,7 @@ func (t *Table) verify() {
 			logger.Error.Printf("Не найден %s", rt)
 		}
 	}
-	logger.Info.Println("Консистентно...")
+	//logger.Info.Println("Консистентно...")
 }
 func (t *Table) setData(device *pudge.Controller) error {
 	if !work {
@@ -327,13 +331,12 @@ func loadTable() {
 			return
 		}
 		if len(dev.Statistics) == 0 {
-			logger.Error.Printf("Устройство  %d пустая статистика ", dev.ID)
-
+			addMessage(fmt.Sprintf("Устройство  %d пустая статистика ", dev.ID))
 			continue
 		}
 		err = mainTable.setData(&dev)
 		if err != nil {
-			logger.Error.Printf("загрузка %s", err.Error())
+			addMessage(fmt.Sprintf("загрузка %s", err.Error()))
 		}
 	}
 }

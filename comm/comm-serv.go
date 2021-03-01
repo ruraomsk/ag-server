@@ -93,7 +93,8 @@ func newConnect(soc net.Conn) {
 	hout := make(chan transport.HeaderServer, 100)
 	hin := make(chan transport.HeaderDevice, 100)
 	defer soc.Close()
-	readTout := time.Duration(setup.Set.CommServer.TimeOutRead * int64(time.Second))
+	readTout := time.Duration((setup.Set.CommServer.TimeOutRead + 60) * int64(time.Second))
+	controlTout := time.Duration(setup.Set.CommServer.TimeOutRead * int64(time.Second))
 	writeTout := time.Duration(setup.Set.CommServer.TimeOutWrite * int64(time.Second))
 	dd := new(device)
 	dd.ErrorTCP = make(chan int)
@@ -117,7 +118,8 @@ func newConnect(soc net.Conn) {
 		return
 	}
 	if ctrl.TimeOut != 0 {
-		readTout = time.Duration(ctrl.TimeOut * int64(time.Second))
+		readTout = time.Duration((ctrl.TimeOut + 60) * int64(time.Second))
+		controlTout = time.Duration(ctrl.TimeOut * int64(time.Second))
 	} else {
 		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
 		pudge.SetController(ctrl)
@@ -264,6 +266,16 @@ func newConnect(soc net.Conn) {
 			delete(devs, ctrl.ID)
 			return
 		case <-timer.C:
+			if time.Now().Sub(ctrl.LastOperation) < readTout && time.Now().Sub(ctrl.LastOperation) > controlTout {
+				hs, err = makeAlive(dd)
+				if err != nil {
+					logger.Error.Printf("При создании команды keepALive %d %s", dd.id, err.Error())
+					continue
+				}
+				ctrl.LastOperation = time.Now()
+				pudge.SetController(ctrl)
+				hout <- hs
+			}
 			if time.Now().Sub(ctrl.LastOperation) > readTout {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
@@ -580,6 +592,17 @@ func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderSe
 	}
 	_ = hs.UpackMessages(mss)
 	return hs, nil
+}
+func makeAlive(dd *device) (transport.HeaderServer, error) {
+	dd.addNumber()
+	hs := transport.CreateHeaderServer(int(dd.NumServ), 1)
+	mss := make([]transport.SubMessage, 0)
+	var ms transport.SubMessage
+	ms.Set0x03Server()
+	mss = append(mss, ms)
+	_ = hs.UpackMessages(mss)
+	return hs, nil
+
 }
 func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer, error) {
 	dd.addNumber()
