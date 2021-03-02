@@ -3,6 +3,7 @@ package xcontrol
 import (
 	"encoding/json"
 	"github.com/ruraomsk/TLServer/logger"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -41,11 +42,16 @@ func getMessages() string {
 	for _, m := range listDevice {
 		ms.Messages = append(ms.Messages, m.Time.Format("15:04:05")+";"+m.Message)
 	}
+	sort.Slice(ms.Messages, func(i, j int) bool {
+		if strings.Compare(ms.Messages[i], ms.Messages[j]) < 0 {
+			return true
+		}
+		return false
+	})
 	js, err := json.Marshal(ms)
 	if err != nil {
 		logger.Error.Println(err.Error())
 		return "{}"
 	}
-
 	return string(js)
 }

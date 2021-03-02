@@ -36,8 +36,52 @@ type Xctrl struct {
 
 }
 
-func (x *Xctrl) calculate(state *ExtState) {
-	logger.Info.Printf("Расчитываем %d %d %d для %d:%d", state.State.Region, state.State.Area, state.State.SubArea, state.Time/60, state.Time%60)
+func (x *Xctrl) calculate(estate *ExtState) {
+	logger.Info.Printf("Расчитываем %d %d %d для %d:%d", estate.State.Region, estate.State.Area, estate.State.SubArea, estate.Time/60, estate.Time%60)
+	result := estate.Results[x.Name]
+	for i, r := range result {
+		start := 0
+		if i != 0 {
+			start = result[i-1].Time
+		}
+		for _, c := range x.Calculates {
+			good := false
+			left := 0
+			right := 0
+			reg := pudge.Region{Region: c.Region, Area: c.Area, ID: c.ID}
+			for _, l := range c.ChanL {
+				ll, g := mainTable.getInfo(reg, l, start, r.Time)
+				if !g {
+					good = false
+				}
+				left += ll
+			}
+			for _, rt := range c.ChanR {
+				rr, g := mainTable.getInfo(reg, rt, start, r.Time)
+				if !g {
+					good = false
+				}
+				right += rr
+			}
+			r.Good = good
+			r.Value[0] = left
+			r.Value[1] = right
+			result[i] = r
+			if r.Time == estate.Time {
+				return
+			}
+
+		}
+	}
+
+	for i, r := range result {
+		if r.Time == estate.Time {
+
+			r.Good = true
+			result[i] = r
+			return
+		}
+	}
 }
 
 //StrategyB описание стратегии

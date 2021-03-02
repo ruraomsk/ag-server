@@ -12,7 +12,7 @@ import (
 )
 
 type ExtState struct {
-	State   State
+	State   *State
 	Time    int //Внутреннее время
 	Results map[string][]LineResult
 	Devices []int
@@ -29,13 +29,13 @@ func (l *LineResult) init(time int, size int) {
 	l.Value = make([]int, size)
 }
 func initLineResult(step int, size int) []LineResult {
-	time := step
+	ltime := step
 	r := make([]LineResult, 0)
-	for time <= 60*24 {
+	for ltime <= 60*24 {
 		l := new(LineResult)
-		l.init(time, size)
+		l.init(ltime, size)
 		r = append(r, *l)
-		time += step
+		ltime += step
 	}
 	return r
 }
@@ -45,11 +45,11 @@ func (e *ExtState) init() {
 	for _, s := range e.State.Xctrls {
 		e.Results[s.Name] = initLineResult(e.State.Step, 3)
 	}
-	e.Results["result"] = initLineResult(e.State.Step, 2+len(e.State.Xctrls))
+	e.Results["result"] = initLineResult(e.State.Step, 2)
 }
 
 func (e *ExtState) calculate() {
-	logger.Info.Printf(" Управление %d %d %d", e.State.Region, e.State.Area, e.State.SubArea)
+	//logger.Info.Printf(" Управление %d %d %d", e.State.Region, e.State.Area, e.State.SubArea)
 	if !e.State.Switch {
 		return
 	}
@@ -62,14 +62,18 @@ func (e *ExtState) calculate() {
 	}
 	t := time.Now().Add(time.Duration(s) * time.Hour)
 	e.Time = t.Hour()*60 + t.Minute()
-	logger.Info.Printf(" Смотрим %d:%d для  %d %d %d", e.Time/60, e.Time%60, e.State.Region, e.State.Area, e.State.SubArea)
-
-	for _, r := range e.Results["result"] {
+	//logger.Info.Printf(" Смотрим %d:%d для  %d %d %d", e.Time/60, e.Time%60, e.State.Region, e.State.Area, e.State.SubArea)
+	result := e.Results["result"]
+	for i, r := range result {
 		if r.Time == e.Time {
+			e.State.LastTime = e.Time
+			r.Good = true
 			for _, x := range e.State.Xctrls {
 				x.calculate(e)
 			}
-
+			result[i] = r
+			e.Results["result"] = result
+			return
 		}
 	}
 
@@ -98,7 +102,7 @@ func ReaderStates() error {
 			return err
 		}
 		extState := new(ExtState)
-		extState.State = state
+		extState.State = &state
 		s := 0
 		for _, r := range setup.Set.XCtrl.Regions {
 			if r[0] == extState.State.Region {

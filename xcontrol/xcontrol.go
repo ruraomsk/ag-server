@@ -83,7 +83,7 @@ func worker(soc net.Conn) {
 			result, err := json.Marshal(setup.Set.XCtrl)
 			if err != nil {
 				logger.Error.Println(err.Error())
-				writer.WriteString("{}")
+				_, _ = writer.WriteString("{}")
 			} else {
 				_, _ = writer.WriteString(string(result))
 			}
@@ -108,12 +108,12 @@ func worker(soc net.Conn) {
 			region, _ := strconv.Atoi(ls[1])
 			area, _ := strconv.Atoi(ls[2])
 			id, _ := strconv.Atoi(ls[3])
-			writer.WriteString(mainTable.getXCross(pudge.Region{
+			_, _ = writer.WriteString(mainTable.getXCross(pudge.Region{
 				Region: region,
 				Area:   area,
 				ID:     id,
 			}))
-			writer.WriteString("\n")
+			_, _ = writer.WriteString("\n")
 			_ = writer.Flush()
 			continue
 		}
@@ -122,12 +122,12 @@ func worker(soc net.Conn) {
 			region, _ := strconv.Atoi(ls[1])
 			area, _ := strconv.Atoi(ls[2])
 			id, _ := strconv.Atoi(ls[3])
-			writer.WriteString(getState(pudge.Region{
+			_, _ = writer.WriteString(getState(pudge.Region{
 				Region: region,
 				Area:   area,
 				ID:     id,
 			}))
-			writer.WriteString("\n")
+			_, _ = writer.WriteString("\n")
 			_ = writer.Flush()
 			continue
 		}
@@ -136,12 +136,12 @@ func worker(soc net.Conn) {
 			region, _ := strconv.Atoi(ls[1])
 			area, _ := strconv.Atoi(ls[2])
 			id, _ := strconv.Atoi(ls[3])
-			writer.WriteString(getData(pudge.Region{
+			_, _ = writer.WriteString(getData(pudge.Region{
 				Region: region,
 				Area:   area,
 				ID:     id,
 			}, ls[4]))
-			writer.WriteString("\n")
+			_, _ = writer.WriteString("\n")
 			_ = writer.Flush()
 			continue
 		}

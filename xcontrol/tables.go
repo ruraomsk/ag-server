@@ -100,8 +100,8 @@ func (t *Table) getXCross(region pudge.Region) string {
 
 }
 func (t *Table) getInfo(region pudge.Region, chanel int, start int, stop int) (value int, good bool) {
-	t.Mutex.Lock()
-	defer t.Mutex.Unlock()
+	//t.Mutex.Lock()
+	//defer t.Mutex.Unlock()
 	xcross, is := t.Table[region.ToKey()]
 	if !is {
 		return -1, false
@@ -111,6 +111,7 @@ func (t *Table) getInfo(region pudge.Region, chanel int, start int, stop int) (v
 
 	}
 	sum := 0
+	start += xcross.Step
 	for start <= stop {
 		v, is := xcross.Values[start]
 		if !is {
