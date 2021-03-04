@@ -60,10 +60,11 @@ func (t *Table) listTables() string {
 }
 
 type LineCross struct {
-	Region pudge.Region
-	Step   int
-	Count  int
-	Values []LineValue
+	Region   pudge.Region
+	DiffTime int
+	Step     int
+	Count    int
+	Values   []LineValue
 }
 type LineValue struct {
 	Time    int
@@ -76,6 +77,12 @@ func (t *Table) getXCross(region pudge.Region) string {
 	t.Mutex.Lock()
 	defer t.Mutex.Unlock()
 	res := new(LineCross)
+	for _, r := range setup.Set.XCtrl.Regions {
+		if r[0] == region.Region {
+			res.DiffTime = r[1]
+			break
+		}
+	}
 	xcr, is := t.Table[region.ToKey()]
 	if is {
 		res.Region = xcr.Region
@@ -115,13 +122,16 @@ func (t *Table) getInfo(region pudge.Region, chanel int, start int, stop int) (v
 	for start <= stop {
 		v, is := xcross.Values[start]
 		if !is {
-			return -3, false
+			return 0, false
 		}
 		if !v.Def {
-			return -4, false
+			return 0, false
+		}
+		if (chanel-1) < 0 || (chanel-1) >= len(v.Good) {
+			return 0, false
 		}
 		if !v.Good[chanel-1] {
-			return -5, false
+			return 0, false
 		}
 		sum += v.Chanels[chanel-1]
 		start += xcross.Step
@@ -166,7 +176,7 @@ func newXcross(cross *pudge.Cross) *Xcross {
 	return x
 }
 func clearRegion(region int) {
-	logger.Info.Println("clearRegion ", region)
+	//logger.Info.Println("clearRegion ", region)
 	mainTable.Mutex.Lock()
 	defer mainTable.Mutex.Unlock()
 	for _, t := range mainTable.Table {
@@ -192,8 +202,8 @@ func clearRegion(region int) {
 
 }
 func (t *Table) setXCross(xcross *Xcross) {
-	t.Mutex.Lock()
-	defer t.Mutex.Unlock()
+	//t.Mutex.Lock()
+	//defer t.Mutex.Unlock()
 	_, is := t.Table[xcross.Region.ToKey()]
 	if is {
 		logger.Error.Printf("Дубликат %v", xcross.Region)
@@ -207,30 +217,13 @@ func (t *Table) setXCross(xcross *Xcross) {
 		t.Seek[xcross.IDevice] = xcross.Region.ToKey()
 	}
 }
-func (t *Table) verify() {
-	t.Mutex.Lock()
-	defer t.Mutex.Unlock()
-	for _, rt := range t.Table {
-		_, is := t.Seek[rt.IDevice]
-		if !is {
-			logger.Error.Printf("Не найден %d %v", rt.IDevice, rt.Region)
-		}
-	}
-	for _, rt := range t.Seek {
-		_, is := t.Table[rt]
-		if !is {
-			logger.Error.Printf("Не найден %s", rt)
-		}
-	}
-	//logger.Info.Println("Консистентно...")
-}
 func (t *Table) setData(device *pudge.Controller) error {
 	if !work {
 		return fmt.Errorf("not work")
 	}
 	//logger.Info.Printf("Записываем статистику %d",device.ID)
-	t.Mutex.Lock()
-	defer t.Mutex.Unlock()
+	//t.Mutex.Lock()
+	//defer t.Mutex.Unlock()
 	r, is := t.Seek[device.ID]
 	if !is {
 		if len(device.Statistics) != 0 {
@@ -264,7 +257,9 @@ func (t *Table) setData(device *pudge.Controller) error {
 	return nil
 }
 func makeTable() error {
-	logger.Info.Println("makeTable")
+	//logger.Info.Println("makeTable")
+	mainTable.Mutex.Lock()
+	defer mainTable.Mutex.Unlock()
 	mainTable.Table = make(map[string]*Xcross)
 	mainTable.Seek = make(map[int]string)
 	w := "select region,area,id,idevice,state from public.\"cross\";"
@@ -298,8 +293,10 @@ func makeTable() error {
 			mainTable.setXCross(xcross)
 		}
 	}
+	mainTable.Mutex.Unlock()
 	loadTable()
 	err = ReaderStates()
+	mainTable.Mutex.Lock()
 	if err != nil {
 		logger.Error.Printf("Контроль управления  %s", err.Error())
 		return err
@@ -307,10 +304,11 @@ func makeTable() error {
 	return nil
 }
 func loadTable() {
-	mainTable.verify()
 	ts, _ := time.ParseDuration(setup.Set.XCtrl.ShiftDevice)
 	time.Sleep(ts)
-	logger.Info.Println("loadTable")
+	mainTable.Mutex.Lock()
+	defer mainTable.Mutex.Unlock()
+	//logger.Info.Println("loadTable")
 	w := "select device from public.\"devices\";"
 	devs, err := dbb.Query(w)
 	if err != nil {

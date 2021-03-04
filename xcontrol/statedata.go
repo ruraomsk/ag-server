@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/pudge"
+	"math"
 	"sort"
 )
 
@@ -36,8 +37,57 @@ type Xctrl struct {
 
 }
 
+func (x *Xctrl) getPlanB(left, right int) int {
+	if right == 0 {
+		right = 1
+	}
+	if left == 0 {
+		left = 1
+	}
+	f := float32(left) / float32(right)
+	plan := 0
+	for _, st := range x.StrategyB {
+		if left <= st.XLeft && right <= st.XRight {
+			c0 := 0
+			c1 := 0
+			c2 := 0
+			if f <= st.VLeft {
+				c0++
+			}
+			if f >= st.VRight {
+				c2++
+			}
+			if f > st.VLeft && f < st.VRight {
+				c1++
+			}
+			plan = st.PKS
+			if c0 > c1 && c0 > c2 {
+				plan = st.PKL
+			}
+			if c2 > c0 && c2 > c1 {
+				plan = st.PKR
+			}
+			return plan
+		}
+	}
+	return 0
+}
+func (x *Xctrl) getPlanA(left, right int) int {
+	plan := 0
+	dist := uint64(math.MaxInt64)
+	for _, ar := range x.StrategyA {
+		ld := left - ar.XLeft
+		rd := right - ar.XRight
+		d := (uint64(ld) * uint64(ld)) + (uint64(rd) * uint64(rd))
+		if d < dist {
+			dist = d
+			plan = ar.PK
+		}
+	}
+	return plan
+}
 func (x *Xctrl) calculate(estate *ExtState) {
-	logger.Info.Printf("Расчитываем %d %d %d для %d:%d", estate.State.Region, estate.State.Area, estate.State.SubArea, estate.Time/60, estate.Time%60)
+	//logger.Info.Printf("Расчитываем %d %d %d для %d:%d", estate.State.Region, estate.State.Area, estate.State.SubArea, estate.Time/60, estate.Time%60)
 	result := estate.Results[x.Name]
 	for i, r := range result {
 		start := 0
@@ -45,11 +95,14 @@ func (x *Xctrl) calculate(estate *ExtState) {
 			start = result[i-1].Time
 		}
 		for _, c := range x.Calculates {
-			good := false
+			good := true
 			left := 0
 			right := 0
 			reg := pudge.Region{Region: c.Region, Area: c.Area, ID: c.ID}
 			for _, l := range c.ChanL {
+				if l <= 0 {
+					continue
+				}
 				ll, g := mainTable.getInfo(reg, l, start, r.Time)
 				if !g {
 					good = false
@@ -57,6 +110,9 @@ func (x *Xctrl) calculate(estate *ExtState) {
 				left += ll
 			}
 			for _, rt := range c.ChanR {
+				if rt <= 0 {
+					continue
+				}
 				rr, g := mainTable.getInfo(reg, rt, start, r.Time)
 				if !g {
 					good = false
@@ -64,24 +120,24 @@ func (x *Xctrl) calculate(estate *ExtState) {
 				right += rr
 			}
 			r.Good = good
-			r.Value[0] = left
-			r.Value[1] = right
+			r.Value[0] = left * (60 / estate.State.Step)
+			r.Value[1] = right * (60 / estate.State.Step)
+			if r.Good {
+				if estate.State.UseStrategy {
+					r.Value[2] = x.getPlanB(r.Value[0], r.Value[1])
+				} else {
+					r.Value[2] = x.getPlanA(r.Value[0], r.Value[1])
+				}
+			} else {
+				r.Value[2] = 0
+			}
 			result[i] = r
 			if r.Time == estate.Time {
 				return
 			}
-
 		}
 	}
-
-	for i, r := range result {
-		if r.Time == estate.Time {
-
-			r.Good = true
-			result[i] = r
-			return
-		}
-	}
+	return
 }
 
 //StrategyB описание стратегии

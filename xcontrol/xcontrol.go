@@ -32,6 +32,7 @@ var dbb *sql.DB
 var err error
 var mainTable *Table
 var stats []ExtState
+var UserName string
 
 func listenCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.XCtrl.Port))
@@ -51,11 +52,6 @@ func listenCommand() {
 	}
 }
 
-//символ 0 keep alive
-//setup - возвращаем настроечные параметры системы
-//restart
-//list,# - список перекрестков региона возвращаем список
-//get,#,#,# регион,район и номер перекрестка возврат json конкретного перекрестка
 func worker(soc net.Conn) {
 	defer soc.Close()
 
@@ -71,10 +67,10 @@ func worker(soc net.Conn) {
 		}
 		cmd = strings.Replace(cmd, "\n", "", 1)
 		if cmd[0:1] == "0" {
-			logger.Info.Println("Keep alive")
+			//logger.Info.Println("Keep alive")
 			continue
 		}
-		logger.Error.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
+		//logger.Error.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
 		if strings.Contains(cmd, "restart") {
 			command <- 1
 			continue
@@ -184,6 +180,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	work = true
 	mainTable = new(Table)
 	stats = make([]ExtState, 0)
+	UserName = setup.Set.XCtrl.NameUser
 	err := makeTable()
 	if err != nil {
 		logger.Error.Printf("Ошибка создания таблицы %s", err.Error())
@@ -193,6 +190,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	clearError()
 	go listenCommand()
 	fmt.Println("Можно загружать просмотр...")
+	logger.Info.Println("Можно загружать просмотр...")
 	for {
 		t := time.Now()
 		if t.Minute()%setup.Set.XCtrl.StepDev == 0 && t.Second() == 0 {
@@ -219,7 +217,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			return
 		}
 		calculate()
-		logger.Info.Print("Модуль расчета характерных точек запущен... ")
 		logger.Info.Print("Модуль управления по характерным точкам запущен... ")
 		needRestart := false
 		for !needRestart {
@@ -232,7 +229,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 				return
 			case <-command:
 				needRestart = true
-
 			}
 
 		}

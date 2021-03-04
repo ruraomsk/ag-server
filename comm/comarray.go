@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -152,7 +153,9 @@ func workerCommand(soc net.Conn) {
 		}
 		dev, is := devs[command.ID]
 		if !is {
-			logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
+			if strings.Compare(command.User, setup.Set.XCtrl.NameUser) != 0 {
+				logger.Error.Printf("Команда сервера АРМ %v нет такого id %d", command, command.ID)
+			}
 			continue
 		}
 		logger.Info.Printf("Команда %v %s", command, soc.RemoteAddr().String())

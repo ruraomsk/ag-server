@@ -3,6 +3,7 @@ package xcontrol
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/setup"
 	"time"
 
@@ -64,23 +65,111 @@ func (e *ExtState) calculate() {
 	e.Time = t.Hour()*60 + t.Minute()
 	//logger.Info.Printf(" Смотрим %d:%d для  %d %d %d", e.Time/60, e.Time%60, e.State.Region, e.State.Area, e.State.SubArea)
 	result := e.Results["result"]
-	for i, r := range result {
+	mf := false
+	for _, r := range result {
 		if r.Time == e.Time {
 			e.State.LastTime = e.Time
-			r.Good = true
 			for _, x := range e.State.Xctrls {
 				x.calculate(e)
 			}
+			mf = true
+		}
+	}
+	if !mf {
+		return
+	}
+	//Сливаем результаты
+	temp := initLineResult(e.State.Step, len(e.State.Xctrls))
+	goods := initLineResult(e.State.Step, len(e.State.Xctrls))
+	c := 0
+	for _, x := range e.State.Xctrls {
+		for i, r := range e.Results[x.Name] {
+			temp[i].Value[c] = r.Value[2]
+			if r.Good {
+				goods[i].Value[c] = 1
+			}
+		}
+		c++
+	}
+	for i, r := range result {
+		good := false
+		for _, g := range goods[i].Value {
+			if g != 0 {
+				good = true
+			}
+		}
+		if !good {
+			r.Value[0] = 0
+			r.Good = false
 			result[i] = r
-			e.Results["result"] = result
+			continue
+		}
+		r.Good = true
+		ir := make([]int, 13)
+		for _, v := range temp[i].Value {
+			ir[v]++
+		}
+		if ir[0] == len(temp[i].Value) {
+			r.Value[0] = 0
+			result[i] = r
+			continue
+		}
+		r.Value[0] = e.getKC(ir)
+	}
+	e.Results["result"] = result
+	for _, r := range result {
+		if r.Time == e.Time {
+			pk := 0
+			for _, p := range e.State.External {
+				if p[0] == r.Value[0] {
+					pk = p[1]
+				}
+			}
+			e.State.PKCalc = pk
+			if e.State.Release {
+				//Выслать всем устройствам новый ПК
+				for _, dev := range e.Devices {
+					commARM <- comm.CommandARM{ID: dev, User: UserName, Command: 5, Params: e.State.PKCalc}
+				}
+				e.State.PKNow = e.State.PKCalc
+			} else {
+				if e.State.PKNow != 0 {
+					//Выслать всем устройствам команду 0
+					for _, dev := range e.Devices {
+						commARM <- comm.CommandARM{ID: dev, User: UserName, Command: 5, Params: 0}
+					}
+					e.State.PKNow = 0
+				}
+			}
 			return
 		}
 	}
 
 }
+func (e *ExtState) getKC(ir []int) int {
+	for i := 0; i < 4; i++ {
+		t := make([]int, 3)
+		t[0] = ir[e.State.Prioryty[i][0]]
+		t[1] = ir[e.State.Prioryty[i][1]]
+		t[2] = ir[e.State.Prioryty[i][2]]
+		if (t[0] + t[1] + t[2]) == 0 {
+			continue
+		}
+		if t[0] >= t[1] && t[0] >= t[2] {
+			return e.State.Prioryty[i][0]
+		}
+		if t[1] >= t[2] {
+			return e.State.Prioryty[i][1]
+		}
+		return e.State.Prioryty[i][2]
+	}
+	return 0
+}
 
 func ReaderStates() error {
 	logger.Info.Printf("Загружаем и настраиваем XT....")
+	mainTable.Mutex.Lock()
+	defer mainTable.Mutex.Unlock()
 	stats = make([]ExtState, 0)
 	w := "select state from public.xctrl;"
 	rows, err := dbb.Query(w)

@@ -178,10 +178,9 @@ func (st *SetPk) ToBuffer() []int {
 			count++
 		}
 	}
-	r[8] = 192 + l
+	r[8] = 192
 	if st.Shift != 0 && sts[0].Start != 0 {
 		r[9] += 16 //Есть переход фаз
-		r[8] += count
 	}
 	if st.TypePU == 1 {
 		r[9] += 128 //Есть ЛПУ
@@ -202,53 +201,83 @@ func (st *SetPk) ToBuffer() []int {
 		r[9] = 0
 	}
 	pos := 10
-	if st.Shift != 0 && sts[0].Start != 0 {
-		//Есть сдвиг формируем запись сдвига
-		//Находим переносные фазы
-		for _, s := range sts {
-			if !s.Trs {
-				continue
+	tvpb := make([]Stage, 0)
+	tvpflag := false
+	for _, s := range st.Stages {
+		if s.Tf == 2 || s.Tf == 2 || s.Tf == 4 {
+			tvpb = make([]Stage, 0)
+			if s.Trs {
+				tvpflag = true
 			}
+			tvpb = append(tvpb, s)
+			continue
+		}
+		if s.Tf == 5 || s.Tf == 6 || s.Tf == 6 || s.Tf == 7 {
+			if s.Trs {
+				tvpflag = true
+			}
+			tvpb = append(tvpb, s)
+			continue
+		}
+	}
+	if tvpflag {
+		//Значит есть переход замещающих фаз
+		for _, s := range st.Stages {
+			for i, t := range tvpb {
+				if s.Nline == t.Nline && s.Trs {
+					t.Dt = s.Dt
+					tvpb[i] = t
+				}
+			}
+		}
+		for _, s := range tvpb {
 			r[pos] = s.Number
-			tvpflag := false
 			if s.Tf == 2 {
 				r[pos] += 160 // 2 - 1ТВП
-				tvpflag = true
 			}
 			if s.Tf == 3 {
 				r[pos] += 96 // 3 - 2ТВП
-				tvpflag = true
 			}
 			if s.Tf == 4 {
 				r[pos] += 224 // 4 - 1,2ТВП
-				tvpflag = true
 			}
 			if s.Tf == 5 {
 				r[pos] += 128 // 5 - Зам 1 ТВП
-				tvpflag = true
 			}
 			if s.Tf == 6 {
 				r[pos] += 64 //  6 - Зам 2 ТВП
-				tvpflag = true
 			}
 			if s.Tf == 7 {
 				r[pos] += 16 //  7 - Зам
-				tvpflag = true
 			}
 			pos++
-			if tvpflag && s.Dt != 0 {
-				r[pos] = s.Dt
-			} else {
-				r[pos] = sts[0].Start
-			}
+			r[pos] = s.Dt
 			pos++
+			r[8] += 1
+		}
 
+	} else {
+		if st.Shift != 0 && sts[0].Start != 0 {
+			//Есть сдвиг формируем запись сдвига
+			//Находим переносные фазы
+			for _, s := range sts {
+				if !s.Trs {
+					continue
+				}
+				r[pos] = s.Number
+				pos++
+				r[pos] = sts[0].Start
+				pos++
+				r[8] += 1
+			}
 		}
 	}
+
 	for _, s := range sts {
 		if s.Number == 0 && s.Tf == 0 && s.Stop == 0 {
 			break
 		}
+
 		r[pos] = s.Number
 		if s.Tf == 2 {
 			r[pos] += 160 // 2 - 1ТВП
@@ -283,6 +312,7 @@ func (st *SetPk) ToBuffer() []int {
 		}
 		r[pos] = s.Stop
 		pos++
+		r[8] += 1
 		for pos >= len(r) {
 			//logger.Debug.Printf("Массив %v",st)
 			pos--
