@@ -67,7 +67,7 @@ func (e *ExtState) calculate() {
 	result := e.Results["result"]
 	mf := false
 	for _, r := range result {
-		if r.Time == e.Time {
+		if FirstCalculate || r.Time == e.Time {
 			e.State.LastTime = e.Time
 			for _, x := range e.State.Xctrls {
 				x.calculate(e)

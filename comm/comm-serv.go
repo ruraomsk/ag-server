@@ -117,19 +117,6 @@ func newConnect(soc net.Conn) {
 		time.Sleep(3 * time.Minute)
 		return
 	}
-	if ctrl.TimeOut != 0 {
-		readTout = time.Duration((ctrl.TimeOut + 60) * int64(time.Second))
-		controlTout = time.Duration(ctrl.TimeOut * int64(time.Second))
-	} else {
-		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
-		pudge.SetController(ctrl)
-	}
-	if ctrl.TMax != 0 {
-		writeTout = time.Duration(ctrl.TMax * int64(time.Second))
-	} else {
-		ctrl.TMax = setup.Set.CommServer.TimeOutWrite
-		pudge.SetController(ctrl)
-	}
 	dmess := hDev.ParseMessage()
 	flag := false
 	//hren := false
@@ -173,6 +160,20 @@ func newConnect(soc net.Conn) {
 		logger.Error.Printf("Устройство %d неверный формат подключения", hDev.ID)
 		logger.Error.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 		return
+	}
+	if ctrl.Status.TObmen != 0 {
+		readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
+		controlTout = time.Duration(int64(ctrl.Status.TObmen*60) * int64(time.Second))
+		ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
+	} else {
+		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
+		pudge.SetController(ctrl)
+	}
+	if ctrl.TMax != 0 {
+		writeTout = time.Duration(ctrl.TMax * int64(time.Second))
+	} else {
+		ctrl.TMax = setup.Set.CommServer.TimeOutWrite
+		pudge.SetController(ctrl)
 	}
 	if time.Now().Sub(start) > time.Duration(10*time.Second) {
 		logger.Info.Println("больше 10 секунд ", ctrl.ID)
@@ -550,24 +551,21 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 }
 func getController(id int) (*pudge.Controller, error) {
 	//Вначале проверим на pudge
-	ctrl := new(pudge.Controller)
+	key := pudge.IsRegistred(id)
+
+	if key == nil {
+		return nil, fmt.Errorf("id %d не зарегистрирован", id)
+	}
 	// logger.Info.Printf("Check reg for %d", id)
 	c, is := pudge.GetController(id)
 	if !is {
-		//Нет на pudge теперь надо проверить среди регистрированн
-		key := pudge.IsRegistred(id)
-
-		if key == nil {
-			return nil, fmt.Errorf("id %d не зарегистрирован", id)
-		}
+		ctrl := new(pudge.Controller)
 		pudge.SetDefault(ctrl, *key)
 		pudge.SetController(ctrl)
-		// logger.Info.Printf("id %d reg on %s", id, strKey)
 		return ctrl, nil
 	}
-	// logger.Info.Printf("Check reg for %d closed", id)
-	ctrl = c
-	return ctrl, nil
+
+	return c, nil
 }
 func makeChangeProtocol(dd *device, protocol ChangeProtocol) (transport.HeaderServer, error) {
 	dd.addNumber()

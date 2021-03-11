@@ -87,7 +87,7 @@ func oneCross(reg pudge.Region) {
 		if !isCorrectVersion(cr, dev) {
 			//Не совпало ПО
 			logger.Info.Printf("Не совпали версии ПО id %d %d.%d  %d.%d", dev.ID, dev.Model.VPCPDL, dev.Model.VPCPDR, cr.Model.VPCPDL, cr.Model.VPCPDR)
-			time.Sleep(time.Duration(10 * time.Minute))
+			time.Sleep(time.Duration(1 * time.Minute))
 			continue
 		}
 		//if dev.Local {
@@ -130,18 +130,18 @@ func oneCross(reg pudge.Region) {
 			time.Sleep(time.Duration(1 * time.Second))
 			sendLocalOn(dev)
 			time.Sleep(1 * time.Second)
-			l := 0
 			acc := make([]pudge.ArrayPriv, 0)
+			l := 0
 			for _, ac := range sending {
-				if l+len(ac.Array) < 200 {
+				if l < 150 {
 					acc = append(acc, ac)
-					l += len(ac.Array)
+					l += len(ac.Array) + 4
 					continue
 				}
 				sendArray(dev, acc)
 				time.Sleep(1 * time.Second)
-				acc = make([]pudge.ArrayPriv, 0)
 				l = 0
+				acc = make([]pudge.ArrayPriv, 0)
 			}
 			if len(acc) > 0 {
 				sendArray(dev, acc)
@@ -150,6 +150,8 @@ func oneCross(reg pudge.Region) {
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Обновлены привязки на устройстве"}
 			sendLocalOff(dev)
 			logger.Info.Printf("массивы передали %d", dev.ID)
+			time.Sleep(10 * time.Second)
+
 		}
 		//Все переслали все совпало можно и поспать
 		flagError = 0
@@ -190,11 +192,7 @@ func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
 		r = appBuffer(r, buffer)
 	}
 	for i := 1; i < 13; i++ {
-		cr.Arrays.SetDK.CorrectPk()
-		if !cr.Arrays.SetDK.IsEmpty(1, i) {
-			buffer := cr.Arrays.SetDK.DK[i-1].ToBuffer() //
-			r = appBuffer(r, buffer)
-		}
+		r = appBuffer(r, cr.Arrays.SetDK.DK[i-1].ToBuffer())
 	}
 	for _, ns := range cr.Arrays.WeekSets.WeekSets { //
 		if !ns.IsEmpty() {

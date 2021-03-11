@@ -15,6 +15,9 @@
             <area id="1" name="Город"/>
             <area id="2" name="Новомосковск"/>
         </reg>
+        <reg id="4" name="Калмыкия" file="Kalmykia.mrk" type="SQL">
+            <area id="1" name="Элиста"/>
+        </reg>
         <reg id="5" name="Воронеж" file="Voronez.mrk" type="SQL">
             <area id="1" name="Правый берег"/>
             <area id="2" name="Левый берег"/>

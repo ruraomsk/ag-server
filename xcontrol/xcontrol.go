@@ -33,6 +33,7 @@ var err error
 var mainTable *Table
 var stats []ExtState
 var UserName string
+var FirstCalculate bool
 
 func listenCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.XCtrl.Port))
@@ -57,8 +58,7 @@ func worker(soc net.Conn) {
 
 	logger.Info.Printf("Новый клиент сервера ХТ %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
-	writer := bufio.NewWriter(soc)
-
+	writer := bufio.NewWriterSize(soc, 124*1024*1024)
 	for {
 		cmd, err := reader.ReadString('\n')
 		if err != nil {
@@ -216,7 +216,9 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			logger.Error.Printf("Ошибка создания таблицы %s", err.Error())
 			return
 		}
+		FirstCalculate = true
 		calculate()
+		FirstCalculate = false
 		logger.Info.Print("Модуль управления по характерным точкам запущен... ")
 		needRestart := false
 		for !needRestart {

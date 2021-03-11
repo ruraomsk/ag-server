@@ -161,12 +161,11 @@ func workerCommand(soc net.Conn) {
 		logger.Info.Printf("Команда %v %s", command, soc.RemoteAddr().String())
 		if command.Command == 1 {
 			//Принудительная отправка всех массивов
-			ctrl, _ := pudge.GetController(command.ID)
-			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			w := fmt.Sprintf(" %s  заказал перезагрузку всех массивов", command.User)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: -1, Time: time.Now(), LogString: w}
+			ctrl, _ := pudge.GetController(command.ID)
+			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			pudge.SetController(ctrl)
-
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {
 			if command.Command != 4 {
@@ -215,7 +214,7 @@ func workerArray(soc net.Conn) {
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			continue
 		}
-		_, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
+		old, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
 		if !is {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.State.Region, state.State.Area, state.State.ID)
@@ -228,7 +227,15 @@ func workerArray(soc net.Conn) {
 			continue
 		}
 		// logger.Info.Printf("Write new state ")
-
+		if old.IDevice != state.State.IDevice {
+			logger.Info.Printf("Отключаем старое устройство %d ", old.IDevice)
+			d, ok := devs[old.IDevice]
+			if ok {
+				//Остановим текущее
+				d.ExitCommand <- 1
+				delete(devs, old.IDevice)
+			}
+		}
 		pudge.SetCross(&state.State)
 		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
 		logger.Info.Print(w)
