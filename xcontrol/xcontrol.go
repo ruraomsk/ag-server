@@ -70,7 +70,7 @@ func worker(soc net.Conn) {
 			//logger.Info.Println("Keep alive")
 			continue
 		}
-		//logger.Error.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
+		//logger.Info.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
 		if strings.Contains(cmd, "restart") {
 			command <- 1
 			continue
@@ -96,6 +96,28 @@ func worker(soc net.Conn) {
 		if strings.HasPrefix(cmd, "statelist") {
 			_, _ = writer.WriteString(listStates())
 			_, _ = writer.WriteString("\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "stateset") {
+			ls := strings.Split(cmd, ",")
+			region, _ := strconv.Atoi(ls[1])
+			area, _ := strconv.Atoi(ls[2])
+			id, _ := strconv.Atoi(ls[3])
+			command, _ := strconv.Atoi(ls[4])
+			changeState(pudge.Region{Region: region, Area: area, ID: id}, command)
+			_, _ = writer.WriteString("Ok\n")
+			_ = writer.Flush()
+			continue
+		}
+		if strings.HasPrefix(cmd, "devicecmd") {
+			ls := strings.Split(cmd, ",")
+			idevice, _ := strconv.Atoi(ls[1])
+			code, _ := strconv.Atoi(ls[2])
+			command, _ := strconv.Atoi(ls[3])
+			//logger.Debug.Printf("in %v",comm.CommandARM{ID: idevice, User: UserName, Command: code, Params: command})
+			commARM <- comm.CommandARM{ID: idevice, User: UserName, Command: code, Params: command}
+			_, _ = writer.WriteString("Ok\n")
 			_ = writer.Flush()
 			continue
 		}
@@ -189,6 +211,9 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	loadTable()
 	clearError()
 	go listenCommand()
+	command = make(chan int)
+	commARM = make(chan comm.CommandARM, 1000)
+	go sender()
 	fmt.Println("Можно загружать просмотр...")
 	logger.Info.Println("Можно загружать просмотр...")
 	for {
@@ -207,9 +232,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(loadTable)
 	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(calculate)
 	go startCron()
-	command = make(chan int)
-	commARM = make(chan comm.CommandARM, 1000)
-	go sender()
 	for {
 		err := makeTable()
 		if err != nil {

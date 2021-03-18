@@ -64,6 +64,17 @@ func main() {
 			}
 			return
 		}
+		if strings.Contains(os.Args[1], "update") {
+			if len(os.Args[2]) == 0 || len(os.Args[3]) == 0 {
+				fmt.Println("Нужно запускать с параметрами номер региона имя файла copybase ")
+				return
+			}
+			err = creator.Update(os.Args[2], os.Args[3])
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			return
+		}
 
 	}
 	logger.Info.Println("Start ag-server work...")

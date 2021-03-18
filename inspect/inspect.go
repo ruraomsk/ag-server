@@ -135,13 +135,15 @@ func oneCross(reg pudge.Region) {
 			for _, ac := range sending {
 				if l < 150 {
 					acc = append(acc, ac)
-					l += len(ac.Array) + 4
+					l += len(ac.Array)
 					continue
 				}
 				sendArray(dev, acc)
 				time.Sleep(1 * time.Second)
-				l = 0
 				acc = make([]pudge.ArrayPriv, 0)
+				acc = append(acc, ac)
+				l = len(ac.Array)
+
 			}
 			if len(acc) > 0 {
 				sendArray(dev, acc)

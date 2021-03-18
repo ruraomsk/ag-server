@@ -359,6 +359,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 	}
 	st.Tc = buffer[5]
 	Shift := false
+	ShiftZerro := false
 	if buffer[9]&16 != 0 {
 		//есть переход фаз нужно читать сдвиг
 		Shift = true
@@ -442,37 +443,46 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		ss[n].Stop = buffer[pos]
 		pos++
 	}
+	st.Shift = 0
+	si := 0
 	if Shift {
-		st.Shift = -1
-		//Если есть сдвиг то первая фаза не простая задает сдвиг
-		for _, s := range ss {
-			if s.Tf != 0 {
-				st.Shift = s.Stop
+
+		for i := 1; i < len(ss); i++ {
+			if ss[i].Number == 1 {
+				st.Shift = ss[i-1].Stop
+				si = i
 				break
 			}
 		}
-		if st.Shift < 0 {
-			//Все фазы простые берем первую
-			st.Shift = ss[0].Stop
+	} else {
+		if ss[0].Number != 1 {
+			ShiftZerro = true
+			for i := 1; i < len(ss); i++ {
+				if ss[i].Number == 1 {
+					st.Shift = ss[i-1].Stop
+					si = i
+					break
+				}
+			}
 		}
 	}
 	//Перекатываем в Stage
 	start := st.Shift
 	j := 0
-	for n := range ss {
-		if Shift && n == 0 {
-			//st.LastType = ss[n].Tf
-			//st.LastNumber = ss[n].Number
-			continue
-		}
+	for i := si; i < len(ss); i++ {
 		st.Stages[j].Nline = j + 1
 		st.Stages[j].Start = start
-		st.Stages[j].Number = ss[n].Number
-		st.Stages[j].Tf = ss[n].Tf
-		st.Stages[j].Stop = ss[n].Stop
-		start = ss[n].Stop
+		st.Stages[j].Number = ss[i].Number
+		st.Stages[j].Tf = ss[i].Tf
+		st.Stages[j].Stop = ss[i].Stop
+		start = ss[i].Stop
 		if st.Stages[j].Tf == 0 && st.Stages[j].Stop == 0 && st.Stages[j].Number == 0 {
 			st.Stages[j].Start = 0
+			if Shift {
+				st.Stages[j-1].Trs = true
+				st.Stages[j-1].Dt = ss[0].Stop
+			}
+			break
 		}
 		if st.Stages[j].Tf == 5 || st.Stages[j].Tf == 6 || st.Stages[j].Tf == 7 {
 			if j > 0 {
@@ -483,8 +493,33 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		}
 		j++
 	}
-	if Shift {
-		st.Stages[11].Nline = 12
+	if Shift || ShiftZerro {
+		sit := 1
+		if ShiftZerro {
+			sit = 0
+			start = 0
+		} else {
+			start = ss[0].Stop
+		}
+		for i := sit; i < si; i++ {
+			st.Stages[j].Nline = j + 1
+			st.Stages[j].Start = start
+			st.Stages[j].Number = ss[i].Number
+			st.Stages[j].Tf = ss[i].Tf
+			st.Stages[j].Stop = ss[i].Stop
+			start = ss[i].Stop
+			if st.Stages[j].Tf == 0 && st.Stages[j].Stop == 0 && st.Stages[j].Number == 0 {
+				st.Stages[j].Start = 0
+			}
+			if st.Stages[j].Tf == 5 || st.Stages[j].Tf == 6 || st.Stages[j].Tf == 7 {
+				if j > 0 {
+					st.Stages[j].Start = st.Stages[j-1].Start
+				} else {
+					st.Stages[j].Start = start
+				}
+			}
+			j++
+		}
 	}
 	return nil
 }

@@ -115,6 +115,8 @@ func (e *ExtState) calculate() {
 			continue
 		}
 		r.Value[0] = e.getKC(ir)
+		r.Good = true
+		result[i] = r
 	}
 	e.Results["result"] = result
 	for _, r := range result {
@@ -141,7 +143,7 @@ func (e *ExtState) calculate() {
 					e.State.PKNow = 0
 				}
 			}
-			return
+			//return
 		}
 	}
 

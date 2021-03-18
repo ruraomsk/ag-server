@@ -39,7 +39,7 @@ func (sdk *SetupDK) FromBuffer(buffer []int) error {
 	if buffer[2] != 7 {
 		return fmt.Errorf("неверный номер массива")
 	}
-	sdk.DKNum = buffer[4]
+	sdk.DKNum = buffer[11]
 	sdk.TMaxF = buffer[5]
 	sdk.TMinF = buffer[6]
 	// if buffer[7] != buffer[4]-1 {
@@ -75,7 +75,7 @@ func (sdk *SetupDK) ToBuffer() []int {
 	r[1] = 0
 	r[2] = 7
 	r[3] = 10
-	r[4] = sdk.DKNum
+	r[4] = sdk.ExtNum
 	r[5] = sdk.TMaxF
 	r[6] = sdk.TMinF
 	if sdk.DKNum == 2 {
@@ -84,7 +84,7 @@ func (sdk *SetupDK) ToBuffer() []int {
 	r[8] = sdk.TmaxTmin
 	r[9] = sdk.DKNum
 	r[10] = sdk.DKType
-	r[11] = sdk.ExtNum
+	r[11] = sdk.DKNum
 	r[12] = sdk.Tprom
 	if sdk.IsPreset {
 		r[13] = 1

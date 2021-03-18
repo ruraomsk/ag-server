@@ -197,7 +197,7 @@ func clearRegion(region int) {
 		for _, s := range stats[i].State.Xctrls {
 			stats[i].Results[s.Name] = initLineResult(e.State.Step, 3)
 		}
-		e.Results["result"] = initLineResult(e.State.Step, 2+len(e.State.Xctrls))
+		e.Results["result"] = initLineResult(e.State.Step, 2)
 	}
 
 }

@@ -422,6 +422,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 				logger.Error.Printf("Разбор x09 от устройства %d %s", hDev.ID, err.Error())
 				continue
 			}
+			//logger.Info.Printf("Пришла статистика от %d %02d:%02d",hDev.ID,st.Hour,st.Min)
 			flag := false
 			for n, stt := range c.Statistics {
 				if stt.Period == st.Period {
