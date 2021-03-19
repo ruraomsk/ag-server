@@ -443,6 +443,7 @@ func (st *SetPk) FromBuffer(buffer []int) error {
 		ss[n].Stop = buffer[pos]
 		pos++
 	}
+	//Пошли сплошные костыли
 	st.Shift = 0
 	si := 0
 	if Shift {
