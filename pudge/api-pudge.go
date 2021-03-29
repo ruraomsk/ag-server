@@ -145,13 +145,14 @@ func SetController(c *Controller) {
 	// logger.Debug.Printf("start setController %d", c.ID)
 	insert := false
 	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	_, is := controllers[c.ID]
 	if !is {
 		insert = true
 		c.WriteToDB = false
 		controllers[c.ID] = c
 	}
-	mutexCtrl.Unlock()
+	//mutexCtrl.Unlock()
 	if insert {
 		js, _ := json.Marshal(c)
 		w := "insert into devices (id,device) values(" + strconv.Itoa(c.ID) + ",'" + string(js) + "');"
@@ -161,9 +162,9 @@ func SetController(c *Controller) {
 			return
 		}
 	} else {
-		mutexCtrl.Lock()
+		//mutexCtrl.Lock()
 		c.WriteToDB = true
-		mutexCtrl.Unlock()
+		//mutexCtrl.Unlock()
 	}
 	// logger.Debug.Printf("end setController %d", c.ID)
 }
@@ -241,11 +242,3 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		}
 	}
 }
-
-// func toReturnControllers(mgs []int) {
-// 	var ret Controllers
-// 	ret.Contrs = make([]Controller, 0)
-// 	for _, i := range mgs {
-// 		ret.Contrs = append(ret.Contrs, *controllers[i])
-// 	}
-// }
