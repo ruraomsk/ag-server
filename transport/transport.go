@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"github.com/ruraomsk/TLServer/logger"
 	"reflect"
 	"time"
 
@@ -173,11 +174,15 @@ func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
 		sumP += uint(buffer[i])
 		sumP = sumP & 0xffff
 	}
-	len := int(buffer[lenHeader-1] - 2)
-	if len == 0 {
+	lenght := int(buffer[lenHeader-1] - 2)
+	if lenght == 0 {
 		sumB = 0
 	}
-	for i := 0; i < len; i++ {
+	for i := 0; i < lenght; i++ {
+		if lenHeader+i >= len(buffer) {
+			logger.Error.Printf("error makeCRC len %d %v", lenght, buffer)
+			return sumB, sumP
+		}
 		sumP += uint(buffer[lenHeader+i])
 		sumP = sumP & 0xffff
 		sumB += uint(buffer[lenHeader+i])

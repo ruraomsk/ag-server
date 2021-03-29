@@ -6,6 +6,7 @@ import (
 	"github.com/ruraomsk/ag-server/setup"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -40,16 +41,35 @@ func sender() bool {
 	}
 	scanner := bufio.NewScanner(file)
 	buf := make([]byte, 256*1024)
-	scanner.Buffer(buf, 512*1024)
+	scanner.Buffer(buf, 256*1024)
+	reader := bufio.NewReader(soc)
+	writer := bufio.NewWriter(soc)
 	for scanner.Scan() {
 		_ = soc.SetWriteDeadline(time.Now().Add(time.Duration(5 * time.Second)))
-		_, errSoc = soc.Write(append(scanner.Bytes(), '\n'))
+		_, _ = writer.WriteString("==RESPONSE NEED==")
+		_, _ = writer.WriteString(scanner.Text())
+		_, _ = writer.WriteString("\n")
+		errSoc = writer.Flush()
 		if errSoc != nil {
 			logger.Error.Printf("Error send data %s %s", scanner.Text(), errSoc.Error())
 			soc.Close()
 			connected = false
 			return false
 		}
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			logger.Error.Printf("Error read response %s", errSoc.Error())
+			soc.Close()
+			connected = false
+			return false
+		}
+		if strings.Compare(response, "ok\n") != 0 {
+			logger.Error.Printf("Response from remote %s", response)
+			soc.Close()
+			connected = false
+			return false
+		}
+
 	}
 	if err := scanner.Err(); err != nil {
 		logger.Error.Printf("Error reading file %s", err.Error())

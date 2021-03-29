@@ -10,6 +10,7 @@ import (
 	"github.com/ruraomsk/ag-server/setup"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func StartSQL(stop chan int) {
 
 func workerSQL(soc net.Conn, stop chan int) {
 	defer soc.Close()
-	logger.Info.Printf("Новый клиент удаленного сервера %s", soc.RemoteAddr().String())
+	logger.Info.Printf("Новый клиент SQL сервера %s", soc.RemoteAddr().String())
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -50,20 +51,35 @@ func workerSQL(soc net.Conn, stop chan int) {
 		return
 	}
 	reader := bufio.NewReader(soc)
+	writer := bufio.NewWriter(soc)
 	for {
 		c, err := reader.ReadString('\n')
 		if err != nil {
-			logger.Error.Printf("При чтении команд удаленного сервера %s", err.Error())
+			logger.Error.Printf("При чтении команд SQL сервера %s", err.Error())
 			return
 		}
 		if c[0:1] == "0" {
 			logger.Info.Println("Keep alive")
 			continue
 		}
+		responce := false
+		if strings.HasPrefix(c, "==RESPONSE NEED==") {
+			responce = true
+			c = strings.Replace(c, "==RESPONSE NEED==", "", 1)
+		}
 		_, err = dbb.Exec(c)
 		if err != nil {
-			logger.Error.Printf("Sql %s error %s", c, err.Error())
+			w := fmt.Sprintf("Sql %s error %s", c, err.Error())
+			logger.Error.Printf(w)
+			if responce {
+				writer.WriteString("w" + "\n")
+				writer.Flush()
+			}
 			continue
+		}
+		if responce {
+			writer.WriteString("ok\n")
+			writer.Flush()
 		}
 	}
 }

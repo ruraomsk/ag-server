@@ -129,17 +129,17 @@ func oneCross(reg pudge.Region) {
 		if len(sending) != 0 {
 			time.Sleep(time.Duration(1 * time.Second))
 			sendLocalOn(dev)
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 			acc := make([]pudge.ArrayPriv, 0)
 			l := 0
 			for _, ac := range sending {
-				if l < 150 {
+				if l < 65 {
 					acc = append(acc, ac)
 					l += len(ac.Array)
 					continue
 				}
 				sendArray(dev, acc)
-				time.Sleep(1 * time.Second)
+				time.Sleep(2 * time.Second)
 				acc = make([]pudge.ArrayPriv, 0)
 				acc = append(acc, ac)
 				l = len(ac.Array)
@@ -147,12 +147,12 @@ func oneCross(reg pudge.Region) {
 			}
 			if len(acc) > 0 {
 				sendArray(dev, acc)
-				time.Sleep(1 * time.Second)
+				time.Sleep(2 * time.Second)
 			}
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: dev.ID, Type: -1, Time: time.Now(), LogString: "Обновлены привязки на устройстве"}
 			sendLocalOff(dev)
 			logger.Info.Printf("массивы передали %d", dev.ID)
-			time.Sleep(10 * time.Second)
+			time.Sleep(20 * time.Second)
 
 		}
 		//Все переслали все совпало можно и поспать
