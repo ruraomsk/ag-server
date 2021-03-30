@@ -32,11 +32,6 @@ func (r *Region) ToKey() string {
 	return strconv.Itoa(r.Region) + ";" + strconv.Itoa(r.Area) + ";" + strconv.Itoa(r.ID)
 }
 
-//Controllers возврат выбранных контроллеров
-type Controllers struct {
-	Contrs []Controller
-}
-
 //StatusConnection статус соединения
 type StatusConnection int
 

@@ -25,6 +25,7 @@ type DevPhases struct {
 var countSenders = 0
 var connectMap map[string]net.Conn
 var cMutex sync.Mutex
+var cSFDK chan CommandARM
 
 func listenArmCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.CommServer.PortCommand))
@@ -32,7 +33,9 @@ func listenArmCommand() {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
 		return
 	}
-	//defer ln.Close()
+	cSFDK = make(chan CommandARM)
+	go sfdkControl()
+	go routeSgdk()
 	for {
 		socket, err := ln.Accept()
 		if err != nil {
@@ -134,7 +137,7 @@ func workerDevices() {
 func workerCommand(soc net.Conn) {
 	defer soc.Close()
 	var command CommandARM
-	logger.Info.Printf("Новый клиент комманд %s", soc.RemoteAddr().String())
+	logger.Info.Printf("Новый клиент команд %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
 	for {
 		c, err := reader.ReadString('\n')
@@ -148,7 +151,11 @@ func workerCommand(soc net.Conn) {
 		}
 		err = json.Unmarshal([]byte(c), &command)
 		if err != nil {
-			logger.Error.Println("При конвератации команд сервера АРМ ", err.Error())
+			logger.Error.Println("При конвертации команд сервера АРМ ", err.Error())
+			continue
+		}
+		if command.Command == 4 {
+			cSFDK <- command
 			continue
 		}
 		dev, is := devs[command.ID]
@@ -168,10 +175,8 @@ func workerCommand(soc net.Conn) {
 			pudge.SetController(ctrl)
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {
-			if command.Command != 4 {
-				w := fmt.Sprintf("%s  %s", command.User, getDescription(command))
-				pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: -1, Time: time.Now(), LogString: w}
-			}
+			w := fmt.Sprintf("%s  %s", command.User, getDescription(command))
+			pudge.ChanLog <- pudge.RecLogCtrl{ID: command.ID, Type: -1, Time: time.Now(), LogString: w}
 			dev.CommandARM <- command
 		}
 	}

@@ -60,7 +60,15 @@ func GetCrosses() []Region {
 	}
 	return r
 }
-
+func GetControllers() []int {
+	result := make([]int, 0)
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
+	for _, c := range controllers {
+		result = append(result, c.ID)
+	}
+	return result
+}
 func getNameCross(idevice int) string {
 	mutexCtrl.Lock()
 	defer mutexCtrl.Unlock()
