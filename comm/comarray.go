@@ -22,7 +22,6 @@ type DevPhases struct {
 	DK pudge.DK `json:"dk"`
 }
 
-var countSenders = 0
 var connectMap map[string]net.Conn
 var cMutex sync.Mutex
 var cSFDK chan CommandARM
@@ -101,7 +100,7 @@ func listenSendingPhazes() {
 	}
 }
 func workerDevices() {
-	timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
+	timer := extcon.SetTimerClock(10 * time.Second)
 	// writer := bufio.NewWriter(soc)
 	for {
 		select {
