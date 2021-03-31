@@ -25,6 +25,12 @@ func sfdkControl() {
 		if !is {
 			count = 0
 		}
+		if com.Params < 0 {
+			//logger.Info.Printf("СФ ДК отменен из Сервера Связи для %d",com.ID)
+			setOffSfdk(com.ID)
+			count = 0
+			com.Params = 0
+		}
 		if com.Params == 0 {
 			count--
 			if count < 0 {
@@ -34,7 +40,7 @@ func sfdkControl() {
 			count++
 		}
 		mapDevices[com.ID] = count
-		//logger.Info.Printf("id %d count %d", com.ID,count)
+		//logger.Info.Printf("id %d %d count %d", com.ID,com.Params,count)
 		dMutex.Unlock()
 	}
 }
