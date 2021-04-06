@@ -45,7 +45,7 @@ func sender() bool {
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	for scanner.Scan() {
-		_ = soc.SetWriteDeadline(time.Now().Add(time.Duration(5 * time.Second)))
+		_ = soc.SetWriteDeadline(time.Now().Add(time.Duration(10 * int64(time.Second))))
 		_, _ = writer.WriteString("==RESPONSE NEED==")
 		_, _ = writer.WriteString(scanner.Text())
 		_, _ = writer.WriteString("\n")

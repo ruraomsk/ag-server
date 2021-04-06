@@ -50,6 +50,7 @@ func workerSQL(soc net.Conn, stop chan int) {
 		stop <- 1
 		return
 	}
+	soc.SetReadDeadline(time.Now().Add(time.Duration(60 * int64(time.Minute))))
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	for {

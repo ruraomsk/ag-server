@@ -245,19 +245,38 @@ func newConnect(soc net.Conn) {
 	   Отключить&quot;, далее массивы привязки, объединенные в сообщения, по завершению
 	   &quot;Управление УСДК – Включить&quot;. Клиент подтверждает каждое принятое сообщение.
 	*/
+	tick15min := time.NewTicker(15 * time.Minute)
+	tick1hour := time.NewTicker(1 * time.Hour)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
 		select {
+		case <-tick1hour.C:
+			ctrl.Traffic.LastFromDevice1Hour = ctrl.Traffic.FromDevice1Hour
+			ctrl.Traffic.LastToDevice1Hour = ctrl.Traffic.ToDevice1Hour
+			ctrl.Traffic.FromDevice1Hour = 0
+			ctrl.Traffic.ToDevice1Hour = 0
+			pudge.SetController(ctrl)
+		case <-tick15min.C:
+			ctrl.Traffic.LastFromDevice15Min = ctrl.Traffic.FromDevice15Min
+			ctrl.Traffic.LastToDevice15Min = ctrl.Traffic.ToDevice15Min
+			ctrl.Traffic.FromDevice15Min = 0
+			ctrl.Traffic.ToDevice15Min = 0
+			pudge.SetController(ctrl)
 		case hDev = <-hin:
+			ctrl.Traffic.FromDevice15Min += uint64(hDev.Length)
+			ctrl.Traffic.FromDevice1Hour += uint64(hDev.Length)
 			lastBase := ctrl.Base
 			hs, need := updateController(ctrl, &hDev)
 			if ctrl.Base && !lastBase {
 				ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			}
-			pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
+				l := 13 + len(hs.Message) + 4
+				ctrl.Traffic.ToDevice15Min += uint64(l)
+				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				hout <- hs
 			}
+			pudge.SetController(ctrl)
 		case <-dd.ErrorTCP:
 			ctrl.StatusConnection = false
 			pudge.SetController(ctrl)
@@ -274,8 +293,11 @@ func newConnect(soc net.Conn) {
 					continue
 				}
 				ctrl.LastOperation = time.Now()
-				pudge.SetController(ctrl)
 				hout <- hs
+				l := 13 + len(hs.Message) + 4
+				ctrl.Traffic.ToDevice15Min += uint64(l)
+				ctrl.Traffic.ToDevice1Hour += uint64(l)
+				pudge.SetController(ctrl)
 			}
 			if time.Now().Sub(ctrl.LastOperation) > readTout {
 				//Уже пять минут нет связи с устройством
@@ -323,6 +345,10 @@ func newConnect(soc net.Conn) {
 				continue
 			}
 			hout <- hs
+			l := 13 + len(hs.Message) + 4
+			ctrl.Traffic.ToDevice15Min += uint64(l)
+			ctrl.Traffic.ToDevice1Hour += uint64(l)
+			pudge.SetController(ctrl)
 
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма
@@ -332,6 +358,10 @@ func newConnect(soc net.Conn) {
 				continue
 			}
 			hout <- hs
+			l := 13 + len(hs.Message) + 4
+			ctrl.Traffic.ToDevice15Min += uint64(l)
+			ctrl.Traffic.ToDevice1Hour += uint64(l)
+			pudge.SetController(ctrl)
 
 		case comArray := <-dd.CommandArray:
 			//Пришла команда арма загрузки привязки
@@ -343,6 +373,10 @@ func newConnect(soc net.Conn) {
 
 				//logger.Debug.Printf("Local on %d", dd.id)
 				hout <- hs
+				l := 13 + len(hs.Message) + 4
+				ctrl.Traffic.ToDevice15Min += uint64(l)
+				ctrl.Traffic.ToDevice1Hour += uint64(l)
+				pudge.SetController(ctrl)
 				break
 			}
 			if comArray[0].Number == -1 {
@@ -352,6 +386,10 @@ func newConnect(soc net.Conn) {
 				//ctrl.Local = false
 				//pudge.SetController(ctrl)
 				hout <- hs
+				l := 13 + len(hs.Message) + 4
+				ctrl.Traffic.ToDevice15Min += uint64(l)
+				ctrl.Traffic.ToDevice1Hour += uint64(l)
+				pudge.SetController(ctrl)
 				break
 			}
 			for _, arp := range comArray {
@@ -375,7 +413,10 @@ func newConnect(soc net.Conn) {
 			hs := makeArrayToDevice(dd, comArray)
 			// logger.Debug.Printf("send array %d", dd.id)
 			hout <- hs
-
+			l := 13 + len(hs.Message) + 4
+			ctrl.Traffic.ToDevice15Min += uint64(l)
+			ctrl.Traffic.ToDevice1Hour += uint64(l)
+			pudge.SetController(ctrl)
 		}
 	}
 

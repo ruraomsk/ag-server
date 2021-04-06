@@ -17,6 +17,7 @@ type HeaderDevice struct {
 	Time       time.Time // Время сообщения
 	Number     uint8     // Номер сообщения
 	Code       uint8     // Код отправителя
+	Length     int       // Размер в байтах
 	Message    []uint8   // Собственно сообщение без контрольной суммы
 }
 
@@ -71,6 +72,7 @@ func (s *HeaderServer) Compare(ss *HeaderServer) bool {
 //Parse разбор сообщения от устройства
 func (d *HeaderDevice) Parse(buffer []byte) error {
 	err := checkCRC(buffer, 19)
+	d.Length = len(buffer)
 	if err != nil {
 		return err
 	}

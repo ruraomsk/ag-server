@@ -330,6 +330,16 @@ type Status struct {
 	LevelGSMLast  int  `json:"llast"`    // уровень сигнала GSM  в предыдущей сессии
 	Motiv         int  `json:"motiv"`    // Мотив разрыва связи
 }
+type Traffic struct {
+	FromDevice15Min     uint64
+	FromDevice1Hour     uint64
+	ToDevice15Min       uint64
+	ToDevice1Hour       uint64
+	LastToDevice15Min   uint64
+	LastToDevice1Hour   uint64
+	LastFromDevice15Min uint64
+	LastFromDevice1Hour uint64
+}
 
 //Controller внутренне представление контроллера
 type Controller struct {
@@ -376,6 +386,7 @@ type Controller struct {
 	Statistics      []Statistic
 	Arrays          []ArrayPriv `json:"arrays"` //Файлы привязки
 	LogLines        []LogLine
+	Traffic         Traffic
 }
 
 //Compare сравнивание истина если равны
