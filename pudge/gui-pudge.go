@@ -118,37 +118,37 @@ func (s *StatusCommandDU) ToList(result []string) []string {
 }
 
 //ToList для вывода в гуи
-func (c *Controller) ToList() []string {
+func (cc *Controller) ToList() []string {
 	result := make([]string, 0)
-	r := "Технологический режим;" + strconv.Itoa(c.TechMode)
+	r := "Технологический режим;" + strconv.Itoa(cc.TechMode)
 	result = append(result, r)
-	r = "Работаем в базовой привязке;" + strconv.FormatBool(c.Base)
+	r = "Работаем в базовой привязке;" + strconv.FormatBool(cc.Base)
 	result = append(result, r)
-	r = "Номер плана координации;" + strconv.Itoa(c.PK)
+	r = "Номер плана координации;" + strconv.Itoa(cc.PK)
 	result = append(result, r)
-	r = "Номер суточной карты;" + strconv.Itoa(c.CK)
+	r = "Номер суточной карты;" + strconv.Itoa(cc.CK)
 	result = append(result, r)
-	r = "Номер недельной карты;" + strconv.Itoa(c.NK)
+	r = "Номер недельной карты;" + strconv.Itoa(cc.NK)
 	result = append(result, r)
-	r = "Максимальное время ожидания от сервера;" + strconv.Itoa(int(c.TMax))
+	r = "Максимальное время ожидания от сервера;" + strconv.Itoa(int(cc.TMax))
 	result = append(result, r)
 	r = "ДК; "
 	result = append(result, r)
-	result = c.DK.ToList(result)
+	result = cc.DK.ToList(result)
 	r = "МОДЕЛЬ УСТРОЙСТВА; "
 	result = append(result, r)
-	result = c.Model.ToList(result)
+	result = cc.Model.ToList(result)
 	r = "ОШИБКИ УСТРОЙСТВА; "
 	result = append(result, r)
-	result = c.Error.ToList(result)
+	result = cc.Error.ToList(result)
 	r = "СОСТОЯНИЕ GPS ПРИЕМНИКА; "
 	result = append(result, r)
-	result = c.GPS.ToList(result)
+	result = cc.GPS.ToList(result)
 	r = "ТЕКУЩИЕ КОМАНДЫ ДУ; "
 	result = append(result, r)
-	result = c.StatusCommandDU.ToList(result)
+	result = cc.StatusCommandDU.ToList(result)
 	r = "ТЕКУЩИЕ НЕИСПРАВНОСТИ ВХОДОВ; "
 	result = append(result, r)
-	result = c.Input.ToList(result)
+	result = cc.Input.ToList(result)
 	return result
 }

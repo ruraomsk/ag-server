@@ -7,8 +7,8 @@ import (
 )
 
 //IsConnected возвращает на связи ли устройство
-func (c *Controller) IsConnected() bool {
-	return c.StatusConnection
+func (cc *Controller) IsConnected() bool {
+	return cc.StatusConnection
 }
 
 //IsRegistred проверяет зарегистрирован ли Id на перекрестке

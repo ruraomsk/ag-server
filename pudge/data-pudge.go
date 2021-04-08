@@ -286,6 +286,7 @@ type Cross struct {
 	Scale        float64 `json:"scale"`   //Масштаб
 	Name         string  `json:"name"`
 	Phone        string  `json:"phone"`  //Телефон
+	WiFi         string  `json:"wifi""`  //IP для подключения ВПУ и прочего
 	StatusDevice int     `json:"status"` // Статус устройства
 	WriteToDB    bool    `json:"-"`      //Если истина то еще не записана в БД
 	PK           int     `json:"pk"`     //Номер плана координации
@@ -390,8 +391,8 @@ type Controller struct {
 }
 
 //Compare сравнивание истина если равны
-func (c *Controller) Compare(cc *Controller) bool {
-	return reflect.DeepEqual(c, cc)
+func (cc *Controller) Compare(ccc *Controller) bool {
+	return reflect.DeepEqual(cc, ccc)
 }
 
 //SetDefault Заполнить по умолчанию
