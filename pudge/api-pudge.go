@@ -120,16 +120,12 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 //SetCross обновляет состояние перекрестка
 func SetCross(c *Cross) {
 	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
-	insert := false
 	mutexCtrl.Lock()
 	defer mutexCtrl.Unlock()
 	_, is := crosses[reg.ToKey()]
 	if !is {
-		insert = true
 		c.WriteToDB = false
 		crosses[reg.ToKey()] = c
-	}
-	if insert {
 		js, _ := json.Marshal(c)
 		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
 			c.Region, c.Area, c.SubArea, c.ID, c.Dgis, c.Name, c.IDevice, c.StatusDevice, string(js))

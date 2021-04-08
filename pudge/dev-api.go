@@ -167,6 +167,10 @@ func (cc *Controller) calcStatus() int {
 		//Ручное управление 3
 		return 3
 	}
+	if (rezim == 1) && (err == 0 || err == 1) && (faza == 12) {
+		//Ручное управление 3
+		return 3
+	}
 	if rezim == 3 && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) && lamp == 0 && door == 0 {
 		//Зеленая улица 4
 		return 4

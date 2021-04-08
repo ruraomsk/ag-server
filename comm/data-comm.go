@@ -3,6 +3,7 @@ package comm
 import (
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/pudge"
+	"github.com/ruraomsk/ag-server/transport"
 )
 
 //CommandARM Команды от Сервера АРМ
@@ -49,11 +50,42 @@ type device struct {
 	ChangeProtocol chan ChangeProtocol
 	ExitCommand    chan int
 	ErrorTCP       chan int
+	Messages       DequeServer
+	LastMessage    transport.HeaderServer
 }
 
 func (d *device) addNumber() {
 	d.NumServ++
-	if d.NumServ > 250 {
+	if d.NumServ >= 250 {
 		d.NumServ = 1
 	}
+}
+
+type DequeServer struct {
+	array []transport.HeaderServer
+	size  int
+}
+
+func (d *DequeServer) Push(value transport.HeaderServer) {
+	if d.size == 0 {
+		d.array = make([]transport.HeaderServer, 0)
+	}
+	d.array = append(d.array, value)
+	d.size = len(d.array)
+}
+func (d *DequeServer) Pop() transport.HeaderServer {
+	if d.size == 0 {
+		d.array = make([]transport.HeaderServer, 0)
+		return transport.HeaderServer{}
+	}
+	r := d.array[0]
+	d.array = d.array[1:]
+	d.size = len(d.array)
+	return r
+}
+func (d *DequeServer) Size() int {
+	if d.size == 0 {
+		d.array = make([]transport.HeaderServer, 0)
+	}
+	return d.size
 }

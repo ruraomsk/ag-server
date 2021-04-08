@@ -244,7 +244,7 @@ func workerArray(soc net.Conn) {
 		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
 		logger.Info.Print(w)
 		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}
-		logger.Debug.Printf("Изменили %v", state.State.Arrays.SetTimeUse)
+		//logger.Debug.Printf("Изменили %v", state.State.Arrays.SetTimeUse)
 	}
 }
 func workerProtocol(soc net.Conn) {
