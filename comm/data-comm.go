@@ -4,6 +4,7 @@ import (
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/transport"
+	"time"
 )
 
 //CommandARM Команды от Сервера АРМ
@@ -52,6 +53,8 @@ type device struct {
 	ErrorTCP       chan int
 	Messages       DequeServer
 	LastMessage    transport.HeaderServer
+	LastToDevice   time.Time
+	CountLost      int //Счетчик ожиданий ответа на номер
 }
 
 func (d *device) addNumber() {

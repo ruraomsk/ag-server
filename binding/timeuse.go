@@ -233,8 +233,12 @@ func makeElem(r []int, pos int, ss Use) []int {
 		if f == 0 {
 			continue
 		}
-		f--
-		r[pos+1] |= 1 << f
+		if ss.Tvps == 4 {
+			r[pos+1] = f
+		} else {
+			f--
+			r[pos+1] |= 1 << f
+		}
 	}
 	if ss.Tvps == 3 {
 		r[pos+2] = int(ss.Long * 10)

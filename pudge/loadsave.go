@@ -2,10 +2,8 @@ package pudge
 
 import (
 	"encoding/json"
-	"strconv"
-	"time"
-
 	"github.com/ruraomsk/TLServer/logger"
+	"strconv"
 )
 
 func loadDBase() error {
@@ -112,7 +110,7 @@ func loadControllers() error {
 		}
 		c.WriteToDB = true
 		c.StatusConnection = false
-		c.LastOperation = time.Unix(0, 0)
+		//c.LastOperation = time.Unix(0, 0)
 		c.DK.EDK = 0
 		c.DK.PDK = false
 		_, is := controllers[id]

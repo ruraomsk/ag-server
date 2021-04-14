@@ -235,13 +235,14 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		case <-context.Done():
 			Works = false
 			logger.Info.Println("Останов обновления БД")
-			saveDBase()
 			for _, d := range controllers {
 				if d.IsConnected() {
 					ChanLog <- RecLogCtrl{ID: d.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
 				}
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
+			saveDBase()
+			time.Sleep(5 * time.Second)
 			return
 		}
 	}

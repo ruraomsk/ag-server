@@ -19,7 +19,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		if Stoped {
 			return
 		}
-		socket.SetReadDeadline(time.Now().Add(*tout))
+		socket.SetReadDeadline(time.Now().Add(1 * time.Hour))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
 		if Stoped {

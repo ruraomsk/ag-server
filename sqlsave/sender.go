@@ -58,7 +58,7 @@ func sender() bool {
 		}
 		response, err := reader.ReadString('\n')
 		if err != nil {
-			logger.Error.Printf("Error read response %s", errSoc.Error())
+			logger.Error.Printf("Error read response %s", err.Error())
 			soc.Close()
 			connected = false
 			return false
