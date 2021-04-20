@@ -19,7 +19,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		if Stoped {
 			return
 		}
-		socket.SetReadDeadline(time.Now().Add(1 * time.Hour))
+		socket.SetReadDeadline(time.Now().Add(15 * time.Minute))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
 		if Stoped {
@@ -132,12 +132,12 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 			}
 			if err != nil {
 				logger.Error.Printf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-				errTcp <- 1
+				errTcp <- 0
 				return
 			}
 			if n != len(buffer) {
 				logger.Error.Printf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
-				errTcp <- 1
+				errTcp <- 0
 				return
 			}
 		}

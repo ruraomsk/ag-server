@@ -33,7 +33,6 @@ func StartSQL(stop chan int) {
 }
 
 func workerSQL(soc net.Conn, stop chan int) {
-	defer soc.Close()
 	logger.Info.Printf("Новый клиент SQL сервера %s", soc.RemoteAddr().String())
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
@@ -41,10 +40,15 @@ func workerSQL(soc net.Conn, stop chan int) {
 	dbb, err := sql.Open("postgres", dbinfo)
 	if err != nil {
 		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
+		soc.Close()
 		stop <- 1
 		return
 	}
-	defer dbb.Close()
+	defer func() {
+		dbb.Close()
+		soc.Close()
+	}()
+
 	if err = dbb.Ping(); err != nil {
 		logger.Error.Printf("Ping %s", err.Error())
 		stop <- 1

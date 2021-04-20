@@ -90,8 +90,8 @@ func newConnect(soc net.Conn) {
 	*/
 	ctrl := new(pudge.Controller)
 	var err error
-	hout := make(chan transport.HeaderServer, 100)
-	hin := make(chan transport.HeaderDevice, 100)
+	hout := make(chan transport.HeaderServer, 1)
+	hin := make(chan transport.HeaderDevice, 1)
 	defer soc.Close()
 	readTout := time.Duration((setup.Set.CommServer.TimeOutRead + 60) * int64(time.Second))
 	controlTout := time.Duration(setup.Set.CommServer.TimeOutRead * int64(time.Second))
@@ -108,6 +108,7 @@ func newConnect(soc net.Conn) {
 	if ok {
 		//Остановим текущее
 		ddd.ExitCommand <- 1
+		time.Sleep(1 * time.Second)
 		delete(devs, hDev.ID)
 	}
 	mutex.Unlock()
@@ -317,11 +318,15 @@ func newConnect(soc net.Conn) {
 				mutex.Unlock()
 			}
 			pudge.SetController(ctrl)
-		case <-dd.ErrorTCP:
+		case fl := <-dd.ErrorTCP:
 			ctrl, _ = pudge.GetController(dd.id)
 			ctrl.StatusConnection = false
 			pudge.SetController(ctrl)
-			w := fmt.Sprintf("Устройство %d отключается ошибки ввода/вывода ", dd.id)
+			txt := " при вводе c устройства"
+			if fl == 0 {
+				txt = " при выводе на устройство"
+			}
+			w := fmt.Sprintf("Контрроллер %d отключается ошибки  %s", dd.id, txt)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: -1, Time: time.Now(), LogString: w}
 			logger.Error.Print(w)
 			mutex.Lock()
@@ -331,8 +336,9 @@ func newConnect(soc net.Conn) {
 		case <-tickControlTobm.C:
 			mutex.Lock()
 			if dd.Messages.Size() == 0 {
+				logger.Debug.Printf("keepAlive %d", dd.id)
 				hs, _ = makeAlive(dd)
-				hout <- hs
+				dd.Messages.Push(hs)
 			}
 			mutex.Unlock()
 		case <-timer.C:

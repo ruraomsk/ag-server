@@ -69,11 +69,15 @@ func routeSgdk() {
 			if count == 0 && ctrl.StatusCommandDU.IsReqSFDK1 && ctrl.StatusConnection {
 				//logger.Info.Printf("есть в контроле и есть команда id %d count %d", ctrl.ID,count)
 				setOffSfdk(ctrl.ID)
+				ctrl.StatusCommandDU.IsReqSFDK1 = false
+				pudge.GetController(c)
 				continue
 			}
 			if count != 0 && !ctrl.StatusCommandDU.IsReqSFDK1 && ctrl.StatusConnection {
 				//logger.Info.Printf("есть в контроле и нет команды id %d count %d", ctrl.ID,count)
 				setOnSfdk(ctrl.ID)
+				ctrl.StatusCommandDU.IsReqSFDK1 = true
+				pudge.GetController(c)
 				continue
 			}
 		}
