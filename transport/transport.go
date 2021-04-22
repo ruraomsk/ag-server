@@ -197,9 +197,13 @@ func makeCRC(buffer []byte, lenHeader int) (sumB uint, sumP uint) {
 }
 func checkCRC(buffer []byte, lenHeader int) error {
 	sumB, sumP := makeCRC(buffer, lenHeader)
-	len := int(buffer[lenHeader-1] - 2)
-	tb := ((uint(buffer[lenHeader+len+1]) & 0xff) << 8) | uint(buffer[lenHeader+len]&0xff)
-	tp := ((uint(buffer[lenHeader+len+3]) & 0xff) << 8) | uint(buffer[lenHeader+len+2]&0xff)
+	l := int(buffer[lenHeader-1] - 2)
+	if lenHeader+l >= len(buffer) || lenHeader+l+1 >= len(buffer) || lenHeader+l+2 >= len(buffer) || lenHeader+l+3 >= len(buffer) {
+		return fmt.Errorf("ошибка CRC неверная длина буфера %d %d %v", lenHeader, len(buffer), buffer)
+	}
+
+	tb := ((uint(buffer[lenHeader+l+1]) & 0xff) << 8) | uint(buffer[lenHeader+l]&0xff)
+	tp := ((uint(buffer[lenHeader+l+3]) & 0xff) << 8) | uint(buffer[lenHeader+l+2]&0xff)
 	if tb != sumB || tp != sumP {
 		return fmt.Errorf("ошибка CRC %d %d != %d %d", sumB, sumP, tb, tp)
 	}
