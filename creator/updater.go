@@ -41,6 +41,8 @@ func Update(reg, nfile string) error {
 	isempty := true
 	state := pudge.NewCross()
 	var dgis string
+	var i148 []int
+	var short148 bool
 	for scanner.Scan() {
 		str := scanner.Text()
 		if len(str) == 0 {
@@ -51,6 +53,10 @@ func Update(reg, nfile string) error {
 			if !isempty {
 				_ = updateState(state, dgis)
 			}
+			short148 = false
+			i148 = make([]int, 32)
+			i148[0] = 148
+			i148[2] = 23
 			isempty = false
 			state = pudge.NewCross()
 			ss := strings.Split(str, ",")
@@ -191,9 +197,29 @@ func Update(reg, nfile string) error {
 				}
 				continue
 			}
+			if sint[0] >= 140 && sint[0] <= 147 {
+				if sint[2] == 23 && sint[3] == 4 {
+					short148 = true
+					p := 5 + ((sint[4] - 1) * 3)
+					i148[p] = sint[5]
+					i148[p+1] = sint[6]
+					i148[p+2] = sint[7]
+					continue
+				}
+			}
 			if sint[0] == 148 {
+				if short148 || sint[3] == 4 {
+					if sint[2] == 23 && sint[3] == 4 {
+						p := 5 + ((sint[4] - 1) * 3)
+						i148[p] = sint[5]
+						i148[p+1] = sint[6]
+						i148[p+2] = sint[7]
+					}
+					err = state.Arrays.SetTimeUse.FromBuffer(i148)
+				} else {
+					err = state.Arrays.SetTimeUse.FromBuffer(sint)
+				}
 				// Массив настройки времен внешних входов
-				err = state.Arrays.SetTimeUse.FromBuffer(sint)
 				if err != nil {
 					logger.Error.Printf("в строке %s %s", str, err.Error())
 					// return err
@@ -265,6 +291,7 @@ func updateState(state *pudge.Cross, dgis string) error {
 	state.Dgis = oldState.Dgis
 	state.Name = oldState.Name
 	state.Area = oldState.Area
+	state.Name = oldState.Name
 	//w = fmt.Sprintf("delete from public.\"cross\" where region=%d and area=%d and id=%d);",
 	//	state.Region, state.Area,  state.ID)
 	//_, err = con.Exec(w)

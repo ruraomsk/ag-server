@@ -218,14 +218,16 @@ func workerArray(soc net.Conn) {
 			pudge.DeleteCross(state.State.Region, state.State.Area, state.State.ID)
 			continue
 		}
-		old, is := pudge.GetCross(state.State.Region, state.State.Area, state.State.ID)
+		pudge.Lock()
+		old, is := pudge.GetCrossLessLock(state.State.Region, state.State.Area, state.State.ID)
 		if !is {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.State.Region, state.State.Area, state.State.ID)
 			state.State.StatusDevice = 18
 			w := fmt.Sprintf(" %s добавил перекрестка %d %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID, state.State.IDevice)
 			logger.Info.Print(w)
-			pudge.SetCross(&state.State)
+			pudge.SetCrossLessLock(&state.State)
+			pudge.Unclock()
 			time.Sleep(1 * time.Second)
 			pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}
 			continue
@@ -236,11 +238,14 @@ func workerArray(soc net.Conn) {
 			d, ok := devs[old.IDevice]
 			if ok {
 				//Остановим текущее
+				mutex.Lock()
 				d.ExitCommand <- 1
 				delete(devs, old.IDevice)
+				mutex.Unlock()
 			}
 		}
-		pudge.SetCross(&state.State)
+		pudge.SetCrossLessLock(&state.State)
+		pudge.Unclock()
 		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
 		logger.Info.Print(w)
 		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}

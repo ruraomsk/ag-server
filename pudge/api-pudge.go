@@ -36,6 +36,25 @@ var conLog *sql.DB
 var dbinfo string
 var err error
 
+func Lock() {
+	mutexCtrl.Lock()
+}
+func Unclock() {
+	mutexCtrl.Unlock()
+
+}
+
+//GetCrossLessLock возвращает копию перекрестка
+func GetCrossLessLock(region, area, id int) (Cross, bool) {
+	reg := Region{Region: region, Area: area, ID: id}
+	c, is := crosses[reg.ToKey()]
+	if !is {
+		cc := new(Cross)
+		return *cc, is
+	}
+	return *c, is
+}
+
 //GetCross возвращает копию перекрестка
 func GetCross(region, area, id int) (Cross, bool) {
 	mutexCtrl.Lock()
@@ -115,6 +134,31 @@ func SetCrossNewDevice(reg Region, idevice int) error {
 	c.WriteToDB = true
 	//crosses[reg.ToKey()] = c
 	return nil
+}
+
+//SetCross обновляет состояние перекрестка
+func SetCrossLessLock(c *Cross) {
+	reg := Region{Region: c.Region, Area: c.Area, ID: c.ID}
+	_, is := crosses[reg.ToKey()]
+	if !is {
+		c.WriteToDB = false
+		crosses[reg.ToKey()] = c
+		js, _ := json.Marshal(c)
+		w := fmt.Sprintf("insert into public.\"cross\" (region,area,subarea,id,dgis,describ,idevice,status,state) values(%d,%d,%d,%d,point(%s),'%s',%d,%d,'%s');",
+			c.Region, c.Area, c.SubArea, c.ID, c.Dgis, c.Name, c.IDevice, c.StatusDevice, string(js))
+		_, err = conCross.Exec(w)
+
+		if err != nil {
+			logger.Error.Printf("Error %s  %s\n", w, err.Error())
+			return
+		}
+	} else {
+		c.WriteToDB = true
+		delete(crosses, reg.ToKey())
+		crosses[reg.ToKey()] = c
+		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
+	}
+	return
 }
 
 //SetCross обновляет состояние перекрестка
@@ -234,7 +278,6 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			saveDBase()
 		case <-context.Done():
 			Works = false
-			logger.Info.Println("Останов обновления БД")
 			for _, d := range controllers {
 				if d.IsConnected() {
 					ChanLog <- RecLogCtrl{ID: d.ID, Type: -1, Time: time.Now(), LogString: "Остановлен сервер"}
@@ -242,6 +285,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 			}
 			time.Sleep(5 * time.Second)
 			saveDBase()
+			logger.Info.Println("Останов обновления БД")
 			time.Sleep(5 * time.Second)
 			return
 		}

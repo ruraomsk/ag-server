@@ -70,6 +70,8 @@ github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.9.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/lib/pq v1.10.0 h1:Zx5DJFEYQXio93kgXnQ09fXNiUKsqv4OUEu2UtGcB1E=
 github.com/lib/pq v1.10.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
+github.com/lib/pq v1.10.1 h1:6VXZrLU0jHBYyAqrSPa+MgPfnSvTPuMgK+k0o5kVFWo=
+github.com/lib/pq v1.10.1/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/mattn/go-isatty v0.0.9/go.mod h1:YNRxwqDuOph6SZLI9vUUz6OYw3QyUt7WiY2yME+cCiQ=
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
@@ -88,6 +90,8 @@ github.com/ruraomsk/TLServer v0.0.0-20210217115252-9213ce7cf083/go.mod h1:13MnFt
 github.com/ruraomsk/TLServer v0.0.0-20210406045801-7be6f944312e/go.mod h1:gI4E8debBX48NdV+s7XxSRC1gU/yUVKRCX76QQwEsFA=
 github.com/ruraomsk/TLServer v0.0.0-20210414103527-9e2ef4e28459 h1:edWUvoM+pRersvvdUsjFjiGATtaSeLwsq8diGdHSCSQ=
 github.com/ruraomsk/TLServer v0.0.0-20210414103527-9e2ef4e28459/go.mod h1:oc2pKIYenEoMzes8yVaXNch1Qfzy/Qw7q9WnwnBoIqk=
+github.com/ruraomsk/TLServer v0.0.0-20210422102008-a35a3be950d3 h1:dUeia72Pg+qGTeWoLEr6ghNMIkLwEzBvEcW2ti6lxnM=
+github.com/ruraomsk/TLServer v0.0.0-20210422102008-a35a3be950d3/go.mod h1:oc2pKIYenEoMzes8yVaXNch1Qfzy/Qw7q9WnwnBoIqk=
 github.com/ruraomsk/ag-server v0.0.0-20210331101359-3eb5e2a69177/go.mod h1:GA82ZD7L8MdRq7SCNrN0cMOlzpmAvFJ+uFrg5mEul5Q=
 github.com/ruraomsk/ag-server v0.0.0-20210408071510-b560643080fc/go.mod h1:DBL8eczWqzYkkDRJ0lpOOrzDzGdv5p+gbwsQROMdOuY=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
