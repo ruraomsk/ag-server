@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -10,6 +11,34 @@ import (
 
 //Stoped глобальная перенная если истина то надо бросать работу
 var Stoped = false
+
+func GetOneMessage(socket net.Conn) (HeaderDevice, error) {
+	var h HeaderDevice
+	socket.SetReadDeadline(time.Now().Add(10 * time.Minute))
+	buf := make([]byte, 19)
+	n, err := socket.Read(buf)
+	if err == nil && n != len(buf) {
+		return h, fmt.Errorf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
+	}
+	if err != nil {
+		return h, fmt.Errorf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+	}
+	buf2 := make([]byte, buf[18]+2)
+	n, err = socket.Read(buf2)
+	if err == nil && n != len(buf2) {
+		return h, fmt.Errorf("при чтении сообщения от устройства %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf2))
+	}
+	if err != nil {
+		return h, fmt.Errorf("при чтении сообщения от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+	}
+	buffer := append(buf, buf2...)
+	//logger.Debug.Printf("Приняли с сокета %ss %v",socket.RemoteAddr().String(),buffer)
+	err = h.Parse(buffer)
+	if err != nil {
+		return h, fmt.Errorf("при раскодировании от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+	}
+	return h, nil
+}
 
 //GetMessagesFromDevice принять сообщение
 func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.Duration, errTcp chan int) {

@@ -2,8 +2,10 @@ package comm
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/lib/pq"
 	"net"
 	"strconv"
 	"strings"
@@ -181,7 +183,21 @@ func workerCommand(soc net.Conn) {
 	}
 }
 func workerArray(soc net.Conn) {
-	defer soc.Close()
+	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		setup.Set.DataBase.Host, setup.Set.DataBase.User,
+		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
+	db, err := sql.Open("postgres", dbinfo)
+	if err != nil {
+		logger.Error.Printf("Запрос на открытие %s %s", dbinfo, err.Error())
+		soc.Close()
+		return
+	}
+
+	defer func() {
+		soc.Close()
+		db.Close()
+	}()
+
 	var state pudge.UserCross
 	logger.Info.Printf("Новый клиент массивов %s", soc.RemoteAddr().String())
 	reader := bufio.NewReader(soc)
@@ -199,7 +215,7 @@ func workerArray(soc net.Conn) {
 
 		err = json.Unmarshal([]byte(a), &state)
 		if err != nil {
-			logger.Error.Printf("При конвератации привязки сервера АРМ %s %s", a, err.Error())
+			logger.Error.Printf("При конвертации привязки сервера АРМ %s %s", a, err.Error())
 			continue
 		}
 		// logger.Error.Println("Пришло state")
@@ -220,6 +236,8 @@ func workerArray(soc net.Conn) {
 		}
 		pudge.Lock()
 		old, is := pudge.GetCrossLessLock(state.State.Region, state.State.Area, state.State.ID)
+		//logger.Debug.Printf("Изменили %v", old.Arrays.SetDK.DK[0])
+		os, _ := json.Marshal(&old)
 		if !is {
 			//Перекрестка нет нужно создать
 			logger.Info.Printf("Добавлен перекресток %d %d %d", state.State.Region, state.State.Area, state.State.ID)
@@ -247,6 +265,9 @@ func workerArray(soc net.Conn) {
 		pudge.SetCrossLessLock(&state.State)
 		pudge.Unclock()
 		w := fmt.Sprintf("%s изменил перекресток %d %d %d", state.User, state.State.Region, state.State.Area, state.State.ID)
+		s := fmt.Sprintf("insert into public.history (region,area,id,login,tm,state) values (%d,%d,%d,'%s','%s','%s');",
+			state.State.Region, state.State.Area, state.State.ID, state.User, string(pq.FormatTimestamp(time.Now())), string(os))
+		_, _ = db.Exec(s)
 		logger.Info.Print(w)
 		pudge.ChanLog <- pudge.RecLogCtrl{ID: state.State.IDevice, Type: 0, Time: time.Now(), LogString: w}
 		//logger.Debug.Printf("Изменили %v", state.State.Arrays.SetTimeUse)

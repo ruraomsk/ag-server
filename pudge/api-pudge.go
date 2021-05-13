@@ -45,14 +45,13 @@ func Unclock() {
 }
 
 //GetCrossLessLock возвращает копию перекрестка
-func GetCrossLessLock(region, area, id int) (Cross, bool) {
+func GetCrossLessLock(region, area, id int) (*Cross, bool) {
 	reg := Region{Region: region, Area: area, ID: id}
 	c, is := crosses[reg.ToKey()]
 	if !is {
-		cc := new(Cross)
-		return *cc, is
+		return nil, is
 	}
-	return *c, is
+	return c, is
 }
 
 //GetCross возвращает копию перекрестка
@@ -154,7 +153,6 @@ func SetCrossLessLock(c *Cross) {
 		}
 	} else {
 		c.WriteToDB = true
-		delete(crosses, reg.ToKey())
 		crosses[reg.ToKey()] = c
 		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
 	}
@@ -181,7 +179,6 @@ func SetCross(c *Cross) {
 		}
 	} else {
 		c.WriteToDB = true
-		delete(crosses, reg.ToKey())
 		crosses[reg.ToKey()] = c
 		logger.Debug.Printf("Записано изменение %s", reg.ToKey())
 	}
@@ -252,6 +249,7 @@ func Start(context *extcon.ExtContext, stop chan int) {
 		return
 	}
 	defer conCross.Close()
+	needHistoryCross(conCross)
 	err = loadDBase()
 	if err != nil {
 		logger.Error.Printf("save %s", err.Error())

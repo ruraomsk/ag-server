@@ -324,6 +324,7 @@ func (cc *Controller) calcJournal() (int, int) {
 	faza := cc.DK.FDK
 	err := cc.coderr()
 	dev := cc.codeDevice()
+	lamp := cc.lamps()
 	//lamp := 0
 	//door := 0
 	// if lrezim != rezim || lfaza != faza || lerr != err || ldev != dev || llamp != lamp || ldoor != door {
@@ -453,7 +454,7 @@ func (cc *Controller) calcJournal() (int, int) {
 		//Несуществующий код
 		return -1, 26
 	}
-	if (rezim == 8 || rezim == 9) && (faza > 0 && faza < 10) {
+	if (rezim == 8 || rezim == 9) && (faza > 0 && faza < 10) && lamp == 1 {
 		//Координированное управление и перегоревшая лампа
 		return -1, 27
 	}

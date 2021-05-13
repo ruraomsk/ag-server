@@ -397,6 +397,8 @@ func (cc *Controller) Compare(ccc *Controller) bool {
 
 //SetDefault Заполнить по умолчанию
 func SetDefault(c *Controller, key Region) {
+	mutexCtrl.Lock()
+	defer mutexCtrl.Unlock()
 	cr, is := crosses[key.ToKey()]
 	if !is {
 		logger.Error.Fatalf("нет такого %s", key)

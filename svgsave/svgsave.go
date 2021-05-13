@@ -180,7 +180,7 @@ func send(buf []byte) bool {
 	l = l | (int(buf[7]) << 8)
 	l = l | int(buf[8])
 	//logger.Info.Printf("%v len=%d", buf[0:9],l)
-	socket.SetWriteDeadline(time.Now().Add(30 * time.Second))
+	//socket.SetWriteDeadline(time.Now().Add(30 * time.Second))
 	n, err := socket.Write(buf)
 	if err != nil {
 		logger.Error.Printf("При передаче на %s ошибка %s", socket.RemoteAddr().String(), err.Error())
@@ -252,7 +252,6 @@ func Start() {
 		if err != nil {
 			logger.Error.Printf("Error read public.cross %s", err.Error())
 			continue
-
 		}
 		for rows.Next() {
 			var region, area, cross int

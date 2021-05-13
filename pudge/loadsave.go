@@ -1,6 +1,7 @@
 package pudge
 
 import (
+	"database/sql"
 	"encoding/json"
 	"github.com/ruraomsk/TLServer/logger"
 	"strconv"
@@ -171,5 +172,33 @@ func saveCrosees() error {
 		count++
 	}
 	// logger.Info.Println("save cross ", count)
+	return nil
+}
+
+var historyTable = `
+	CREATE TABLE public.history
+	(
+		region integer NOT NULL,
+		area integer NOT NULL,
+		id integer NOT NULL,
+		login text ,
+		tm timestamp with time zone NOT NULL,
+		state jsonb NOT NULL
+	)
+	WITH (
+		autovacuum_enabled = TRUE
+	)
+	TABLESPACE pg_default;
+	
+	ALTER TABLE public.history
+		OWNER to postgres;
+`
+
+func needHistoryCross(db *sql.DB) error {
+	_, err := db.Exec("select * from public.history;")
+	if err != nil {
+		logger.Error.Println("history table not found - created!")
+		_, _ = db.Exec(historyTable)
+	}
 	return nil
 }

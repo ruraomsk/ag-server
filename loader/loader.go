@@ -54,15 +54,20 @@ func workerSQL(soc net.Conn, stop chan int) {
 		stop <- 1
 		return
 	}
-	soc.SetReadDeadline(time.Now().Add(time.Duration(60 * int64(time.Minute))))
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	for {
+		//soc.SetReadDeadline(time.Now().Add(time.Duration(60 * time.Minute)))
 		c, err := reader.ReadString('\n')
+		//&& strings.Compare(err.Error(),"EOF")!=0
 		if err != nil {
-			logger.Error.Printf("При чтении команд SQL сервера %s", err.Error())
+			logger.Error.Printf("При чтении команд SQL %s сервера %s", soc.RemoteAddr().String(), err.Error())
 			return
 		}
+		//if err != nil && strings.Compare(err.Error(),"EOF")==0 {
+		//
+		//}
+
 		if c[0:1] == "0" {
 			logger.Info.Println("Keep alive")
 			continue
@@ -73,6 +78,7 @@ func workerSQL(soc net.Conn, stop chan int) {
 			c = strings.Replace(c, "==RESPONSE NEED==", "", 1)
 		}
 		_, err = dbb.Exec(c)
+		//soc.SetWriteDeadline(time.Now().Add(time.Duration(60 * time.Minute)))
 		if err != nil {
 			w := fmt.Sprintf("Sql %s error %s", c, err.Error())
 			logger.Error.Printf(w)

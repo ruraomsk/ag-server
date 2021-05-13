@@ -99,19 +99,21 @@ func newConnect(soc net.Conn) {
 	dd := new(device)
 	dd.LastToDevice = time.Now()
 	dd.ErrorTCP = make(chan int)
-	go transport.GetMessagesFromDevice(soc, hin, &readTout, dd.ErrorTCP)
-	go transport.SendMessagesToDevice(soc, hout, &writeTout, dd.ErrorTCP)
-	hDev := <-hin
-	logger.Debug.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
-	mutex.Lock()
+	hDev, err := transport.GetOneMessage(soc)
+	if err != nil {
+		logger.Error.Print(err.Error())
+		return
+	}
+	logger.Info.Printf("Устройствo %s подключается... номер %d", soc.RemoteAddr().String(), hDev.ID)
 	ddd, ok := devs[hDev.ID]
 	if ok {
 		//Остановим текущее
 		ddd.ExitCommand <- 1
-		time.Sleep(1 * time.Second)
+		//time.Sleep(1 * time.Second)
+		mutex.Lock()
 		delete(devs, hDev.ID)
+		mutex.Unlock()
 	}
-	mutex.Unlock()
 	start := time.Now()
 	ctrl, err = getController(hDev.ID)
 	if err != nil {
@@ -202,6 +204,9 @@ func newConnect(soc net.Conn) {
 		ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 	}
 	pudge.SetController(ctrl)
+	//Запускаем ввод вывод
+	go transport.GetMessagesFromDevice(soc, hin, &readTout, dd.ErrorTCP)
+	go transport.SendMessagesToDevice(soc, hout, &writeTout, dd.ErrorTCP)
 	//Подтвердим что клиент прописан
 	var hs transport.HeaderServer
 	hs = transport.CreateHeaderServer(0, 0)
@@ -287,7 +292,6 @@ func newConnect(soc net.Conn) {
 				dd.LastToDevice = time.Now()
 				hout <- hs
 			} else {
-				mutex.Lock()
 				if dd.WaitNum != 0 {
 					l := 13 + len(dd.LastMessage.Message) + 4
 					ctrl.Traffic.ToDevice15Min += uint64(l)
@@ -296,7 +300,7 @@ func newConnect(soc net.Conn) {
 					dd.LastToDevice = time.Now()
 					dd.CountLost = 0
 					hout <- dd.LastMessage
-					logger.Debug.Printf("Повторная передача на %d %v", dd.id, dd.LastMessage.Message)
+					//logger.Debug.Printf("Повторная передача на %d %v", dd.id, dd.LastMessage.Message)
 
 				} else {
 					if dd.Messages.Size() != 0 {
@@ -309,13 +313,12 @@ func newConnect(soc net.Conn) {
 						dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
-						logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
+						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
-						logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
+						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
 						dd.CountLost = 0
 					}
 				}
-				mutex.Unlock()
 			}
 			pudge.SetController(ctrl)
 		case fl := <-dd.ErrorTCP:
@@ -334,13 +337,11 @@ func newConnect(soc net.Conn) {
 			mutex.Unlock()
 			return
 		case <-tickControlTobm.C:
-			mutex.Lock()
 			if dd.Messages.Size() == 0 {
-				logger.Debug.Printf("keepAlive %d", dd.id)
+				//logger.Debug.Printf("keepAlive %d", dd.id)
 				hs, _ = makeAlive(dd)
 				dd.Messages.Push(hs)
 			}
-			mutex.Unlock()
 		case <-timer.C:
 			ctrl, _ = pudge.GetController(dd.id)
 			if time.Now().Sub(dd.LastToDevice) > readTout {
@@ -375,7 +376,6 @@ func newConnect(soc net.Conn) {
 				mutex.Unlock()
 				return
 			}
-			mutex.Lock()
 			if dd.WaitNum == 0 && dd.Messages.Size() != 0 {
 				dd.LastMessage = dd.Messages.Pop()
 				dd.WaitNum = dd.LastMessage.Number
@@ -383,7 +383,7 @@ func newConnect(soc net.Conn) {
 				ctrl.Traffic.ToDevice15Min += uint64(l)
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				ctrl.LastOperation = time.Now()
-				logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
+				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
 				dd.LastToDevice = time.Now()
 				dd.CountLost = 0
@@ -397,14 +397,13 @@ func newConnect(soc net.Conn) {
 						ctrl.LastOperation = time.Now()
 						dd.LastToDevice = time.Now()
 						hout <- dd.LastMessage
-						logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
+						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
 						dd.CountLost = 0
 					}
 				} else {
 					dd.CountLost = 0
 				}
 			}
-			mutex.Unlock()
 			pudge.SetController(ctrl)
 		case <-dd.context.Done():
 			transport.Stoped = true
@@ -422,9 +421,7 @@ func newConnect(soc net.Conn) {
 				logger.Error.Printf("При создании команды измения протокола для %d %s", dd.id, err.Error())
 				continue
 			}
-			mutex.Lock()
 			dd.Messages.Push(hs)
-			mutex.Unlock()
 
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма
@@ -433,9 +430,7 @@ func newConnect(soc net.Conn) {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.id, err.Error())
 				continue
 			}
-			mutex.Lock()
 			dd.Messages.Push(hs)
-			mutex.Unlock()
 
 		case comArray := <-dd.CommandArray:
 			ctrl, _ = pudge.GetController(dd.id)
@@ -443,18 +438,14 @@ func newConnect(soc net.Conn) {
 			if comArray[0].Number == 0 {
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
-				mutex.Lock()
 				dd.Messages.Push(hs)
-				mutex.Unlock()
 				break
 			}
 			if comArray[0].Number == -1 {
 				//Команда выйти из локального режима
 
 				hs := makeLocalOff(dd)
-				mutex.Lock()
 				dd.Messages.Push(hs)
-				mutex.Unlock()
 				break
 			}
 			for _, arp := range comArray {
@@ -476,9 +467,7 @@ func newConnect(soc net.Conn) {
 			}
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
-			mutex.Lock()
 			dd.Messages.Push(hs)
-			mutex.Unlock()
 		}
 	}
 
@@ -489,8 +478,6 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice) (transp
 	dmess := hDev.ParseMessage()
 	// logger.Info.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 	need := false
-	mutex.Lock()
-	defer mutex.Unlock()
 	//d := devs[hDev.ID]
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
@@ -744,9 +731,9 @@ func makeCommandToDevice(dd *device, comARM CommandARM) (transport.HeaderServer,
 	}
 	mss = append(mss, ms)
 	_ = hs.UpackMessages(mss)
-	mutex.Lock()
-	//dd.Messages[int(dd.NumServ)]=hs
-	mutex.Unlock()
+	//mutex.Lock()
+	////dd.Messages[int(dd.NumServ)]=hs
+	//mutex.Unlock()
 	return hs, nil
 }
 func makeLocalOn(dd *device) transport.HeaderServer {
@@ -792,8 +779,8 @@ func makeArrayToDevice(dd *device, comArrays []pudge.ArrayPriv) transport.Header
 		logger.Info.Printf("Передали на устройство %d привязку %v", dd.id, arp.Array)
 	}
 	_ = hs.UpackMessages(mss)
-	mutex.Lock()
-	//dd.Messages[int(dd.NumServ)]=hs
-	mutex.Unlock()
+	//mutex.Lock()
+	////dd.Messages[int(dd.NumServ)]=hs
+	//mutex.Unlock()
 	return hs
 }
