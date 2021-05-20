@@ -89,6 +89,9 @@ func (s *SetTimeUse) FromBuffer(buffer []int) error {
 			tp := 0
 			tvps := 0
 			dk := 1
+			if pos >= len(buffer) {
+				return nil
+			}
 			if buffer[pos]&1 != 0 {
 				tp = 1
 				tvps = 3
