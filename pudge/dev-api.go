@@ -1,6 +1,8 @@
 package pudge
 
-import "github.com/ruraomsk/TLServer/logger"
+import (
+	"github.com/ruraomsk/TLServer/logger"
+)
 
 //Make создает байт для передачи статуса команд ДУ
 func (s *StatusCommandDU) Make() (command uint8) {
@@ -140,6 +142,27 @@ func (cc *Controller) calcStatus() int {
 	// 	ldev = dev
 	// 	llamp = lamp
 	// 	ldoor = door
+
+	//	dev := cc.codeDevice()
+	// 1 - ВПУ
+	// 2 - ДК
+	// 3 - ИП УСДК
+	// 4 - УСДК
+	// 5 - ИП ДК
+	//
+	// 7 - ДУ ЭВМ
+
+	//rezim := cc.DK.RDK
+	// 1 - РУ
+	// 2 - РП
+	// 3 - ЗУ
+	// 4 - ДУ
+	// 6 - ЛР
+	// 7 - ЛРП
+	// 8 - МГР
+	// 9 - КУ
+	// 10 - РКУ
+
 	// }
 	if !cc.IsConnected() {
 		if err == 11 && dev == 3 {

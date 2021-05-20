@@ -57,19 +57,16 @@ func workerSQL(soc net.Conn, stop chan int) {
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	for {
-		//soc.SetReadDeadline(time.Now().Add(time.Duration(60 * time.Minute)))
+		soc.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		c, err := reader.ReadString('\n')
 		//&& strings.Compare(err.Error(),"EOF")!=0
 		if err != nil {
 			logger.Error.Printf("При чтении команд SQL %s сервера %s", soc.RemoteAddr().String(), err.Error())
 			return
 		}
-		//if err != nil && strings.Compare(err.Error(),"EOF")==0 {
-		//
-		//}
 
 		if c[0:1] == "0" {
-			logger.Info.Println("Keep alive")
+			logger.Info.Printf("Keep alive from %s", soc.RemoteAddr().String())
 			continue
 		}
 		responce := false
