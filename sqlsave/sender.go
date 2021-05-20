@@ -40,8 +40,8 @@ func sender() bool {
 		return true
 	}
 	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 256*1024)
-	scanner.Buffer(buf, 256*1024)
+	buf := make([]byte, 1024*1024)
+	scanner.Buffer(buf, len(buf))
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	writer.Available()
