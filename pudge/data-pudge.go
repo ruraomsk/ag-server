@@ -11,14 +11,22 @@
 package pudge
 
 import (
-	"math/rand"
+	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/binding"
 )
+
+//StatusCtrl //Описывает статус устройства
+type StatusCtrl struct {
+	ID          int    `json:"id"`
+	Description string `json:"description"`
+	Control     bool   `json:"control"`
+}
 
 //Region указатель на номер перекрестка
 type Region struct {
@@ -29,7 +37,14 @@ type Region struct {
 
 //ToKey создает строковый ключ
 func (r *Region) ToKey() string {
-	return strconv.Itoa(r.Region) + ";" + strconv.Itoa(r.Area) + ";" + strconv.Itoa(r.ID)
+	return fmt.Sprintf("%d:%d:%d", r.Region, r.Area, r.ID)
+}
+func FromKeyToRegion(key string) Region {
+	r := strings.Split(key, ":")
+	region, _ := strconv.Atoi(r[0])
+	area, _ := strconv.Atoi(r[1])
+	id, _ := strconv.Atoi(r[2])
+	return Region{Region: region, Area: area, ID: id}
 }
 
 //StatusConnection статус соединения
@@ -94,34 +109,6 @@ type ErrorDevice struct {
 	FRAM    bool //Неисправность FRAM
 }
 
-func randBool() bool {
-	if rand.Intn(2) == 1 {
-		return true
-	}
-	return false
-}
-
-//MakeError случайным образом создает ошибку
-func (e *ErrorDevice) MakeError() bool {
-	switch rand.Intn(7) {
-	case 0:
-		return false
-	case 1:
-		e.V220DK1 = randBool()
-	case 2:
-		e.V220DK2 = randBool()
-	case 3:
-		e.RTC = randBool()
-	case 4:
-		e.TVP1 = randBool()
-	case 5:
-		e.TVP2 = randBool()
-	case 6:
-		e.FRAM = randBool()
-	}
-	return true
-}
-
 //Compare сравнивание истина если равны
 func (e *ErrorDevice) Compare(ee *ErrorDevice) bool {
 	return reflect.DeepEqual(e, ee)
@@ -135,27 +122,6 @@ type GPS struct {
 	E03  bool // Нет валидного времени
 	E04  bool // Мало спутников
 	Seek bool // Поиск спутников после включения
-}
-
-//MakeError порождает ошибки или испавность
-func (g *GPS) MakeError() bool {
-	switch rand.Intn(7) {
-	case 0:
-		return false
-	case 1:
-		g.Ok = randBool()
-	case 2:
-		g.E01 = randBool()
-	case 3:
-		g.E02 = randBool()
-	case 4:
-		g.E03 = randBool()
-	case 5:
-		g.E04 = randBool()
-	case 6:
-		g.Seek = randBool()
-	}
-	return true
 }
 
 //Compare сравнивание истина если равны
@@ -174,31 +140,6 @@ type Input struct {
 	V7 bool     //Неисправность входа 7
 	V8 bool     //Неисправность входа 8
 	S  [16]bool //Неисправность статистики
-}
-
-//MakeError порождает ошибки или испавность
-func (i *Input) MakeError() bool {
-	switch rand.Intn(9) {
-	case 0:
-		return false
-	case 1:
-		i.V1 = randBool()
-	case 2:
-		i.V2 = randBool()
-	case 3:
-		i.V3 = randBool()
-	case 4:
-		i.V4 = randBool()
-	case 5:
-		i.V5 = randBool()
-	case 6:
-		i.V6 = randBool()
-	case 7:
-		i.V7 = randBool()
-	case 8:
-		i.V8 = randBool()
-	}
-	return true
 }
 
 //Compare сравнивание истина если равны
@@ -393,6 +334,15 @@ type Controller struct {
 //Compare сравнивание истина если равны
 func (cc *Controller) Compare(ccc *Controller) bool {
 	return reflect.DeepEqual(cc, ccc)
+}
+
+//JSONLog структура для хранения адреса
+type JSONLog struct {
+	ID          int    `json:"ID"`
+	Area        string `json:"area"`
+	Region      string `json:"region"`
+	Type        int    `json:"type"`
+	Description string `json:"description"`
 }
 
 //SetDefault Заполнить по умолчанию

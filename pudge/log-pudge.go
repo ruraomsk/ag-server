@@ -9,15 +9,6 @@ import (
 	"strings"
 )
 
-//JSONLog структура для хранения адреса
-type JSONLog struct {
-	ID          int    `json:"ID"`
-	Area        string `json:"area"`
-	Region      string `json:"region"`
-	Type        int    `json:"type"`
-	Description string `json:"description"`
-}
-
 var mapMessages map[string]map[int]string
 
 func getCross(idevice int) *Cross {

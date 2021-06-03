@@ -215,12 +215,12 @@ func SetController(c *Controller) {
 }
 
 //Start главная процедура управления состоянием котроллеров
-func Start(context *extcon.ExtContext, stop chan int) {
+func Start(stop chan interface{}) {
 	// Создаем каналы и переменные
 	Works = false
 	//defer mutexCross.Unlock()
 	//defer mutexCtrl.Unlock()
-
+	context, _ := extcon.NewContext("pudge")
 	controllers = make(map[int]*Controller)
 	crosses = make(map[string]*Cross)
 	statuses = make(map[int]string)

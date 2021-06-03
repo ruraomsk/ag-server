@@ -9,9 +9,7 @@ type Setup struct {
 	Location   string     `toml:"location"`  //Локация временной зоны
 	StepPudge  int        `toml:"steppudge"` //Шаг сохранения в секундах
 	DataBase   DataBase   `toml:"dataBase"`
-	ApiServer  ApiServer  `toml:"api"`
 	CommServer CommServer `toml:"commServer"`
-	Controller Controller `toml:"controller"`
 	XCtrl      XCtrl      `toml:"xctrl"`
 	Saver      Saver      `toml:"saver"`
 	Dumper     Dumper     `toml:"dumper"`
@@ -32,10 +30,6 @@ type Loader struct {
 type Statistic struct {
 	Make    bool       `toml:"make"`    //true если выполнять
 	Regions [][]string `toml:"regions"` //Перечень регионов с временами старта во времени сервера и признаком какую дату использовать
-}
-type ApiServer struct {
-	PortAPI int `toml:"portapi"` //Порт приема подключений для API
-	PortOut int `toml:"portout"` //Порт запросов для получения изменений cross
 }
 type Saver struct {
 	Make    bool       `toml:"make"`     //true если выполнять
@@ -69,15 +63,6 @@ type DataBase struct {
 	User     string `toml:"user"`
 	Password string `toml:"password"`
 	DBname   string `toml:"dbname"`
-}
-
-//Controller настройки имитатора
-type Controller struct {
-	IP      string `toml:"ip"`
-	GuiPort int    `toml:"guiport"`
-	Port    int    `toml:"port"`
-	Step    int    `toml:"step"` //Интервал времени в секундах для расчетов
-	Random  bool   `toml:"random"`
 }
 
 //XCtrl настройки подсистемы характерных точек

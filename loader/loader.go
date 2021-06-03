@@ -66,7 +66,7 @@ func workerSQL(soc net.Conn, stop chan int) {
 		}
 
 		if c[0:1] == "0" {
-			logger.Info.Printf("Keep alive from %s", soc.RemoteAddr().String())
+			//logger.Info.Printf("Keep alive from %s", soc.RemoteAddr().String())
 			continue
 		}
 		responce := false

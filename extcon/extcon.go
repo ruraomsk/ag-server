@@ -57,7 +57,15 @@ func BackgroundInit() {
 	work = true
 	contexts = make(map[string]*ExtContext, 0)
 }
+func StopForName(name string) {
+	mutex.Lock()
+	ec, is := contexts[name]
+	if is {
+		ec.cancelFunc()
+	}
+	mutex.Unlock()
 
+}
 func allstop() {
 	mutex.Lock()
 	work = false
@@ -65,7 +73,7 @@ func allstop() {
 		ec.cancelFunc()
 	}
 	mutex.Unlock()
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 //SetTimerClock порождает канал где приходят по времения сообщения
@@ -75,7 +83,7 @@ func SetTimerClock(step time.Duration) *time.Ticker {
 
 //BackgroundWork обычно вызывается для обслуживания разного
 // ПОсле выхода нет контекстов
-func BackgroundWork(step time.Duration, stop chan int) {
+func BackgroundWork(step time.Duration, stop chan interface{}) {
 	if !work {
 		BackgroundInit()
 	}

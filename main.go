@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/dumper"
 	"github.com/ruraomsk/ag-server/loader"
+	"github.com/ruraomsk/ag-server/memDB"
 	"github.com/ruraomsk/ag-server/sqlsave"
 	"github.com/ruraomsk/ag-server/svgsave"
+	"github.com/ruraomsk/ag-server/techComm"
 	"os"
 	"runtime"
 	"strings"
@@ -13,11 +16,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/ruraomsk/TLServer/logger"
-	"github.com/ruraomsk/ag-server/comm"
-	"github.com/ruraomsk/ag-server/controller"
 	"github.com/ruraomsk/ag-server/creator"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/inspect"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
 	"github.com/ruraomsk/ag-server/xcontrol"
@@ -28,6 +28,7 @@ import (
 )
 
 var err error
+var debug = false
 
 //Секция инициализации программы
 func init() {
@@ -66,7 +67,7 @@ func main() {
 		}
 		if strings.Contains(os.Args[1], "update") {
 			if len(os.Args[2]) == 0 || len(os.Args[3]) == 0 {
-				fmt.Println("Нужно запускать с параметрами номер региона имя файла copybase ")
+				fmt.Println("Нужно запускать с параметрами номер региона имя файла копии базы")
 				return
 			}
 			err = creator.Update(os.Args[2], os.Args[3])
@@ -79,21 +80,20 @@ func main() {
 	}
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")
-	stop := make(chan int)
+	stop := make(chan interface{})
 	extcon.BackgroundInit()
-	p, _ := extcon.NewContext("pudge")
-	go pudge.Start(p, stop)
-	go comm.StartListen()
-	if len(os.Args) > 1 {
-		if strings.Contains(os.Args[1], "simul") {
-			c, _ := extcon.NewContext("controller")
-			go controller.Start(c)
-		}
+	if !debug {
+		go pudge.Start(stop)
+		go comm.StartListen()
+		go comm.Start(stop)
+	} else {
+		ready := make(chan interface{})
+		go memDB.Start(ready, stop)
+		<-ready
+		go techComm.StartListen()
+		go techComm.Start()
 	}
-	i, _ := extcon.NewContext("inspector")
-	go inspect.Start(i, stop)
-	x, _ := extcon.NewContext("xcontrol")
-	go xcontrol.Start(x, stop)
+	go xcontrol.Start(stop)
 	go dumper.Start()
 	go dumper.Statistics()
 	go loader.RemoteLoader()

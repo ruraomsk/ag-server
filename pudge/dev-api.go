@@ -131,7 +131,7 @@ func (d *DK) Make(buffer []byte, pos int) {
 func (cc *Controller) calcStatus() int {
 	rezim := cc.DK.RDK
 	faza := cc.DK.FDK
-	err := cc.coderr()
+	err := cc.DK.EDK
 	dev := cc.codeDevice()
 	lamp := cc.lamps()
 	door := cc.doors()
