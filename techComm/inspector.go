@@ -35,7 +35,7 @@ func getActiveCrosses() []string {
 }
 
 //Start главный модуль инспектора
-func Start() {
+func Start(ready chan interface{}) {
 	context, _ := extcon.NewContext("inspector")
 	go WriterLog()
 	crosses := getActiveCrosses()
@@ -44,6 +44,7 @@ func Start() {
 	}
 	inspectorTicker := time.NewTicker(5 * time.Second)
 	statusTicker := time.NewTicker(time.Duration(setup.Set.StepPudge) * time.Second)
+	ready <- 0
 	select {
 	case <-statusTicker.C:
 		setStatusCross()

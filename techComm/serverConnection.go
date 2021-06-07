@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func StartListen() {
+func StartListen(ready chan interface{}) {
 	//Запускаем слушателя для команд от АРМ
 	go listenArmCommand()
 	// //Запускаем слушателя для массивов привязки от АРМ
@@ -25,6 +25,7 @@ func StartListen() {
 		return
 	}
 	defer ln.Close()
+	ready <- 0
 	for {
 		socket, err := ln.Accept()
 		if err != nil {

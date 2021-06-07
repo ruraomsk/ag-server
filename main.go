@@ -90,8 +90,10 @@ func main() {
 		ready := make(chan interface{})
 		go memDB.Start(ready, stop)
 		<-ready
-		go techComm.StartListen()
-		go techComm.Start()
+		go techComm.StartListen(ready)
+		<-ready
+		go techComm.Start(ready)
+		<-ready
 	}
 	go xcontrol.Start(stop)
 	go dumper.Start()
