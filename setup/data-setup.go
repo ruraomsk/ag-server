@@ -15,6 +15,8 @@ type Setup struct {
 	Dumper     Dumper     `toml:"dumper"`
 	Statistic  Statistic  `toml:"statistic"`
 	Loader     Loader     `toml:"loader"`
+	Secret     bool       `toml:"secret"`
+	Version    int        `toml:"version"`
 }
 
 //Loader описание загрузчика

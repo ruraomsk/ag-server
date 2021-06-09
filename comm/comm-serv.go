@@ -59,7 +59,7 @@ func StartListen() {
 
 	if err != nil {
 		logger.Error.Printf("Ошибка открытия порта %s", err.Error())
-		return
+		panic("Скорее всего запущен еще один сервер")
 	}
 	defer ln.Close()
 	for {

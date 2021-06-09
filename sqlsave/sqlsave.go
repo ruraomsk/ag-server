@@ -32,7 +32,7 @@ type Record struct {
 
 var tableFields map[string][]string
 var tables map[string][]name
-var useTables map[string]defTable
+var useTables map[string]*defTable
 
 func isTable(table string) bool {
 	_, is := tableFields[table]
@@ -46,7 +46,7 @@ func addTable(table string) {
 	tables[table] = make([]name, 0)
 	t := new(defTable)
 	t.Records = make(map[string]*Record)
-	useTables[table] = *t
+	useTables[table] = t
 }
 func addName(table string, fieldname string, typeColumn string) {
 	n := new(name)
@@ -89,7 +89,7 @@ func Start() {
 		time.Sleep(time.Duration(setup.Set.Saver.Step) * time.Second)
 		tableFields = make(map[string][]string)
 		tables = make(map[string][]name)
-		useTables = make(map[string]defTable)
+		useTables = make(map[string]*defTable)
 		//fmt.Printf("%v\n", setup.Set.Saver.Keys)
 		for i := 0; i < len(setup.Set.Saver.Keys); i++ {
 			nt := setup.Set.Saver.Keys[i][0]
@@ -140,7 +140,7 @@ func Start() {
 		}
 		for nameTab, names := range tables {
 			//fmt.Printf("Table %s\n", nameTab)
-			w := fmt.Sprintf("select * from public.%s;", nameTab)
+			w := fmt.Sprintf("select * from public.\"%s\";", nameTab)
 			rows, err := dbb.Query(w)
 			if err != nil {
 				logger.Error.Printf("Error %s", err.Error())
@@ -208,9 +208,9 @@ func readOneRecord(rows *sql.Rows, nameTab string, names []name) (del string, in
 
 	}
 
-	del = fmt.Sprintf("delete from public.%s where ", nameTab)
-	insert = fmt.Sprintf("insert into public.%s (", nameTab)
-	update = fmt.Sprintf("update public.%s set ", nameTab)
+	del = fmt.Sprintf("delete from public.\"%s\" where ", nameTab)
+	insert = fmt.Sprintf("insert into public.\"%s\" (", nameTab)
+	update = fmt.Sprintf("update public.\"%s\" set ", nameTab)
 	for i, n := range names {
 		if i > 0 {
 			insert += "," + n.ColumnName

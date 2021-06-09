@@ -1,6 +1,8 @@
 home="d:/asud"					#Корневой каталог сервера
 location= "Asia/Omsk"   		#Временной пояс сервера
 steppudge=1						#Шаг сохранения в pudge
+secret=false                    #Шифруем каналы передачи данных
+version=1                       #Версия программы
 #Описание параметров доступа к БД
 [dataBase]
 	host= "192.168.115.115"
@@ -88,7 +90,7 @@ steppudge=1						#Шаг сохранения в pudge
         "delete from public.statistics where region=6;"
     ]
     step=60         #Шаг проверки изменения в БД
-    keys=[["cross","region","area","subarea","id"],
+    keys=[["cross","region","area","id"],
           ["devices","id"],
           ["region","region","area"],
           ["xctrl","region","area","subarea"],

@@ -6,9 +6,11 @@ import (
 	"github.com/ruraomsk/ag-server/dumper"
 	"github.com/ruraomsk/ag-server/loader"
 	"github.com/ruraomsk/ag-server/memDB"
+	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/sqlsave"
 	"github.com/ruraomsk/ag-server/svgsave"
 	"github.com/ruraomsk/ag-server/techComm"
+	"github.com/ruraomsk/ag-server/xcontrol"
 	"os"
 	"runtime"
 	"strings"
@@ -18,17 +20,13 @@ import (
 	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/creator"
 	"github.com/ruraomsk/ag-server/extcon"
-	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/setup"
-	"github.com/ruraomsk/ag-server/xcontrol"
-
 	//pprof init
 
 	_ "net/http/pprof"
 )
 
 var err error
-var debug = false
 
 //Секция инициализации программы
 func init() {
@@ -81,21 +79,30 @@ func main() {
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")
 	stop := make(chan interface{})
+
 	extcon.BackgroundInit()
-	if !debug {
+	ready := make(chan interface{})
+	if setup.Set.Version == 0 {
+		setup.Set.Version = 1
+	}
+	switch setup.Set.Version {
+	case 1:
 		go pudge.Start(stop)
 		go comm.StartListen()
 		go comm.Start(stop)
-	} else {
-		ready := make(chan interface{})
+	case 2:
 		go memDB.Start(ready, stop)
 		<-ready
 		go techComm.StartListen(ready)
 		<-ready
 		go techComm.Start(ready)
 		<-ready
+	default:
+		fmt.Printf("Неверный номер версии программы %d", setup.Set.Version)
+		return
 	}
-	go xcontrol.Start(stop)
+	go xcontrol.Start(ready, stop)
+	<-ready
 	go dumper.Start()
 	go dumper.Statistics()
 	go loader.RemoteLoader()

@@ -141,14 +141,19 @@ func (t *Table) getInfo(region pudge.Region, chanel int, start int, stop int) (v
 func getDefStat(cross *pudge.Cross) (is bool, period int, count int) {
 	is = false
 	for _, ds := range cross.Arrays.StatDefine.Levels {
-		if ds.Period > 0 && ds.Count > 0 {
-			//logger.Info.Printf("Перекресток %d %d %d имеет статистику",cross.Region,cross.Area,cross.ID)
-			if ds.Count > 16 {
+		if ds.Period == 0 {
+			return false, 0, 0
+		}
+		if ds.Count > 0 || ds.Ninput > 0 {
+			//logger.Debug.Printf("Перекресток %d %d %d имеет статистику",cross.Region,cross.Area,cross.ID)
+
+			if ds.Count > 16 || ds.Count == 0 {
 				return true, ds.Period, 16
 			}
 			return true, ds.Period, ds.Count
 		}
 	}
+	//logger.Debug.Printf("Перекресток %d %d %d не имеет статистику",cross.Region,cross.Area,cross.ID)
 	return false, 0, 0
 }
 func newXcross(cross *pudge.Cross) *Xcross {
@@ -173,6 +178,7 @@ func newXcross(cross *pudge.Cross) *Xcross {
 		x.Values[t] = v
 		t += x.Step
 	}
+	//logger.Debug.Printf("Заполнил %s",x.Region.ToKey())
 	return x
 }
 func clearRegion(region int) {
@@ -204,6 +210,7 @@ func clearRegion(region int) {
 func (t *Table) setXCross(xcross *Xcross) {
 	//t.Mutex.Lock()
 	//defer t.Mutex.Unlock()
+
 	_, is := t.Table[xcross.Region.ToKey()]
 	if is {
 		logger.Error.Printf("Дубликат %v", xcross.Region)
@@ -216,6 +223,7 @@ func (t *Table) setXCross(xcross *Xcross) {
 	} else {
 		t.Seek[xcross.IDevice] = xcross.Region.ToKey()
 	}
+	//logger.Debug.Printf("сохранил %s",xcross.Region.ToKey())
 }
 func (t *Table) setData(device *pudge.Controller) error {
 	if !work {
@@ -257,11 +265,16 @@ func (t *Table) setData(device *pudge.Controller) error {
 	return nil
 }
 func makeTable() error {
-	//logger.Info.Println("makeTable")
+	//logger.Info.Println("makeTable start")
 	mainTable.Mutex.Lock()
 	defer mainTable.Mutex.Unlock()
 	mainTable.Table = make(map[string]*Xcross)
 	mainTable.Seek = make(map[int]string)
+	//dbb.Exec("begin work ;")
+	//dbb.Exec("lock table  public.\"cross\" in exclusive;")
+	//defer func() {
+	//	dbb.Exec("ccommit work;")
+	//}()
 	w := "select region,area,id,idevice,state from public.\"cross\";"
 	crosses, err := dbb.Query(w)
 	if err != nil {
@@ -301,9 +314,11 @@ func makeTable() error {
 		logger.Error.Printf("Контроль управления  %s", err.Error())
 		return err
 	}
+	//logger.Info.Println("makeTable end")
 	return nil
 }
 func loadTable() {
+	//logger.Info.Println("loadTable start")
 	ts, _ := time.ParseDuration(setup.Set.XCtrl.ShiftDevice)
 	time.Sleep(ts)
 	mainTable.Mutex.Lock()
@@ -338,4 +353,5 @@ func loadTable() {
 			addMessage(fmt.Sprintf("загрузка %s", err.Error()))
 		}
 	}
+	//logger.Info.Println("loadTable end")
 }

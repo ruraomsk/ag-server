@@ -2,10 +2,12 @@ package sqlsave
 
 import (
 	"bufio"
+	"bytes"
 	"github.com/ruraomsk/TLServer/logger"
+	"github.com/ruraomsk/ag-server/secret"
 	"github.com/ruraomsk/ag-server/setup"
+	"io/ioutil"
 	"net"
-	"os"
 	"strings"
 )
 
@@ -14,17 +16,24 @@ var errSoc error
 var connected bool
 
 func sender() bool {
-	file, err := os.Open(setup.Set.Saver.File)
+	buffer, err := ioutil.ReadFile(setup.Set.Saver.File)
 	if err != nil {
 		logger.Error.Printf("Error open file %s", err.Error())
 		return false
 	}
-	defer file.Close()
-	stat, err := file.Stat()
-	if err != nil {
-		logger.Error.Printf("Error status file %s", err.Error())
-		return false
-	}
+	lines := bytes.Split(buffer, []byte("\n"))
+
+	//file, err := os.Open(setup.Set.Saver.File)
+	//if err != nil {
+	//	logger.Error.Printf("Error open file %s", err.Error())
+	//	return false
+	//}
+	//defer file.Close()
+	//stat, err := file.Stat()
+	//if err != nil {
+	//	logger.Error.Printf("Error status file %s", err.Error())
+	//	return false
+	//}
 	if !connected {
 		soc, errSoc = net.Dial("tcp", setup.Set.Saver.Remote)
 		if errSoc != nil {
@@ -33,26 +42,31 @@ func sender() bool {
 		}
 		connected = true
 	}
-	if stat.Size() == 0 {
+	if len(lines) == 0 {
 		//Send a keep alive
 		_, _ = soc.Write([]byte("0\n"))
 
 		return true
 	}
-	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 10485760)
-	scanner.Buffer(buf, len(buf))
+	//scanner := bufio.NewScanner(file)
+	//buf := make([]byte, 10485760)
+	//scanner.Buffer(buf, len(buf))
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
-	writer.Available()
-	for scanner.Scan() {
+	for _, l := range lines {
 		//_ = soc.SetWriteDeadline(time.Now().Add(time.Duration(360 * time.Second)))
-		_, _ = writer.WriteString("==RESPONSE NEED==")
-		_, _ = writer.WriteString(scanner.Text())
+		if len(l) < 5 {
+			continue
+		}
+		if setup.Set.Secret {
+			_, _ = writer.WriteString(secret.CodeString("==RESPONSE NEED==" + string(l)))
+		} else {
+			_, _ = writer.WriteString("==RESPONSE NEED==" + string(l))
+		}
 		_, _ = writer.WriteString("\n")
 		errSoc = writer.Flush()
 		if errSoc != nil {
-			logger.Error.Printf("Error send data %s %s", scanner.Text(), errSoc.Error())
+			logger.Error.Printf("Error send data %s %s", string(l), errSoc.Error())
 			soc.Close()
 			connected = false
 			return false
@@ -73,10 +87,10 @@ func sender() bool {
 		}
 
 	}
-	if err := scanner.Err(); err != nil {
-		logger.Error.Printf("Error reading file %s", err.Error())
-		return false
-	}
+	//if err := scanner.Err(); err != nil {
+	//	logger.Error.Printf("Error reading file %s", err.Error())
+	//	return false
+	//}
 	//Coda
 	return true
 }

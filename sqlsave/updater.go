@@ -26,7 +26,7 @@ func updater() bool {
 	}
 	for nameTab, dTable := range useTables {
 		//fmt.Printf("Table %s %v",nameTab,dTable.Records)
-		rows, err := dbb.Query(fmt.Sprintf("select * from public.%s;", nameTab))
+		rows, err := dbb.Query(fmt.Sprintf("select * from public.\"%s\";", nameTab))
 		if err != nil {
 			logger.Error.Printf("Error %s", err.Error())
 			return false
@@ -58,7 +58,7 @@ func updater() bool {
 
 		for k, rec := range dTable.Records {
 			if !rec.Used {
-				_, _ = file.WriteString(fmt.Sprintf("delete from public.%s where %s;\n", nameTab, k))
+				_, _ = file.WriteString(fmt.Sprintf("delete from public.\"%s\" where %s;\n", nameTab, k))
 				delete(useTables[nameTab].Records, k)
 			}
 		}

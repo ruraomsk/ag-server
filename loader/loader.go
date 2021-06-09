@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ruraomsk/TLServer/logger"
 	"github.com/ruraomsk/ag-server/extcon"
+	"github.com/ruraomsk/ag-server/secret"
 	"github.com/ruraomsk/ag-server/setup"
 	"net"
 	"strconv"
@@ -57,30 +58,36 @@ func workerSQL(soc net.Conn, stop chan int) {
 	reader := bufio.NewReader(soc)
 	writer := bufio.NewWriter(soc)
 	for {
-		soc.SetReadDeadline(time.Now().Add(10 * time.Minute))
+		_ = soc.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		c, err := reader.ReadString('\n')
 		//&& strings.Compare(err.Error(),"EOF")!=0
 		if err != nil {
 			logger.Error.Printf("При чтении команд SQL %s сервера %s", soc.RemoteAddr().String(), err.Error())
 			return
 		}
-
 		if c[0:1] == "0" {
 			//logger.Info.Printf("Keep alive from %s", soc.RemoteAddr().String())
 			continue
+		}
+		if setup.Set.Secret {
+			c = secret.DecodeString(c)
 		}
 		responce := false
 		if strings.HasPrefix(c, "==RESPONSE NEED==") {
 			responce = true
 			c = strings.Replace(c, "==RESPONSE NEED==", "", 1)
 		}
-		_, err = dbb.Exec(c)
+		if secret.IsSQLValid(c) {
+			_, err = dbb.Exec(c)
+		} else {
+			err = fmt.Errorf("выражение не валидно ")
+		}
 		//soc.SetWriteDeadline(time.Now().Add(time.Duration(60 * time.Minute)))
 		if err != nil {
 			w := fmt.Sprintf("Sql %s error %s", c, err.Error())
 			logger.Error.Printf(w)
 			if responce {
-				writer.WriteString("w" + "\n")
+				writer.WriteString(w + "\n")
 				writer.Flush()
 			}
 			continue

@@ -7,4 +7,5 @@ require (
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/lib/pq v1.10.1
 	github.com/ruraomsk/TLServer v0.0.0-20210422102008-a35a3be950d3
+	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 )

@@ -177,7 +177,7 @@ func startCron() {
 }
 
 //Start главный модуль регулятора
-func Start(stop chan interface{}) {
+func Start(ready, stop chan interface{}) {
 	if !setup.Set.XCtrl.Switch {
 		//Не нужен модель управления по характерным точкам
 		logger.Info.Print("Модуль управления по характерным точкам отключен... ")
@@ -217,6 +217,7 @@ func Start(stop chan interface{}) {
 	go sender()
 	fmt.Println("Можно загружать просмотр...")
 	logger.Info.Println("Можно загружать просмотр...")
+	ready <- 0
 	for {
 		t := time.Now()
 		if t.Minute()%setup.Set.XCtrl.StepDev == 0 && t.Second() == 0 {
