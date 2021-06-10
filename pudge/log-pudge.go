@@ -92,10 +92,10 @@ func writeLog() {
 func writeLogDB(cr *Cross, ch RecLogCtrl, tup int) {
 	j := JSONLog{Region: strconv.Itoa(cr.Region), Area: strconv.Itoa(cr.Area), ID: cr.ID, Description: cr.Name, Type: tup}
 	result, _ := json.Marshal(j)
-	w := fmt.Sprintf("insert into public.logdevice (id,tm,crossinfo,txt) values(%d,'%s','%s','%s');",
-		ch.ID, string(pq.FormatTimestamp(ch.Time)), result, ch.LogString)
+	w := fmt.Sprintf("insert into public.logdevice (region,id,tm,crossinfo,txt) values(%d,%d,'%s','%s','%s');",
+		cr.Region, ch.ID, string(pq.FormatTimestamp(ch.Time)), result, ch.LogString)
 	_, err = conLog.Exec(w)
 	if err != nil {
-		logger.Error.Printf("Ошибка записи в БД логгирования %s \n%s", err.Error(), w)
+		logger.Error.Printf("Ошибка записи в БД логирования %s \n%s", err.Error(), w)
 	}
 }

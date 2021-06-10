@@ -8,6 +8,9 @@ type Setup struct {
 	Home       string     `toml:"home"`
 	Location   string     `toml:"location"`  //Локация временной зоны
 	StepPudge  int        `toml:"steppudge"` //Шаг сохранения в секундах
+	Secret     bool       `toml:"secret"`
+	Version    int        `toml:"version"`
+	LogSystem  LogSystem  `toml:"logsystem"`
 	DataBase   DataBase   `toml:"dataBase"`
 	CommServer CommServer `toml:"commServer"`
 	XCtrl      XCtrl      `toml:"xctrl"`
@@ -15,8 +18,11 @@ type Setup struct {
 	Dumper     Dumper     `toml:"dumper"`
 	Statistic  Statistic  `toml:"statistic"`
 	Loader     Loader     `toml:"loader"`
-	Secret     bool       `toml:"secret"`
-	Version    int        `toml:"version"`
+}
+type LogSystem struct {
+	Make      bool   `toml:"make"`
+	StartTime string `toml:"start"`
+	Period    int    `toml:"period"`
 }
 
 //Loader описание загрузчика

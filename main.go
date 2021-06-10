@@ -5,6 +5,7 @@ import (
 	"github.com/ruraomsk/ag-server/comm"
 	"github.com/ruraomsk/ag-server/dumper"
 	"github.com/ruraomsk/ag-server/loader"
+	"github.com/ruraomsk/ag-server/logsys"
 	"github.com/ruraomsk/ag-server/memDB"
 	"github.com/ruraomsk/ag-server/pudge"
 	"github.com/ruraomsk/ag-server/sqlsave"
@@ -78,9 +79,10 @@ func main() {
 	}
 	logger.Info.Println("Start ag-server work...")
 	fmt.Println("Start ag-server work...")
-	stop := make(chan interface{})
 
 	extcon.BackgroundInit()
+
+	stop := make(chan interface{})
 	ready := make(chan interface{})
 	if setup.Set.Version == 0 {
 		setup.Set.Version = 1
@@ -101,11 +103,26 @@ func main() {
 		fmt.Printf("Неверный номер версии программы %d", setup.Set.Version)
 		return
 	}
-	go xcontrol.Start(ready, stop)
+
+	if setup.Set.LogSystem.Make {
+		go logsys.Start()
+	}
+
+	if setup.Set.XCtrl.Switch {
+		go xcontrol.Start(ready, stop)
+	}
 	<-ready
-	go dumper.Start()
-	go dumper.Statistics()
-	go loader.RemoteLoader()
+	if setup.Set.Dumper.Make {
+		go dumper.Start()
+	}
+
+	if setup.Set.Statistic.Make {
+		go dumper.Statistics()
+	}
+
+	if setup.Set.Loader.Make {
+		go loader.RemoteLoader()
+	}
 	if setup.Set.Saver.Make {
 		go sqlsave.Start()
 		go svgsave.Start()

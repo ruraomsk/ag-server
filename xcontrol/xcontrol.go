@@ -178,11 +178,6 @@ func startCron() {
 
 //Start главный модуль регулятора
 func Start(ready, stop chan interface{}) {
-	if !setup.Set.XCtrl.Switch {
-		//Не нужен модель управления по характерным точкам
-		logger.Info.Print("Модуль управления по характерным точкам отключен... ")
-		return
-	}
 	context, _ := extcon.NewContext("xctrl")
 	logger.Info.Print("Модуль управления по характерным старт... ")
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",

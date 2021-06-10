@@ -99,10 +99,6 @@ func workerSQL(soc net.Conn, stop chan int) {
 	}
 }
 func RemoteLoader() {
-	if !setup.Set.Loader.Make {
-		logger.Info.Printf("Remote loader is switch off")
-		return
-	}
 	logger.Info.Printf("Remote loader is started...")
 	stop := make(chan int)
 	go StartSQL(stop)

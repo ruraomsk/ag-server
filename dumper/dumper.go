@@ -124,10 +124,6 @@ func goCron() {
 
 }
 func Statistics() {
-	if !setup.Set.Statistic.Make {
-		logger.Info.Printf("Statistics are not collected..")
-		return
-	}
 	logger.Info.Printf("Statistics is collected..")
 	dbinfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
@@ -172,10 +168,6 @@ func Statistics() {
 
 }
 func Start() {
-	if !setup.Set.Dumper.Make {
-		logger.Info.Printf("Dumper dont start..")
-		return
-	}
 	logger.Info.Printf("Dumper starting..")
 	_ = gocron.Every(1).Day().At(setup.Set.Dumper.Time).Do(makeDump)
 	<-gocron.Start()
