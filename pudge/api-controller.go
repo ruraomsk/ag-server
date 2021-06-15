@@ -62,6 +62,7 @@ func setStatusCross() {
 		//}
 		t := 0
 		t, statusDevice = cc.calcJournal()
+		//statusDevice=cc.getSource()+statusDevice
 		reg := Region{cr.Region, cr.Area, cr.ID}
 		status, is := nowstatus[reg.ToKey()]
 		if !is {
@@ -102,10 +103,10 @@ func makeMessage(cc *Controller, statusDevice int) string {
 		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
 	case 2:
 		return fmt.Sprintf("%s Фаза=%d", statuses[statusDevice], cc.DK.FDK)
-	case 5:
-		return fmt.Sprintf("%s Фаза=%d", statuses[statusDevice], cc.DK.FDK)
+	//case 5:
+	//return fmt.Sprintf("%s Фаза=%d", statuses[statusDevice], cc.DK.FDK)
 	case 27:
 		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", statuses[statusDevice], cc.PK, cc.CK, cc.NK)
 	}
-	return fmt.Sprintf("%s", statuses[statusDevice])
+	return fmt.Sprintf("%s%s", cc.getSource(), statuses[statusDevice])
 }
