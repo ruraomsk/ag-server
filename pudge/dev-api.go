@@ -127,6 +127,31 @@ func (d *DK) Make(buffer []byte, pos int) {
 // var ldev int
 // var llamp int
 // var ldoor int
+func (cc *Controller) getSource() string {
+	//	1 - ДК
+	//	2 - ВПУ
+	//	3 - инженерный пульт (ИП УСДК)
+	//	4 - УСДК/ДКА
+	//	5 - инженерная панель (ИП ДКА)
+	//	6 - система (ЭВМ)
+	//	7 - система (ЭВМ)
+	// 	8 - система (ЭВМ)
+	// 	9 - система (ЭВМ)
+
+	switch cc.DK.DDK {
+	case 1:
+		return "ДК:"
+	case 2:
+		return "ВПУ:"
+	case 3:
+		return "ИП УСДК:"
+	case 4:
+		return "УСДК/ДКА:"
+	case 5:
+		return "ИП ДКА:"
+	}
+	return ""
+}
 
 func (cc *Controller) calcStatus() int {
 	rezim := cc.DK.RDK
