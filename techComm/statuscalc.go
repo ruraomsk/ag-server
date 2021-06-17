@@ -83,10 +83,35 @@ func makeMessage(cc pudge.Controller, statusDevice int) string {
 		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", status, cc.PK, cc.CK, cc.NK)
 	case 2:
 		return fmt.Sprintf("%s Фаза=%d", status, cc.DK.FDK)
-	case 5:
-		return fmt.Sprintf("%s Фаза=%d", status, cc.DK.FDK)
+	//case 5:
+	//	return fmt.Sprintf("%s Фаза=%d", status, cc.DK.FDK)
 	case 27:
 		return fmt.Sprintf("%s ПК=%d СК=%d НК=%d", status, cc.PK, cc.CK, cc.NK)
 	}
-	return fmt.Sprintf("%s", status)
+	return fmt.Sprintf("%s%s", getSource(cc), status)
+}
+func getSource(cc pudge.Controller) string {
+	//	1 - ДК
+	//	2 - ВПУ
+	//	3 - инженерный пульт (ИП УСДК)
+	//	4 - УСДК/ДКА
+	//	5 - инженерная панель (ИП ДКА)
+	//	6 - система (ЭВМ)
+	//	7 - система (ЭВМ)
+	// 	8 - система (ЭВМ)
+	// 	9 - система (ЭВМ)
+
+	switch cc.DK.DDK {
+	case 1:
+		return "ДК:"
+	case 2:
+		return "ВПУ:"
+	case 3:
+		return "ИП УСДК:"
+	case 4:
+		return "УСДК/ДКА:"
+	case 5:
+		return "ИП ДКА:"
+	}
+	return ""
 }

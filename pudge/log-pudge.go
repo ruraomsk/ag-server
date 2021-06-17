@@ -32,6 +32,7 @@ func writeLog() {
 		cr := getCross(ch.ID)
 		if cr == nil {
 			logger.Error.Printf("error %v", ch)
+			Reload <- 0
 			continue
 		}
 		reg := Region{cr.Region, cr.Area, cr.ID}

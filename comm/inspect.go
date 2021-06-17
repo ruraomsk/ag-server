@@ -90,6 +90,10 @@ func oneCross(reg pudge.Region) {
 			time.Sleep(time.Duration(1 * time.Minute))
 			continue
 		}
+		if cr.CK != dev.CK || cr.NK != dev.NK || cr.PK != dev.PK {
+			pudge.Reload <- 0
+			continue
+		}
 		//if dev.Local {
 		//	//Беда у нас в прошлый обмен связь порвалась в опасном месте
 		//	//Необходимо перепослать все массивы привязки

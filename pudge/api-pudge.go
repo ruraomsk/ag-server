@@ -33,6 +33,7 @@ var conDBSave *sql.DB
 var conCross *sql.DB
 var conLog *sql.DB
 
+var Reload chan interface{}
 var dbinfo string
 var err error
 
@@ -227,6 +228,7 @@ func Start(stop chan interface{}) {
 	ChanLog = make(chan RecLogCtrl, 1000)
 	controls = make(map[int]bool)
 	nowstatus = make(map[string]string)
+	Reload = make(chan interface{})
 	dbinfo = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 		setup.Set.DataBase.Host, setup.Set.DataBase.User,
 		setup.Set.DataBase.Password, setup.Set.DataBase.DBname)
@@ -252,7 +254,7 @@ func Start(stop chan interface{}) {
 	needHistoryCross(conCross)
 	err = loadDBase()
 	if err != nil {
-		logger.Error.Printf("save %s", err.Error())
+		logger.Error.Printf("load %s", err.Error())
 		stop <- 1
 		return
 	}
@@ -268,6 +270,16 @@ func Start(stop chan interface{}) {
 	timer := extcon.SetTimerClock(time.Duration(setup.Set.StepPudge) * time.Second)
 	for true {
 		select {
+		case <-Reload:
+			mutexCtrl.Lock()
+			err = loadDBase()
+			if err != nil {
+				logger.Error.Printf("load %s", err.Error())
+				stop <- 1
+				return
+			}
+			mutexCtrl.Unlock()
+
 		case tim := <-timer.C:
 			if time.Now().Sub(tim) > time.Duration(setup.Set.StepPudge)*time.Second {
 				logger.Info.Println("Добавьте время для обновления БД")
