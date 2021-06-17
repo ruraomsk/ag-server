@@ -34,6 +34,7 @@ var mainTable *Table
 var stats []ExtState
 var UserName string
 var FirstCalculate bool
+var viewer = false
 
 func listenCommand() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(setup.Set.XCtrl.Port))
@@ -68,6 +69,11 @@ func worker(soc net.Conn) {
 		cmd = strings.Replace(cmd, "\n", "", 1)
 		if cmd[0:1] == "0" {
 			//logger.Info.Println("Keep alive")
+			continue
+		}
+		if !viewer {
+			_, _ = writer.WriteString("BAD\n")
+			_ = writer.Flush()
 			continue
 		}
 		//logger.Info.Printf("От сервера %s пришла команда %s", soc.RemoteAddr().String(), cmd)
@@ -209,6 +215,7 @@ func Start(ready, stop chan interface{}) {
 	go listenCommand()
 	command = make(chan int)
 	commARM = make(chan comm.CommandARM, 1000)
+
 	go sender()
 	fmt.Println("Можно загружать просмотр...")
 	logger.Info.Println("Можно загружать просмотр...")
@@ -230,6 +237,7 @@ func Start(ready, stop chan interface{}) {
 	_ = gocron.Every(uint64(setup.Set.XCtrl.StepDev)).Minutes().Do(calculate)
 	go startCron()
 	for {
+		viewer = false
 		err := makeTable()
 		if err != nil {
 			logger.Error.Printf("Ошибка создания таблицы %s", err.Error())

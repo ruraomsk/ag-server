@@ -18,6 +18,7 @@ func calculate() {
 		ts, _ := time.ParseDuration(setup.Set.XCtrl.ShiftCtrl)
 		time.Sleep(ts)
 	}
+	viewer = true
 	//logger.Info.Println("calculate")
 	//m := time.Now().Minute()
 	//for m%setup.Set.XCtrl.StepDev != 0 {
