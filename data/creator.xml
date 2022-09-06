@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<create> 
+	<sql ext="sql" description="Все SQL запросы на создание БД"	path="setup" />
+    <regions path="setup">
+        <reg id="1" name="Мосавтодор" file="Moskva.mrk" type="SQL">
+            <area id="1" name="Первая половина"/>
+            <area id="2" name="Вторая половина"/>
+            <area id="3" name="Третий кусок"/>
+        </reg>
+        <reg id="2" name="Хабаровск" file="Khabarovsk.mrk" type="SQL">
+            <area id="1" name="Город"/>
+            <area id="2" name="Область"/>
+        </reg>
+        <reg id="3" name="Тула" file="Tula.mrk" type="SQL">
+            <area id="1" name="Город"/>
+            <area id="2" name="Новомосковск"/>
+        </reg>
+        <reg id="4" name="Калмыкия" file="Kalmykia.mrk" type="SQL">
+            <area id="1" name="Элиста"/>
+        </reg>
+        <reg id="5" name="Воронеж" file="Voronez.mrk" type="SQL">
+            <area id="1" name="Правый берег"/>
+            <area id="2" name="Левый берег"/>
+        </reg>
+        <reg id="6" name="Иркутск" file="Irkutsk.mrk" type="SQL">
+            <area id="1" name="Правый берег"/>
+            <area id="2" name="Левый берег"/>
+        </reg>
+        <reg id="8" name="Южно-Сахалинск" file="Sakhalin.mrk" type="SQL">
+            <area id="1" name="Город"/>
+        </reg>
+    </regions>
+</create>

@@ -1,0 +1,42 @@
+{
+  "cameras": [
+    {
+      "region": 1,
+      "area": 1,
+      "id": 300,
+      "step": 5,
+      "connections": [
+        {
+          "id": 1,
+          "ip": "192.168.115.168:8441",
+          "login": "admin",
+          "password": "admin",
+          "step": 10,
+          "zones": 4
+        }
+      ],
+      "relations": [
+        {
+          "channel": 1,
+          "id": 1,
+          "zone": 1
+        },
+        {
+          "channel": 2,
+          "id": 1,
+          "zone": 2
+        },
+        {
+          "channel": 5,
+          "id": 1,
+          "zone": 3
+        },
+        {
+          "channel": 6,
+          "id": 1,
+          "zone": 4
+        }
+      ]
+    }
+  ]
+}

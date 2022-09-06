@@ -1,0 +1,1 @@
+pg_dump -Upostgres -dagserv -C -c --column-inserts --if-exists --no-comments -fd:\asud\save\save.save
