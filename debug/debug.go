@@ -58,16 +58,8 @@ func Run() {
 			}
 			if !message.Info {
 				_, err = f.WriteString(messageRaw(message) + DecodeMessage(message))
-				if err != nil {
-					logger.Error.Printf("При записи лога для устройства %d %s", message.ID, err.Error())
-					continue
-				}
 			} else {
 				_, err = f.WriteString(errorMessageRaw(message))
-				if err != nil {
-					logger.Error.Printf("При записи лога для устройства %d %s", message.ID, err.Error())
-					continue
-				}
 			}
 		case <-cont.Done():
 			for _, v := range files {

@@ -17,6 +17,8 @@ type killRecord struct {
 	ID     int
 }
 
+var lastWrite = time.Now()
+
 func GetRegion(idevice int) Region {
 	mutexCtrl.Lock()
 	defer mutexCtrl.Unlock()
@@ -181,6 +183,10 @@ type crossInfo struct {
 }
 
 func writeLogDB(ch LogRecord, tup int) {
+	if ch.Time == lastWrite {
+		ch.Time.Add(1 * time.Microsecond)
+	}
+	lastWrite = ch.Time
 	reg := ch.Region
 	cross, is := GetCross(reg)
 	if !is {

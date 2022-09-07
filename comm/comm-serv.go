@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -111,7 +112,8 @@ func newConnect(soc net.Conn) {
 	writeTout := time.Duration(setup.Set.CommServer.TimeOutWrite * int64(time.Second))
 	dd := new(Device)
 	dd.LastToDevice = time.Now()
-	dd.ErrorTCP = make(chan int)
+	dd.ErrorTCP = make(chan net.Conn)
+	dd.Socket = soc
 	hDev, err := transport.GetOneMessage(soc)
 	if err != nil {
 		logger.Error.Print(err.Error())
@@ -204,6 +206,7 @@ func newConnect(soc net.Conn) {
 	dd.CommandArray = make(chan []pudge.ArrayPriv)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int, 10)
+	dd.CountLost = 0
 	//dd.Messages=make(map[int]transport.HeaderServer)
 	dd.addNumber()
 	dd.context, _ = extcon.NewContext("device" + strconv.Itoa(dd.Id))
@@ -286,21 +289,26 @@ func newConnect(soc net.Conn) {
 			if ctrl.Base && !lastBase {
 				ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			}
-			dd.CountLost = 0
 			if len(hs.Message) != 0 || need {
 				l := 13 + len(hs.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				ctrl.LastOperation = time.Now()
 				dd.LastToDevice = time.Now()
 				hout <- hs
+				dd.CountLost = 0
 			} else {
 				if dd.WaitNum != 0 {
-					l := 13 + len(dd.LastMessage.Message) + 4
-					ctrl.Traffic.ToDevice1Hour += uint64(l)
-					ctrl.LastOperation = time.Now()
-					dd.LastToDevice = time.Now()
-					dd.CountLost = 0
-					hout <- dd.LastMessage
+					if dd.CountLost < 5 {
+						l := 13 + len(dd.LastMessage.Message) + 4
+						ctrl.Traffic.ToDevice1Hour += uint64(l)
+						ctrl.LastOperation = time.Now()
+						dd.LastToDevice = time.Now()
+						dd.CountLost++
+						hout <- dd.LastMessage
+					} else {
+						dd.WaitNum = 0
+						dd.CountLost = 0
+					}
 					//logger.Debug.Printf("Повторная передача на %d %v", dd.id, dd.LastMessage.Message)
 
 				} else {
@@ -321,7 +329,10 @@ func newConnect(soc net.Conn) {
 				}
 			}
 			pudge.SetController(ctrl)
-		case fl := <-dd.ErrorTCP:
+		case errSocket := <-dd.ErrorTCP:
+			if strings.Compare(errSocket.RemoteAddr().String(), dd.Socket.RemoteAddr().String()) != 0 {
+				continue
+			}
 			ctrl, _ = pudge.GetController(dd.Id)
 			if ctrl == nil {
 				logger.Error.Printf("id %d нет в базe", dd.Id)
@@ -330,11 +341,7 @@ func newConnect(soc net.Conn) {
 			ctrl.StatusConnection = false
 			ctrl.LastOperation = time.Now()
 			pudge.SetController(ctrl)
-			txt := " при вводе c устройства"
-			if fl == 0 {
-				txt = " при выводе на устройство"
-			}
-			w := fmt.Sprintf("Контроллер %d ошибки  %s", dd.Id, txt)
+			w := fmt.Sprintf("Контроллер %d ошибки обмена", dd.Id)
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 			logger.Error.Print(w)
 			time.Sleep(time.Second)
@@ -510,6 +517,7 @@ func killDevice(id int) {
 	// logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
+	// logger.Info.Printf("Удаляем контроллер %d", id)
 	Mutex.Lock()
 	dev, ok = Devs[id]
 	Mutex.Unlock()

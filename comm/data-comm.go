@@ -9,7 +9,7 @@ import (
 	"github.com/ruraomsk/ag-server/transport"
 )
 
-//CommandArray Привязка от Сервера АРМ
+// CommandArray Привязка от Сервера АРМ
 type CommandArray struct {
 	ID     int   `json:"id"`
 	Number int   `json:"number"`
@@ -17,7 +17,7 @@ type CommandArray struct {
 	Elems  []int `json:"elems"`
 }
 
-//ChangeProtocol для изменения протокола
+// ChangeProtocol для изменения протокола
 type ChangeProtocol struct {
 	ID       int    `json:"id"` // Уникальный номер контроллера
 	User     string `json:"user"`
@@ -44,7 +44,7 @@ type Device struct {
 	CommandArray   chan []pudge.ArrayPriv
 	ChangeProtocol chan ChangeProtocol
 	ExitCommand    chan int
-	ErrorTCP       chan int
+	ErrorTCP       chan net.Conn
 	Messages       DequeServer
 	LastMessage    transport.HeaderServer
 	LastToDevice   time.Time
