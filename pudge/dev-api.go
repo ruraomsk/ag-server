@@ -6,7 +6,7 @@ import (
 	"github.com/ruraomsk/ag-server/logger"
 )
 
-//Make создает байт для передачи статуса команд ДУ
+// Make создает байт для передачи статуса команд ДУ
 func (s *StatusCommandDU) Make() (command uint8) {
 	command = 0
 	if s.IsPK {
@@ -33,7 +33,7 @@ func (s *StatusCommandDU) Make() (command uint8) {
 	return
 }
 
-//Set переносит из байта статуса команд ДУ в поле состояния
+// Set переносит из байта статуса команд ДУ в поле состояния
 func (s *StatusCommandDU) Set(command uint8) {
 	s.IsPK = false
 	s.IsCK = false
@@ -65,7 +65,7 @@ func (s *StatusCommandDU) Set(command uint8) {
 	}
 }
 
-//Set устанавлиявает поля
+// Set устанавлиявает поля
 func (d *DK) Set(buffer []byte, pos int) {
 	d.RDK = int(buffer[pos] & 0xf)
 	d.FDK = int((buffer[pos] & 0xf0) >> 4)
@@ -102,7 +102,7 @@ func (d *DK) Set(buffer []byte, pos int) {
 	d.TTCDK = int(buffer[pos])
 }
 
-//Make устанавлиявает поля
+// Make устанавлиявает поля
 func (d *DK) Make(buffer []byte, pos int) {
 	buffer[pos] |= uint8(d.RDK & 0xf)
 	buffer[pos] |= uint8((d.FDK & 0xf) << 4)
@@ -233,6 +233,10 @@ func (cc *Controller) CalcStatus() int {
 		return 22
 	}
 	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) && lamp == 0 && door == 0 {
+		//Координированное управление 1
+		return 1
+	}
+	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && faza == 13 && lamp == 0 && door == 0 {
 		//Координированное управление 1
 		return 1
 	}

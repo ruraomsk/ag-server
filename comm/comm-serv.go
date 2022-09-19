@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -84,6 +85,9 @@ func StartListen() {
 func recoveryPanic() {
 	if recoveryMessage := recover(); recoveryMessage != nil {
 		logger.Error.Printf("PANIC:%v", recoveryMessage)
+		stackSlice := make([]byte, 32000)
+		s := runtime.Stack(stackSlice, false)
+		logger.Error.Printf("Trace\n%s ", stackSlice[0:s])
 		os.Exit(-1)
 	}
 	// logger.Error.Println("Паники нет просто выход!")

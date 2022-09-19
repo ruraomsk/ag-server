@@ -15,7 +15,7 @@ var Stoped = false
 
 func GetOneMessage(socket net.Conn) (HeaderDevice, error) {
 	var h HeaderDevice
-	socket.SetReadDeadline(time.Now().Add(5 * time.Second))
+	socket.SetReadDeadline(time.Now().Add(30 * time.Second))
 	buf := make([]byte, 19)
 	n, err := socket.Read(buf)
 	if err == nil && n != len(buf) {
@@ -50,7 +50,8 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		if Stoped {
 			return
 		}
-		socket.SetReadDeadline(time.Now().Add(10 * time.Minute))
+		socket.SetReadDeadline(time.Now().Add(24 * time.Hour))
+		// socket.SetReadDeadline(time.Unix(0, 0))
 		buf := make([]byte, 19)
 		n, err := socket.Read(buf)
 		if Stoped {
@@ -95,7 +96,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 		if err != nil {
 			message := fmt.Sprintf("при раскодировании от устройства %s %s", socket.RemoteAddr().String(), err.Error())
 			debug.DebugChan <- debug.DebugMessage{ID: h.ID, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(message)}
-			debug.DebugChan <- debug.DebugMessage{ID: h.ID, Time: time.Now(), FromTo: false, Buffer: buffer}
+			// debug.DebugChan <- debug.DebugMessage{ID: h.ID, Time: time.Now(), FromTo: false, Buffer: buffer}
 			logger.Error.Printf(message)
 			errTcp <- socket
 			return
