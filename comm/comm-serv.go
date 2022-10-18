@@ -592,7 +592,9 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 				}
 			} else {
 				for _, v := range st.Datas {
-					c.Input.S[v.Chanel-1] = v.Status != 0
+					if v.Chanel < len(c.Input.S) {
+						c.Input.S[v.Chanel-1] = v.Status != 0
+					}
 				}
 				pudge.StatisticChan <- pudge.RecordStat{Region: dd.Region, Stat: st}
 			}

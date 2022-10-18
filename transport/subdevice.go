@@ -8,7 +8,7 @@ import (
 	"github.com/ruraomsk/ag-server/pudge"
 )
 
-//Set0x00Device записывает субсообщение для команды с номером в имени
+// Set0x00Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x00Device() {
 	//num номер сообщения
 	s.Type = 0
@@ -16,7 +16,7 @@ func (s *SubMessage) Set0x00Device() {
 	s.Message[0] = 0x00
 }
 
-//Set0x01Device записывает субсообщение для команды с номером в имени
+// Set0x01Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x01Device(num, min, sec, emas, elem int) {
 	//num номер сообщения
 	s.Type = 1
@@ -29,10 +29,11 @@ func (s *SubMessage) Set0x01Device(num, min, sec, emas, elem int) {
 	s.Message[5] = uint8(elem)
 }
 
-//Get0x01Device читает субсообщение
+// Get0x01Device читает субсообщение
 func (s *SubMessage) Get0x01Device() (num, min, sec, emas, elem int) {
 	//num номер сообщения
 	if s.Message[0] != 0x01 {
+		num = 0
 		return
 	}
 	num = int(s.Message[1])
@@ -43,7 +44,7 @@ func (s *SubMessage) Get0x01Device() (num, min, sec, emas, elem int) {
 	return
 }
 
-//Set0x04Device записывает субсообщение для команды с номером в имени
+// Set0x04Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x04Device(hour, min, day, month int) {
 	//num номер сообщения
 	s.Type = 4
@@ -55,7 +56,7 @@ func (s *SubMessage) Set0x04Device(hour, min, day, month int) {
 	s.Message[4] = uint8(month)
 }
 
-//Get0x04Device записывает субсообщение для команды с номером в имени
+// Get0x04Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Get0x04Device() (hour, min, day, month int) {
 	if s.Message[0] != 0x04 {
 		return
@@ -67,7 +68,7 @@ func (s *SubMessage) Get0x04Device() (hour, min, day, month int) {
 	return
 }
 
-//Set0x07Device записывает субсообщение для команды с номером в имени
+// Set0x07Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x07Device(hour, min, day, month int) {
 	//num номер сообщения
 	s.Type = 0x07
@@ -79,7 +80,7 @@ func (s *SubMessage) Set0x07Device(hour, min, day, month int) {
 	s.Message[4] = uint8(month)
 }
 
-//Get0x07Device записывает субсообщение для команды с номером в имени
+// Get0x07Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Get0x07Device() (hour, min, day, month int) {
 	if s.Message[0] != 0x07 {
 		return
@@ -91,7 +92,7 @@ func (s *SubMessage) Get0x07Device() (hour, min, day, month int) {
 	return
 }
 
-//Get0x0FDevice изменяет состояние контроллера по команду
+// Get0x0FDevice изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x0FDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x0f {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -109,7 +110,7 @@ func (s *SubMessage) Get0x0FDevice(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x0FDevice изменяет состояние сообщения по состоянию контроллера
+// Set0x0FDevice изменяет состояние сообщения по состоянию контроллера
 func (s *SubMessage) Set0x0FDevice(c *pudge.Controller) error {
 	s.Type = 0x0f
 	s.Message = make([]uint8, 22)
@@ -126,7 +127,7 @@ func (s *SubMessage) Set0x0FDevice(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x12Device изменяет состояние сообщения по состоянию контроллера
+// Set0x12Device изменяет состояние сообщения по состоянию контроллера
 func (s *SubMessage) Set0x12Device(c *pudge.Controller) error {
 	s.Type = 0x12
 	s.Message = make([]uint8, 23)
@@ -144,7 +145,7 @@ func (s *SubMessage) Set0x12Device(c *pudge.Controller) error {
 	return nil
 }
 
-//Get0x12Device изменяет состояние контроллера по команду
+// Get0x12Device изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x12Device(c *pudge.Controller) error {
 	if s.Message[0] != 0x12 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -164,7 +165,7 @@ func (s *SubMessage) Get0x12Device(c *pudge.Controller) error {
 	return nil
 }
 
-//Get0x10Device изменяет состояние контроллера по команду
+// Get0x10Device изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x10Device(c *pudge.Controller) error {
 	if s.Message[0] != 0x10 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -180,7 +181,7 @@ func (s *SubMessage) Get0x10Device(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x10Device изменяет состояние контроллера по команду
+// Set0x10Device изменяет состояние контроллера по команду
 func (s *SubMessage) Set0x10Device(c *pudge.Controller) {
 	s.Type = 0x10
 	s.Message = make([]uint8, 6)
@@ -204,7 +205,7 @@ func (s *SubMessage) Set0x10Device(c *pudge.Controller) {
 	}
 }
 
-//Get0x11Device изменяет состояние контроллера по команду
+// Get0x11Device изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x11Device(c *pudge.Controller) error {
 	if s.Message[0] != 0x11 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -236,7 +237,7 @@ func (s *SubMessage) Get0x11Device(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x11Device изменяет состояние контроллера по команду
+// Set0x11Device изменяет состояние контроллера по команду
 func (s *SubMessage) Set0x11Device(c *pudge.Controller) {
 	s.Type = 0x10
 	s.Message = make([]uint8, 4)
@@ -306,7 +307,7 @@ func (s *SubMessage) Set0x11Device(c *pudge.Controller) {
 	}
 }
 
-//Set0x09Device записывает субсообщение для команды с номером в имени
+// Set0x09Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x09Device(st *pudge.Statistic) {
 	//num номер сообщения
 	s.Type = 0x09
@@ -319,7 +320,7 @@ func (s *SubMessage) Set0x09Device(st *pudge.Statistic) {
 	s.Message[5] = uint8(st.Min)
 }
 
-//Get0x09Device записывает субсообщение для команды с номером в имени
+// Get0x09Device записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Get0x09Device() (st pudge.Statistic, err error) {
 	if s.Message[0] != 0x09 {
 		return st, fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -333,7 +334,7 @@ func (s *SubMessage) Get0x09Device() (st pudge.Statistic, err error) {
 	return
 }
 
-//Set0x0ADevice сообщение статистики
+// Set0x0ADevice сообщение статистики
 func (s *SubMessage) Set0x0ADevice(st *pudge.Statistic) error {
 	if len(st.Datas) > 16 {
 		return fmt.Errorf("слишком много элементов статистики %d", len(st.Datas))
@@ -355,7 +356,7 @@ func (s *SubMessage) Set0x0ADevice(st *pudge.Statistic) error {
 	return nil
 }
 
-//Get0x0ADevice сообщение статистики
+// Get0x0ADevice сообщение статистики
 func (s *SubMessage) Get0x0ADevice(st *pudge.Statistic) error {
 	if s.Message[0] != 0x0a {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -381,7 +382,7 @@ func (s *SubMessage) Get0x0ADevice(st *pudge.Statistic) error {
 	return nil
 }
 
-//Set0x0BDevice сообщение статистики
+// Set0x0BDevice сообщение статистики
 func (s *SubMessage) Set0x0BDevice(lg *pudge.LogLine) {
 	s.Type = 0x0b
 	s.Message = make([]uint8, 9)
@@ -393,7 +394,7 @@ func (s *SubMessage) Set0x0BDevice(lg *pudge.LogLine) {
 
 }
 
-//Get0x0BDevice сообщение статистики
+// Get0x0BDevice сообщение статистики
 func (s *SubMessage) Get0x0BDevice(lg *pudge.LogLine) error {
 	if s.Message[0] != 0x0b {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -648,7 +649,7 @@ func getTypeRecod(t int, buffer []uint8) (tp string, info string) {
 	return fmt.Sprintf("Тип %d", t), fmt.Sprintf("Состояние  %d", buffer[8])
 }
 
-//Set0x13Device сообщение массива привязки
+// Set0x13Device сообщение массива привязки
 func (s *SubMessage) Set0x13Device(ar *pudge.ArrayPriv) {
 	s.Type = 0x13
 	s.Message = make([]uint8, len(ar.Array)+3)
@@ -662,7 +663,7 @@ func (s *SubMessage) Set0x13Device(ar *pudge.ArrayPriv) {
 	}
 }
 
-//Get0x13Device сообщение массива привязки
+// Get0x13Device сообщение массива привязки
 func (s *SubMessage) Get0x13Device(ar *pudge.ArrayPriv) error {
 	if s.Message[0] != 0x13 {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -679,7 +680,7 @@ func (s *SubMessage) Get0x13Device(ar *pudge.ArrayPriv) error {
 	return nil
 }
 
-//Set0x1CDevice записывает субсообщение для команды с номером в имени
+// Set0x1CDevice записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x1CDevice(num int) {
 	//num номер сообщения
 	s.Type = 0x1c
@@ -688,7 +689,7 @@ func (s *SubMessage) Set0x1CDevice(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Get0x1CDevice читает субсообщение
+// Get0x1CDevice читает субсообщение
 func (s *SubMessage) Get0x1CDevice() (num int) {
 	//num номер сообщения
 	if s.Message[0] != 0x1C {
@@ -698,7 +699,7 @@ func (s *SubMessage) Get0x1CDevice() (num int) {
 	return
 }
 
-//Get0x1DDevice изменяет состояние контроллера по команду
+// Get0x1DDevice изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x1D {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -717,7 +718,7 @@ func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x1DDevice изменяет состояние контроллера по команду
+// Set0x1DDevice изменяет состояние контроллера по команду
 func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Type = 0x1D
 	s.Message = make([]uint8, 13)
@@ -737,7 +738,7 @@ func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Message[10] = uint8(c.Status.Motiv)
 }
 
-//Get0x1BDevice изменяет состояние контроллера по команду
+// Get0x1BDevice изменяет состояние контроллера по команду
 func (s *SubMessage) Get0x1BDevice(c *pudge.Controller) error {
 	if s.Message[0] != 0x1B {
 		return fmt.Errorf("неверный номер команды %x", s.Message[0])
@@ -754,7 +755,7 @@ func (s *SubMessage) Get0x1BDevice(c *pudge.Controller) error {
 	return nil
 }
 
-//Set0x1BDevice изменяет состояние контроллера по команду
+// Set0x1BDevice изменяет состояние контроллера по команду
 func (s *SubMessage) Set0x1BDevice(c *pudge.Controller) {
 	s.Type = 0x1D
 	s.Message = make([]uint8, 9)
