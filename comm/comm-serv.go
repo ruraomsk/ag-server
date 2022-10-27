@@ -67,7 +67,7 @@ func StartListen() {
 	}
 	defer ln.Close()
 	for {
-		socket, err := ln.Accept()
+		sock, err := ln.Accept()
 		if err != nil {
 			logger.Error.Printf("Ошибка accept %s", err.Error())
 			continue
@@ -79,7 +79,7 @@ func StartListen() {
 		if count%5 == 0 {
 			logger.Info.Println("Входящих соединений", count)
 		}
-		go newConnect(socket)
+		go newConnect(sock)
 	}
 }
 func recoveryPanic() {
@@ -106,6 +106,7 @@ func newConnect(soc net.Conn) {
 	*/
 	//ctrl := new(pudge.Controller)
 	var err error
+	logger.Debug.Printf("Incoming %s", soc.RemoteAddr().String())
 	hout := make(chan transport.HeaderServer, 1)
 	hin := make(chan transport.HeaderDevice, 1)
 	defer recoveryPanic()

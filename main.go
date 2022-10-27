@@ -132,10 +132,12 @@ func main() {
 		fmt.Printf("Неверный номер версии программы %d", setup.Set.Version)
 		return
 	}
+	fmt.Println("Start pudge connection...")
 
 	if setup.Set.LogSystem.Make {
 		go logsys.Start()
 	}
+	fmt.Println("Start logsystem...")
 
 	if setup.Set.Camera.Make {
 		go cameras.CamerasStart(setup.Set.Camera.Path)
@@ -143,11 +145,13 @@ func main() {
 
 	if setup.Set.XCtrl.Switch {
 		go xcontrol.Start(ready, stop)
+		<-ready
 	}
-	<-ready
+	fmt.Println("Start xctrl...")
 	if setup.Set.Dumper.Make {
 		go dumper.Start()
 	}
+	fmt.Println("Start dumper...")
 
 	// if setup.Set.Statistic.Make {
 	// 	go dumper.Statistics()
@@ -156,11 +160,14 @@ func main() {
 	if setup.Set.Loader.Make {
 		go loader.RemoteLoader()
 	}
+	fmt.Println("Start loader...")
 	if setup.Set.Saver.Make {
 		go sqlsave.Start()
 		go svgsave.Start()
 	}
+	fmt.Println("Start saver...")
 	go debug.Run()
+	fmt.Println("Start debugger...")
 	extcon.BackgroundWork(time.Duration(1*time.Second), stop)
 	logger.Info.Println("Exit ag-server working...")
 	fmt.Println("\nExit ag-server working...")
