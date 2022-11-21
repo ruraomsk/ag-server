@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -89,11 +88,12 @@ func BackgroundWork(step time.Duration, stop chan interface{}) {
 		BackgroundInit()
 	}
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt,
-		syscall.SIGQUIT,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGHUP)
+	signal.Notify(c, os.Interrupt)
+	// ,
+	// 	syscall.SIGQUIT,
+	// 	syscall.SIGINT,
+	// 	syscall.SIGTERM,
+	// 	syscall.SIGHUP)
 	for {
 		select {
 		case <-stop:
