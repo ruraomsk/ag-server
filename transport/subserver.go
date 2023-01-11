@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/ruraomsk/ag-server/logger"
 )
 
-//GetCodeCommandServer возвращает номер команды  или ноль если это массив привязки
+// GetCodeCommandServer возвращает номер команды  или ноль если это массив привязки
 func (s *SubMessage) GetCodeCommandServer() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -17,7 +15,7 @@ func (s *SubMessage) GetCodeCommandServer() int {
 	return int(s.Message[0])
 }
 
-//Get0x01Server получение параметров команды -1 ошибки
+// Get0x01Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x01Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -29,7 +27,7 @@ func (s *SubMessage) Get0x01Server() int {
 	return int(s.Message[1])
 }
 
-//Get0x02Server получение параметров команды -1 ошибки
+// Get0x02Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x02Server() bool {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -42,7 +40,7 @@ func (s *SubMessage) Get0x02Server() bool {
 	return s.Message[1] == 2
 }
 
-//Get0x04Server получение параметров команды -1 ошибки
+// Get0x04Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x04Server() [2]bool {
 	res := [2]bool{false, false}
 	if s.Type != 0 {
@@ -57,7 +55,7 @@ func (s *SubMessage) Get0x04Server() [2]bool {
 	return res
 }
 
-//Get0x05Server получение параметров команды -1 ошибки
+// Get0x05Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x05Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -69,7 +67,7 @@ func (s *SubMessage) Get0x05Server() int {
 	return int(s.Message[1])
 }
 
-//Get0x06Server получение параметров команды -1 ошибки
+// Get0x06Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x06Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -81,7 +79,7 @@ func (s *SubMessage) Get0x06Server() int {
 	return int(s.Message[1])
 }
 
-//Get0x07Server получение параметров команды -1 ошибки
+// Get0x07Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x07Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -93,7 +91,7 @@ func (s *SubMessage) Get0x07Server() int {
 	return int(s.Message[1])
 }
 
-//Get0x09Server получение параметров команды -1 ошибки
+// Get0x09Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x09Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -105,7 +103,7 @@ func (s *SubMessage) Get0x09Server() int {
 	return int(s.Message[1])
 }
 
-//Get0x0AServer получение параметров команды -1 ошибки
+// Get0x0AServer получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x0AServer() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -117,7 +115,7 @@ func (s *SubMessage) Get0x0AServer() int {
 	return int(s.Message[1])
 }
 
-//Get0x0BServer получение параметров команды -1 ошибки
+// Get0x0BServer получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x0BServer() [2]int {
 	res := [2]int{-1, -1}
 	if s.Type != 0 {
@@ -132,7 +130,7 @@ func (s *SubMessage) Get0x0BServer() [2]int {
 	return res
 }
 
-//Get0x32Server получение параметров команды -1 ошибки
+// Get0x32Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x32Server() (ip string, port int, err error) {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -154,7 +152,7 @@ func (s *SubMessage) Get0x32Server() (ip string, port int, err error) {
 	return
 }
 
-//Get0x33Server получение параметров команды -1 ошибки
+// Get0x33Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x33Server() int {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -166,7 +164,7 @@ func (s *SubMessage) Get0x33Server() int {
 	return int(s.Message[1]) | (int(s.Message[2]) << 8)
 }
 
-//Get0x34Server получение параметров команды -1 ошибки
+// Get0x34Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x34Server() bool {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -179,7 +177,7 @@ func (s *SubMessage) Get0x34Server() bool {
 	return s.Message[1] == 1
 }
 
-//Get0x35Server получение параметров команды -1 ошибки
+// Get0x35Server получение параметров команды -1 ошибки
 func (s *SubMessage) Get0x35Server() (int, bool) {
 	if s.Type != 0 {
 		//Это не команда это массив привязки
@@ -192,7 +190,7 @@ func (s *SubMessage) Get0x35Server() (int, bool) {
 	return int(s.Message[1] & 0x7f), (s.Message[1] & 0x80) != 0
 }
 
-//GetArray возвращает номер и массив от сервера
+// GetArray возвращает номер и массив от сервера
 func (s *SubMessage) GetArray() (int, int, []int) {
 	res := []int{-1}
 	if s.Type == 0 {
@@ -206,7 +204,7 @@ func (s *SubMessage) GetArray() (int, int, []int) {
 	return int(s.Type), int(s.Message[0]), res
 }
 
-//Set0x01Server записывает субсообщение для команды с номером в имени
+// Set0x01Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x01Server(num int) {
 	//num номер сообщения
 	s.Type = 0
@@ -215,7 +213,7 @@ func (s *SubMessage) Set0x01Server(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x02Server записывает субсообщение для команды с номером в имени
+// Set0x02Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x02Server(flag bool) {
 	// flag false - отключить true включить
 	s.Type = 0
@@ -227,7 +225,7 @@ func (s *SubMessage) Set0x02Server(flag bool) {
 	}
 }
 
-//Set0x03Server записывает субсообщение для команды с номером в имени
+// Set0x03Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x03Server() {
 	//num номер сообщения
 	s.Type = 0
@@ -235,7 +233,7 @@ func (s *SubMessage) Set0x03Server() {
 	s.Message[0] = 0x03
 }
 
-//Set0x04Server записывает субсообщение для команды с номером в имени
+// Set0x04Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x04Server(dk1, dk2 bool) {
 	//dk1 ДК1
 	//dk2 ДК2
@@ -252,7 +250,7 @@ func (s *SubMessage) Set0x04Server(dk1, dk2 bool) {
 	s.Message[1] = uint8(set)
 }
 
-//Set0x05Server записывает субсообщение для команды с номером в имени
+// Set0x05Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x05Server(num int) {
 	//num номер плана координации
 	s.Type = 0
@@ -261,7 +259,7 @@ func (s *SubMessage) Set0x05Server(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x06Server записывает субсообщение для команды с номером в имени
+// Set0x06Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x06Server(num int) {
 	//num номер карты по времени суток
 	s.Type = 0
@@ -270,7 +268,7 @@ func (s *SubMessage) Set0x06Server(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x07Server записывает субсообщение для команды с номером в имени
+// Set0x07Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x07Server(num int) {
 	//num номер карты недельной
 	s.Type = 0
@@ -279,7 +277,7 @@ func (s *SubMessage) Set0x07Server(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x09Server записывает субсообщение для команды с номером в имени
+// Set0x09Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x09Server(num int) {
 	//num номер режима по ДК1
 	s.Type = 0
@@ -288,7 +286,7 @@ func (s *SubMessage) Set0x09Server(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x0AServer записывает субсообщение для команды с номером в имени
+// Set0x0AServer записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x0AServer(num int) {
 	//num номер режима по ДК2
 	s.Type = 0
@@ -297,7 +295,7 @@ func (s *SubMessage) Set0x0AServer(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x0BServer записывает субсообщение для команды с номером в имени
+// Set0x0BServer записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x0BServer(m, n int) {
 	s.Type = 0
 	s.Message = make([]uint8, 3)
@@ -322,7 +320,7 @@ func (s *SubMessage) Set0x0FServer(num int) {
 	s.Message[1] = uint8(num)
 }
 
-//Set0x32Server записывает субсообщение для команды с номером в имени
+// Set0x32Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x32Server(ip string, port int) error {
 	s.Type = 0
 	s.Message = make([]uint8, 21)
@@ -352,11 +350,11 @@ func (s *SubMessage) Set0x32Server(ip string, port int) error {
 		s.Message[pos] = b
 		pos++
 	}
-	logger.Debug.Printf("0x32 %v", s.Message)
+	// logger.Debug.Printf("0x32 %v", s.Message)
 	return nil
 }
 
-//Set0x33Server записывает субсообщение для команды с номером в имени
+// Set0x33Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x33Server(min int) {
 	s.Type = 0
 	s.Message = make([]uint8, 3)
@@ -365,7 +363,7 @@ func (s *SubMessage) Set0x33Server(min int) {
 	s.Message[2] = uint8((min >> 8) & 0xff)
 }
 
-//Set0x34Server записывает субсообщение для команды с номером в имени
+// Set0x34Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x34Server(rez bool) {
 	s.Type = 0
 	s.Message = make([]uint8, 2)
@@ -376,7 +374,7 @@ func (s *SubMessage) Set0x34Server(rez bool) {
 	}
 }
 
-//Set0x35Server записывает субсообщение для команды с номером в имени
+// Set0x35Server записывает субсообщение для команды с номером в имени
 func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 	s.Type = 0
 	s.Message = make([]uint8, 2)
@@ -387,7 +385,7 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 	}
 }
 
-//SetArray возвращает номер и массив от сервера
+// SetArray возвращает номер и массив от сервера
 func (s *SubMessage) SetArray(num int, nelem int, array []int) {
 	s.Type = uint8(num)
 	if num == 133 {

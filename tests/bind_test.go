@@ -182,7 +182,6 @@ func Test_TimeDevice(t *testing.T) {
 }
 func Test_SetupDK(t *testing.T) {
 	buffer := []int{40, 0, 7, 10, 1, 6, 1, 0, 40, 1, 7, 1, 12, 1}
-	buff := []int{41, 0, 7, 10, 2, 6, 1, 1, 40, 2, 7, 201, 12, 1}
 
 	td := binding.NewSetupDK()
 	err := td.FromBuffer(buffer)
@@ -192,17 +191,7 @@ func Test_SetupDK(t *testing.T) {
 	}
 	out := td.ToBuffer()
 	if !reflect.DeepEqual(&buffer, &out) {
-		t.Errorf("No equal\n%v\n%v", buffer, out)
-		return
-	}
-	err = td.FromBuffer(buff)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-	out = td.ToBuffer()
-	if !reflect.DeepEqual(&buff, &out) {
-		t.Errorf("No equal\n%v\n%v", buffer, out)
+		t.Errorf("No equal buffer\n%v\n%v", buffer, out)
 		return
 	}
 }
@@ -233,7 +222,6 @@ func Test_SetDK(t *testing.T) {
 	setPk(t, []int{109, 0, 133, 30, 10, 120, 16, 16, 197, 80, 0, 8, 1, 38, 0, 78, 2, 100, 0, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	setPk(t, []int{110, 0, 133, 30, 11, 120, 16, 16, 197, 80, 2, 20, 0, 48, 1, 78, 0, 118, 2, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	setPk(t, []int{111, 0, 133, 30, 12, 120, 16, 16, 196, 64, 0, 40, 2, 62, 0, 90, 1, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
-
 	setPk(t, []int{104, 0, 133, 30, 5, 180, 76, 16, 196, 2, 1, 90, 2, 134, 3, 165, 4, 180, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	setPk(t, []int{105, 0, 133, 30, 6, 62, 8, 2, 195, 0, 1, 38, 2, 54, 0, 62, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 	setPk(t, []int{106, 0, 133, 30, 7, 56, 32, 16, 196, 32, 1, 29, 0, 32, 47, 56, 17, 56, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})

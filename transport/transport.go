@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-//HeaderDevice Сообщение от устройства
+// HeaderDevice Сообщение от устройства
 type HeaderDevice struct {
 	ID         int       //ID
 	TypeDevice uint8     //Тип устройства
@@ -22,7 +22,7 @@ type HeaderDevice struct {
 	Message    []uint8   // Собственно сообщение без контрольной суммы
 }
 
-//CreateHeaderDevice создает заголовок устройства
+// CreateHeaderDevice создает заголовок устройства
 func CreateHeaderDevice(id, tp, number, code int) HeaderDevice {
 	var h HeaderDevice
 	h.ID = id
@@ -34,12 +34,12 @@ func CreateHeaderDevice(id, tp, number, code int) HeaderDevice {
 	return h
 }
 
-//Compare Сравнение
+// Compare Сравнение
 func (d *HeaderDevice) Compare(dd *HeaderDevice) bool {
 	return reflect.DeepEqual(d, dd)
 }
 
-//HeaderServer Сообщение от сервера
+// HeaderServer Сообщение от сервера
 type HeaderServer struct {
 	IDServer int       //ID Сервера 0xa7 0x8D
 	Time     time.Time // Время сообщения
@@ -48,7 +48,7 @@ type HeaderServer struct {
 	Message  []uint8   // Собственно сообщение без контрольной суммы
 }
 
-//CreateHeaderServer создает заголовок сервера
+// CreateHeaderServer создает заголовок сервера
 func CreateHeaderServer(num, code int) HeaderServer {
 	var h HeaderServer
 	h.IDServer = 0xa78d
@@ -65,15 +65,15 @@ func CreateHeaderServer(num, code int) HeaderServer {
 	return h
 }
 
-//Compare Сравнение
+// Compare Сравнение
 func (s *HeaderServer) Compare(ss *HeaderServer) bool {
 	return reflect.DeepEqual(s, ss)
 }
 
-//Parse разбор сообщения от устройства
+// Parse разбор сообщения от устройства
 func (d *HeaderDevice) Parse(buffer []byte) error {
 	err := checkCRC(buffer, 19)
-	d.Length = len(buffer)
+	// d.Length = len(buffer)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (d *HeaderDevice) Parse(buffer []byte) error {
 	return nil
 }
 
-//Parse разбор сообщения от сервера
+// Parse разбор сообщения от сервера
 func (s *HeaderServer) Parse(buffer []byte) error {
 	err := checkCRC(buffer, 13)
 	if err != nil {
@@ -122,7 +122,7 @@ func (s *HeaderServer) Parse(buffer []byte) error {
 	return nil
 }
 
-//MakeBuffer создает буфер для передачи полностью упакованный со всеми КС
+// MakeBuffer создает буфер для передачи полностью упакованный со всеми КС
 func (d *HeaderDevice) MakeBuffer() []byte {
 	buffer := make([]byte, 19+len(d.Message)+4)
 	buffer[0] = d.TypeDevice
@@ -148,7 +148,7 @@ func (d *HeaderDevice) MakeBuffer() []byte {
 	return buffer
 }
 
-//MakeBuffer создает буфер для передачи полностью упакованный со всеми КС
+// MakeBuffer создает буфер для передачи полностью упакованный со всеми КС
 func (s *HeaderServer) MakeBuffer() []byte {
 	buffer := make([]byte, 13+len(s.Message)+4)
 	buffer[0] = 0xa7

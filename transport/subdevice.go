@@ -385,7 +385,7 @@ func (s *SubMessage) Get0x0ADevice(st *pudge.Statistic) error {
 // Set0x0BDevice сообщение статистики
 func (s *SubMessage) Set0x0BDevice(lg *pudge.LogLine) {
 	s.Type = 0x0b
-	s.Message = make([]uint8, 9)
+	s.Message = make([]uint8, 12)
 	s.Message[0] = 0x0b
 	putDateDevice(lg.Time, s.Message, 1)
 	lg.Time = takeDateDevice(s.Message)
@@ -414,7 +414,7 @@ func getTypeRecod(t int, buffer []uint8) (tp string, info string) {
 	}
 	switch t {
 	case 1:
-		logger.Debug.Printf("%d-%d %d-%d %d-%d %d-%d ", buffer[8]>>4, buffer[8]&15, buffer[9]>>4, buffer[9]&15, buffer[10]>>4, buffer[10]&15, buffer[11]>>4, buffer[11]&15)
+		// logger.Debug.Printf("%d-%d %d-%d %d-%d %d-%d ", buffer[8]>>4, buffer[8]&15, buffer[9]>>4, buffer[9]&15, buffer[10]>>4, buffer[10]&15, buffer[11]>>4, buffer[11]&15)
 		// switch buffer[8] & 15 {
 		switch buffer[8] >> 4 {
 		case 1:
