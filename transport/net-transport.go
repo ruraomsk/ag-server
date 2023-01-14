@@ -111,7 +111,7 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 }
 
 // GetMessagesFromService прием сообщений от сервера
-func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.Duration) {
+func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.Duration, errTcp chan net.Conn) {
 	defer socket.Close()
 	var hs HeaderServer
 	for {
@@ -126,10 +126,12 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.
 		}
 		if err == nil && n != len(buf) {
 			logger.Error.Printf("при чтении сообщения от сервера %s прочитано %d байт нужно %d", socket.RemoteAddr().String(), n, len(buf))
+			errTcp <- socket
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от сервера %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- socket
 			return
 		}
 		buf2 := make([]byte, buf[12]+2)
@@ -139,16 +141,19 @@ func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.
 		}
 		if err == nil && n != len(buf2) {
 			logger.Error.Printf("при чтении сообщения от сервера %s прочитано неверно", socket.RemoteAddr().String())
+			errTcp <- socket
 			return
 		}
 		if err != nil {
 			logger.Error.Printf("при чтении сообщения от сервера %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- socket
 			return
 		}
 		buffer := append(buf, buf2...)
 		err = hs.Parse(buffer)
 		if err != nil {
 			logger.Error.Printf("при раскодировании от сервера %s %s", socket.RemoteAddr().String(), err.Error())
+			errTcp <- socket
 			return
 
 		}
@@ -194,7 +199,7 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 }
 
 // SendMessagesToServer передать сообщение на устройство
-func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice, tout *time.Duration) {
+func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice, tout *time.Duration, errTcp chan net.Conn) {
 	defer socket.Close()
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
 	for {
@@ -215,10 +220,12 @@ func SendMessagesToServer(socket net.Conn, hout chan HeaderDevice, tout *time.Du
 			}
 			if err != nil {
 				logger.Error.Printf("при передаче на сервер  %s %s", socket.RemoteAddr().String(), err.Error())
+				errTcp <- socket
 				return
 			}
 			if n != len(buffer) {
 				logger.Error.Printf("при передаче на сервер %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
+				errTcp <- socket
 				return
 			}
 		}
