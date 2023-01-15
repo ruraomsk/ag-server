@@ -118,7 +118,7 @@ func GetMessagesFromServer(socket net.Conn, hcan chan HeaderServer, tout *time.D
 		if Stoped {
 			return
 		}
-		socket.SetReadDeadline(time.Now().Add(24 * time.Hour))
+		socket.SetReadDeadline(time.Now().Add(*tout))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
 		if Stoped {
