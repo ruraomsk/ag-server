@@ -110,15 +110,15 @@ func GetMessagesFromDevice(socket net.Conn, hcan chan HeaderDevice, tout *time.D
 	}
 }
 
-// GetMessagesFromService прием сообщений от сервера
-func GetMessagesFromService(socket net.Conn, hcan chan HeaderServer, tout *time.Duration, errTcp chan net.Conn) {
+// GetMessagesFromServer прием сообщений от сервера
+func GetMessagesFromServer(socket net.Conn, hcan chan HeaderServer, tout *time.Duration, errTcp chan net.Conn) {
 	defer socket.Close()
 	var hs HeaderServer
 	for {
 		if Stoped {
 			return
 		}
-		socket.SetReadDeadline(time.Now().Add(*tout))
+		socket.SetReadDeadline(time.Now().Add(24 * time.Hour))
 		buf := make([]byte, 13)
 		n, err := socket.Read(buf)
 		if Stoped {
