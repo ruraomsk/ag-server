@@ -730,7 +730,7 @@ func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Message[5] = uint8(c.Status.ErrorLastConn)
 	s.Message[6] = 0
 	if c.Status.Ethernet {
-		s.Message[6] = 4
+		s.Message[6] = 8
 	}
 	s.Message[7] = uint8(c.Status.TObmen)
 	s.Message[8] = uint8(c.Status.LevelGSMNow)
