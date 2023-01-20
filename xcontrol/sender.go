@@ -11,6 +11,7 @@ import (
 
 func sender() {
 	for {
+		time.Sleep(10 * time.Second)
 		soc, err := net.Dial("tcp", setup.Set.XCtrl.FullHost)
 		if err != nil {
 			logger.Error.Printf("Sender Соединение с сервером команд %s", err.Error())

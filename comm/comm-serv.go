@@ -119,6 +119,7 @@ func newConnect(soc net.Conn) {
 	dd.LastToDevice = time.Now()
 	dd.ErrorTCP = make(chan net.Conn)
 	dd.Socket = soc
+	dd.WaitNum = 0
 	hDev, err := transport.GetOneMessage(soc)
 	if err != nil {
 		logger.Error.Print(err.Error())
@@ -211,6 +212,7 @@ func newConnect(soc net.Conn) {
 	dd.CommandArray = make(chan []pudge.ArrayPriv)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int, 10)
+	dd.WaitNum = 0
 	dd.CountLost = 0
 	//dd.Messages=make(map[int]transport.HeaderServer)
 	dd.addNumber()
