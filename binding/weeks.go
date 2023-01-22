@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-//WeekSets все недельные планы
+// WeekSets все недельные планы
 type WeekSets struct {
 	WeekSets []OneWeek `json:"wsets"`
 }
@@ -20,12 +20,12 @@ func (w *WeekSets) GetWeek(wn int) []int {
 	return result
 }
 
-//Compare сравнивание истина если равны
+// Compare сравнивание истина если равны
 func (ns *WeekSets) Compare(nn *WeekSets) bool {
 	return reflect.DeepEqual(ns, nn)
 }
 
-//FromBuffer загружает недельный массив из буфера
+// FromBuffer загружает недельный массив из буфера
 func (ns *WeekSets) FromBuffer(buffer []int) error {
 	n, err := weekFromBuffer(buffer)
 	if err != nil {
@@ -35,7 +35,7 @@ func (ns *WeekSets) FromBuffer(buffer []int) error {
 	return nil
 }
 
-//NewWeekSets создает новый набор недельных карт
+// NewWeekSets создает новый набор недельных карт
 func NewWeekSets() *WeekSets {
 	r := new(WeekSets)
 	r.WeekSets = make([]OneWeek, 12)
@@ -45,7 +45,7 @@ func NewWeekSets() *WeekSets {
 	return r
 }
 
-//OneWeek Одна строка недельных планов
+// OneWeek Одна строка недельных планов
 type OneWeek struct {
 	Number int   `json:"num"`
 	Days   []int `json:"days"`
@@ -61,7 +61,7 @@ func NewOneWeek(number int) *OneWeek {
 	return r
 }
 
-//IsEmpty возвращает истину если данный недельный массив пустой
+// IsEmpty возвращает истину если данный недельный массив пустой
 func (nm *OneWeek) IsEmpty() bool {
 	for _, d := range nm.Days {
 		if d != 0 {
@@ -71,7 +71,7 @@ func (nm *OneWeek) IsEmpty() bool {
 	return false
 }
 
-//ToBuffer переводит из недельного массива в буфер кодов
+// ToBuffer переводит из недельного массива в буфер кодов
 func (nm *OneWeek) ToBuffer() []int {
 	r := make([]int, 12)
 	r[0] = nm.Number + 44
@@ -85,7 +85,7 @@ func (nm *OneWeek) ToBuffer() []int {
 	return r
 }
 
-//nedelFromBuffer переводит из массива кодов в недельный массив
+// nedelFromBuffer переводит из массива кодов в недельный массив
 func weekFromBuffer(buffer []int) (*OneWeek, error) {
 	if len(buffer) != 12 {
 		return nil, fmt.Errorf("неверная длина массива")
