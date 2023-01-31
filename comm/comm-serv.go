@@ -543,8 +543,12 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true
-	d, _ := getDevice(hDev.ID)
 	hs := transport.CreateHeaderServer(0, 1)
+	d, ok := getDevice(hDev.ID)
+	if !ok {
+		logger.Error.Printf("Устройство %d удалено и долно быть отключено", hDev.ID)
+		return hs, false
+	}
 	if hDev.Number != 0 {
 		mss := make([]transport.SubMessage, 0)
 		var ms transport.SubMessage
