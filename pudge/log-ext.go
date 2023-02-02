@@ -135,7 +135,9 @@ func SetDeviceStatus(id int) (j Journal) {
 	j.Rezim = cc.getRezim()
 	j.Phase = cc.getPhaseDU()
 	if j.Rezim == "КУ" {
-		j.Phase = ""
+		if !(j.Phase == "ЛР" || j.Phase == "ЖМ" || j.Phase == "ОС" || j.Phase == "КК") {
+			j.Phase = ""
+		}
 	}
 	if j.Rezim == "РУ" {
 		j.Phase = cc.getPhaseRU()
@@ -149,7 +151,6 @@ func SetDeviceStatus(id int) (j Journal) {
 	if (cc.DK.RDK == 9 || cc.DK.RDK == 4 || cc.DK.RDK == 6) && cc.DK.FDK == 12 {
 		j.Phase = "КК"
 	}
-
 	return
 }
 func UserDeviceStatus(arm string, command int, param int) (j Journal) {
