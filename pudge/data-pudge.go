@@ -336,9 +336,10 @@ type Controller struct {
 	ID               int       `json:"id"`    // Уникальный номер контроллера
 	Name             string    `json:"name"`  //Имя перекрестка если привязан
 	StatusConnection bool      `json:"scon"`  // Статус соединения
-	LastOperation    time.Time `json:"ltime"` // Время последней операции обмена с устройством
+	LastMyOperation  time.Time `json:"-"`     // Время последней операции обмена с устройством
 	ConnectTime      time.Time `json:"ctime"` // Время подключения
 	TimeDevice       time.Time `json:"dtime"` // Время устройства
+	LastOperation    time.Time `json:"ltime"` // Время последней успешной операции обмена с устройством
 	WriteToDB        bool      `json:"-"`     //Если истина то еще не записана в БД
 	// 1 - выбор ПК по времени по суточной карте ВР-СК;
 	// 2 - выбор ПК по недельной карте ВР-НК;
@@ -407,7 +408,7 @@ func SetDefault(c *Controller, key Region) {
 	c.NK = 1
 	c.PK = 1
 	c.CK = 1
-	c.LastOperation = time.Now()
+	c.LastMyOperation = time.Now()
 	c.ConnectTime = time.Unix(0, 0)
 	c.TechMode = 1
 	c.DK.TDK = 1

@@ -202,7 +202,7 @@ func newConnect(soc net.Conn) {
 	}
 	//Обновим состояние в pudge
 	ctrl.StatusConnection = true
-	ctrl.LastOperation = time.Now()
+	ctrl.LastMyOperation = time.Now()
 	ctrl.ConnectTime = time.Now()
 	dd.LastToDevice = time.Now()
 	ctrl.IPHost = soc.RemoteAddr().String()
@@ -299,7 +299,7 @@ func newConnect(soc net.Conn) {
 			if len(hs.Message) != 0 || need {
 				l := 13 + len(hs.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
-				ctrl.LastOperation = time.Now()
+				ctrl.LastMyOperation = time.Now()
 				dd.LastToDevice = time.Now()
 				hout <- hs
 				dd.CountLost = 0
@@ -308,7 +308,7 @@ func newConnect(soc net.Conn) {
 					if dd.CountLost < 5 {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastOperation = time.Now()
+						ctrl.LastMyOperation = time.Now()
 						dd.LastToDevice = time.Now()
 						dd.CountLost++
 						hout <- dd.LastMessage
@@ -324,7 +324,7 @@ func newConnect(soc net.Conn) {
 						dd.WaitNum = dd.LastMessage.Number
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastOperation = time.Now()
+						ctrl.LastMyOperation = time.Now()
 						dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
@@ -346,7 +346,7 @@ func newConnect(soc net.Conn) {
 				continue
 			}
 			ctrl.StatusConnection = false
-			ctrl.LastOperation = time.Now()
+			ctrl.LastMyOperation = time.Now()
 			pudge.SetController(ctrl)
 			w := fmt.Sprintf("Контроллер %d ошибки обмена", dd.Id)
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
@@ -378,7 +378,7 @@ func newConnect(soc net.Conn) {
 				//Уже пять минут нет связи с устройством
 				//Прощаемся с ним %-)
 				ctrl.StatusConnection = false
-				ctrl.LastOperation = time.Now()
+				ctrl.LastMyOperation = time.Now()
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.Id, readTout.Seconds())
 				pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
@@ -389,7 +389,7 @@ func newConnect(soc net.Conn) {
 			}
 			if ctrl.Status.StatusV220 != 0 {
 				ctrl.StatusConnection = false
-				ctrl.LastOperation = time.Now()
+				ctrl.LastMyOperation = time.Now()
 				w := ""
 				ctrl.DK.EDK = 11
 				if ctrl.Status.StatusV220 == 25 {
@@ -416,7 +416,7 @@ func newConnect(soc net.Conn) {
 				dd.WaitNum = dd.LastMessage.Number
 				l := 13 + len(dd.LastMessage.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
-				ctrl.LastOperation = time.Now()
+				ctrl.LastMyOperation = time.Now()
 				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
 				dd.LastToDevice = time.Now()
@@ -427,7 +427,7 @@ func newConnect(soc net.Conn) {
 					if dd.CountLost > 10 {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastOperation = time.Now()
+						ctrl.LastMyOperation = time.Now()
 						dd.LastToDevice = time.Now()
 						hout <- dd.LastMessage
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
@@ -451,7 +451,7 @@ func newConnect(soc net.Conn) {
 			//transport.Stoped = true
 			ctrl, _ = pudge.GetController(dd.Id)
 			ctrl.StatusConnection = false
-			ctrl.LastOperation = time.Now()
+			ctrl.LastMyOperation = time.Now()
 			pudge.SetController(ctrl)
 			// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
 			logger.Info.Printf("Устройство %d удаляем текущее подключение", dd.Id)
@@ -540,6 +540,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	need := false
 	changeStatus := false
 	//d := devs[hDev.ID]
+	c.LastMyOperation = time.Now()
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true

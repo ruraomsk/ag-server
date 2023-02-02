@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/ruraomsk/ag-server/logger"
 )
@@ -116,6 +117,9 @@ func loadControllers() error {
 		if firstLoad {
 			c.WriteToDB = true
 			c.StatusConnection = false
+			c.LastMyOperation = time.Unix(0, 0)
+			c.LastOperation = time.Unix(0, 0)
+			c.TimeDevice = time.Unix(0, 0)
 			c.DK.EDK = 0
 			c.DK.PDK = false
 			_, is := controllers[id]
