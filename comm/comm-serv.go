@@ -351,8 +351,8 @@ func newConnect(soc net.Conn) {
 			w := fmt.Sprintf("Контроллер %d ошибки обмена", dd.Id)
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 			logger.Error.Print(w)
-			time.Sleep(time.Second)
 			killDevice(dd.Id)
+			time.Sleep(time.Second)
 			return
 		case <-tickControlTobm.C:
 			if dd.Messages.Size() == 0 {
@@ -383,8 +383,8 @@ func newConnect(soc net.Conn) {
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.Id, readTout.Seconds())
 				pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 				logger.Error.Print(w)
-				time.Sleep(1 * time.Second)
 				killDevice(dd.Id)
+				time.Sleep(1 * time.Second)
 				return
 			}
 			if ctrl.Status.StatusV220 != 0 {
@@ -407,8 +407,8 @@ func newConnect(soc net.Conn) {
 				pudge.SetController(ctrl)
 				// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 				logger.Error.Print(w)
-				time.Sleep(1 * time.Second)
 				killDevice(dd.Id)
+				time.Sleep(1 * time.Second)
 				return
 			}
 			if dd.WaitNum == 0 && dd.Messages.Size() != 0 {
@@ -517,11 +517,11 @@ func newConnect(soc net.Conn) {
 
 }
 func killDevice(id int) {
-	// logger.Info.Printf("Удаляем контроллер %d", id)
+	logger.Info.Printf("Удаляем контроллер %d", id)
 	Mutex.Lock()
 	delete(Devs, id)
 	Mutex.Unlock()
-	// logger.Info.Printf("Удалили контроллер %d", id)
+	logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
 	// logger.Info.Printf("Удаляем контроллер %d", id)
