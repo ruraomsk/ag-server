@@ -526,11 +526,11 @@ func killDevice(id int) {
 	logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
-	logger.Info.Printf("Читаем контроллер %d", id)
+	// logger.Info.Printf("Читаем контроллер %d", id)
 	Mutex.Lock()
 	dev, ok = Devs[id]
 	Mutex.Unlock()
-	logger.Info.Printf("Прочитали контроллер %d", id)
+	// logger.Info.Printf("Прочитали контроллер %d %v", id, ok)
 	return
 }
 
@@ -550,7 +550,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	hs := transport.CreateHeaderServer(0, 1)
 	d, ok := getDevice(hDev.ID)
 	if !ok {
-		logger.Error.Printf("Устройство %d удалено и долно быть отключено", hDev.ID)
+		logger.Error.Printf("Устройство %d удалено и должно быть отключено", hDev.ID)
 		return hs, false
 	}
 	if hDev.Number != 0 {
