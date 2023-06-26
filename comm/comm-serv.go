@@ -365,9 +365,11 @@ func newConnect(soc net.Conn) {
 			var is bool
 			_, is = getDevice(dd.Id)
 			if !is {
+				logger.Info.Printf("Добавляем %d", dd.Id)
 				Mutex.Lock()
 				Devs[dd.Id] = dd
 				Mutex.Unlock()
+				logger.Info.Printf("Добавили %d", dd.Id)
 			}
 
 			ctrl, is = pudge.GetController(dd.Id)
@@ -524,10 +526,11 @@ func killDevice(id int) {
 	logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
-	// logger.Info.Printf("Удаляем контроллер %d", id)
+	logger.Info.Printf("Читаем контроллер %d", id)
 	Mutex.Lock()
 	dev, ok = Devs[id]
 	Mutex.Unlock()
+	logger.Info.Printf("Прочитали контроллер %d", id)
 	return
 }
 
