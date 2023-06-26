@@ -184,13 +184,13 @@ func newConnect(soc net.Conn) {
 		logger.Error.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 		return
 	}
-	if ctrl.Status.TObmen != 0 {
-		readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
-		controlTout = time.Duration(int64(ctrl.Status.TObmen*60-30) * int64(time.Second))
-		ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
-	} else {
-		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
-	}
+	// if ctrl.Status.TObmen != 0 {
+	// 	readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
+	// 	controlTout = time.Duration(int64(ctrl.Status.TObmen*60-30) * int64(time.Second))
+	// 	ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
+	// } else {
+	// 	ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
+	// }
 	//if ctrl.TMax != 0 {
 	//	writeTout = time.Duration(ctrl.TMax * int64(time.Second))
 	//} else {
