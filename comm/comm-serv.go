@@ -186,7 +186,7 @@ func newConnect(soc net.Conn) {
 	}
 	if ctrl.Status.TObmen != 0 {
 		readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
-		controlTout = time.Duration(int64(ctrl.Status.TObmen*60-30) * int64(time.Second))
+		controlTout = time.Duration((int64(ctrl.Status.TObmen*60) - 30) * int64(time.Second))
 		ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
 	} else {
 		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
