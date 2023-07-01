@@ -184,19 +184,19 @@ func newConnect(soc net.Conn) {
 		logger.Error.Printf("Устройство %d прислало %v", hDev.ID, dmess)
 		return
 	}
-	// if ctrl.Status.TObmen != 0 {
-	// 	readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
-	// 	controlTout = time.Duration(int64(ctrl.Status.TObmen*60-30) * int64(time.Second))
-	// 	ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
-	// } else {
-	// 	ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
-	// }
-	//if ctrl.TMax != 0 {
-	//	writeTout = time.Duration(ctrl.TMax * int64(time.Second))
-	//} else {
-	//	ctrl.TMax = setup.Set.CommServer.TimeOutWrite
-	//	pudge.SetController(ctrl)
-	//}
+	if ctrl.Status.TObmen != 0 {
+		readTout = time.Duration((int64(ctrl.Status.TObmen*60) + 60) * int64(time.Second))
+		controlTout = time.Duration(int64(ctrl.Status.TObmen*60-30) * int64(time.Second))
+		ctrl.TimeOut = int64(ctrl.Status.TObmen * 60)
+	} else {
+		ctrl.TimeOut = setup.Set.CommServer.TimeOutRead
+	}
+	if ctrl.TMax != 0 {
+		writeTout = time.Duration(ctrl.TMax * int64(time.Second))
+	} else {
+		ctrl.TMax = setup.Set.CommServer.TimeOutWrite
+		pudge.SetController(ctrl)
+	}
 	if time.Since(start) > time.Duration(10*time.Second) {
 		logger.Info.Println("больше 10 секунд ", ctrl.ID)
 	}
@@ -290,6 +290,7 @@ func newConnect(soc net.Conn) {
 				logger.Error.Printf("id %d нет в базe", dd.Id)
 				continue
 			}
+			dd.LastToDevice = time.Now()
 			ctrl.Traffic.FromDevice1Hour += uint64(hDev.Length)
 			lastBase := ctrl.Base
 			hs, need := updateController(ctrl, &hDev, dd)
@@ -300,7 +301,7 @@ func newConnect(soc net.Conn) {
 				l := 13 + len(hs.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				ctrl.LastMyOperation = time.Now()
-				dd.LastToDevice = time.Now()
+				// dd.LastToDevice = time.Now()
 				hout <- hs
 				dd.CountLost = 0
 			} else {
@@ -309,7 +310,7 @@ func newConnect(soc net.Conn) {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
-						dd.LastToDevice = time.Now()
+						// dd.LastToDevice = time.Now()
 						dd.CountLost++
 						hout <- dd.LastMessage
 					} else {
@@ -325,7 +326,7 @@ func newConnect(soc net.Conn) {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
-						dd.LastToDevice = time.Now()
+						// dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
@@ -421,7 +422,7 @@ func newConnect(soc net.Conn) {
 				ctrl.LastMyOperation = time.Now()
 				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
-				dd.LastToDevice = time.Now()
+				// dd.LastToDevice = time.Now()
 				dd.CountLost = 0
 			} else {
 				if dd.WaitNum != 0 && dd.Messages.Size() != 0 {
@@ -430,7 +431,7 @@ func newConnect(soc net.Conn) {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
-						dd.LastToDevice = time.Now()
+						// dd.LastToDevice = time.Now()
 						hout <- dd.LastMessage
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
 						dd.CountLost = 0
