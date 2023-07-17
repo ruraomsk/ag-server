@@ -427,7 +427,7 @@ func newConnect(soc net.Conn) {
 			} else {
 				if dd.WaitNum != 0 && dd.Messages.Size() != 0 {
 					dd.CountLost++
-					if dd.CountLost > 10 {
+					if dd.CountLost < 3 {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
@@ -435,6 +435,17 @@ func newConnect(soc net.Conn) {
 						hout <- dd.LastMessage
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
 						dd.CountLost = 0
+					} else {
+						ctrl, _ = pudge.GetController(dd.Id)
+						ctrl.StatusConnection = false
+						ctrl.LastMyOperation = time.Now()
+						pudge.SetController(ctrl)
+						// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
+						logger.Info.Printf("Устройство %d более 3 раз не отвечает удаляем текущее подключение", dd.Id)
+						debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
+						killDevice(dd.Id)
+						time.Sleep(1 * time.Second)
+						return
 					}
 				} else {
 					dd.CountLost = 0
