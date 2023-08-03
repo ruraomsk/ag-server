@@ -151,6 +151,7 @@ func SetDeviceStatus(id int) (j Journal) {
 	if (cc.DK.RDK == 9 || cc.DK.RDK == 4 || cc.DK.RDK == 6) && cc.DK.FDK == 12 {
 		j.Phase = "КК"
 	}
+	// if j.Device=="ЭВМ" &&
 	return
 }
 func UserDeviceStatus(arm string, command int, param int) (j Journal) {

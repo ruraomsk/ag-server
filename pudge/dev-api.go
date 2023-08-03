@@ -152,36 +152,29 @@ func (cc *Controller) getSource() string {
 	case 2:
 		return "ВПУ "
 	case 3:
-		if cc.Model.C12 {
-			return "ИП C12 "
-		}
-		if cc.Model.DKA {
-			return "ИП ДКА "
-		}
-		if cc.Model.DTA {
-			return "ИП ДТА "
-		}
-		return "ИП УСДК "
+		return cc.getDeviceName()
 	case 4:
-		if cc.Model.C12 {
-			return "C12 "
-		}
-		if cc.Model.DKA {
-			return "ДКА "
-		}
-		if cc.Model.DTA {
-			return "ДТА "
-		}
-		return "УСДК "
+		return cc.getDeviceName()
 	case 5:
 		return "ИП ДКА "
 	}
 	if cc.DK.DDK >= 6 && cc.DK.DDK <= 9 {
-		return "ЭВМ "
+		return cc.getDeviceName()
 	}
 	return fmt.Sprintf("Источник %d", cc.DK.DDK)
 }
-
+func (cc *Controller) getDeviceName() string {
+	if cc.Model.C12 {
+		return "C12 "
+	}
+	if cc.Model.DKA {
+		return "ДКА "
+	}
+	if cc.Model.DTA {
+		return "ДТА "
+	}
+	return "УСДК "
+}
 func (cc *Controller) CalcStatus() int {
 	rezim := cc.DK.RDK
 	faza := cc.DK.FDK
