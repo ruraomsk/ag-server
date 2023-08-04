@@ -72,8 +72,8 @@ func (s *HeaderServer) Compare(ss *HeaderServer) bool {
 
 // Parse разбор сообщения от устройства
 func (d *HeaderDevice) Parse(buffer []byte) error {
+	d.Length = len(buffer)
 	err := checkCRC(buffer, 19)
-	// d.Length = len(buffer)
 	if err != nil {
 		return err
 	}

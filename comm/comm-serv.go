@@ -297,7 +297,7 @@ func newConnect(soc net.Conn) {
 			if ctrl.Base && !lastBase {
 				ctrl.Arrays = make([]pudge.ArrayPriv, 0)
 			}
-			pudge.SetController(ctrl)
+			// pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
 				l := 13 + len(hs.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
