@@ -1,12 +1,12 @@
 package setup
 
-//Set переменная для хранения текущих настроек
+// Set переменная для хранения текущих настроек
 var Set *Setup
 
-//Setup общая структура для настройки всей системы
+// Setup общая структура для настройки всей системы
 type Setup struct {
 	Home       string     `toml:"home"`
-	Debug      string     `toml:debug`
+	Debug      string     `toml:"debug"`
 	Location   string     `toml:"location"`  //Локация временной зоны
 	StepPudge  int        `toml:"steppudge"` //Шаг сохранения в секундах
 	Secret     bool       `toml:"secret"`
@@ -31,7 +31,7 @@ type LogSystem struct {
 	Period    int    `toml:"period"`
 }
 
-//Loader описание загрузчика
+// Loader описание загрузчика
 type Loader struct {
 	Make    bool       `toml:"make"`     //Делать ли прием со стороны
 	Port    int        `toml:"port"`     //Стартовый номер порта на прием
@@ -40,7 +40,7 @@ type Loader struct {
 	Files   [][]string `toml:"filesSVG"` //Файлы которые описывают перекресток
 }
 
-//Statistic описание статистики
+// Statistic описание статистики
 type Statistic struct {
 	Make    bool       `toml:"make"`    //true если выполнять
 	Regions [][]string `toml:"regions"` //Перечень регионов с временами старта во времени сервера и признаком какую дату использовать
@@ -58,7 +58,7 @@ type Saver struct {
 	Files   [][]string `toml:"filesSVG"` //Файлы которые описывают перекресток
 }
 
-//CommServer настройки для сервера коммуникации
+// CommServer настройки для сервера коммуникации
 type CommServer struct {
 	Port         int   `toml:"port"`          //Стартовый номер порта на прием
 	PortCommand  int   `toml:"portc"`         //Порт приема команд от сервера АРМ
@@ -70,7 +70,7 @@ type CommServer struct {
 	ID           int   `toml:"id"`
 }
 
-//DataBase настройки базы данных postresql
+// DataBase настройки базы данных postresql
 type DataBase struct {
 	Host     string `toml:"host"`
 	Port     int    `toml:"port"`
@@ -79,7 +79,7 @@ type DataBase struct {
 	DBname   string `toml:"dbname"`
 }
 
-//XCtrl настройки подсистемы характерных точек
+// XCtrl настройки подсистемы характерных точек
 type XCtrl struct {
 	Port        int     `toml:"port"` //Порт ожидания команд от системы
 	Switch      bool    `toml:"switch"`
