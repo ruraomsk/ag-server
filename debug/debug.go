@@ -98,8 +98,14 @@ func DecodeMessage(message DebugMessage) string {
 		pos := 0
 		for pos < len(mess) {
 			pos++
+			if pos >= len(mess) {
+				break
+			}
 			l := int(mess[pos])
 			pos++
+			if pos >= len(mess) {
+				break
+			}
 			r += fmt.Sprintf("0x%02X ", mess[pos])
 			pos += l
 		}
