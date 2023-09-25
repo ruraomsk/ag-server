@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ruraomsk/ag-server/binding"
 	"github.com/ruraomsk/ag-server/debug"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
@@ -223,7 +224,7 @@ func newConnect(soc net.Conn) {
 	updateController(ctrl, &hDev, dd)
 	pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 	if ctrl.Base {
-		ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+		ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 	}
 	pudge.SetController(ctrl)
 	//Запускаем ввод вывод
@@ -295,7 +296,7 @@ func newConnect(soc net.Conn) {
 			lastBase := ctrl.Base
 			hs, need := updateController(ctrl, &hDev, dd)
 			if ctrl.Base && !lastBase {
-				ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+				ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 			}
 			// pudge.SetController(ctrl)
 			if len(hs.Message) != 0 || need {
@@ -588,7 +589,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		// 	c.Base = false
 		case 0x07:
 			c.Base = true
-			c.Arrays = make([]pudge.ArrayPriv, 0)
+			c.Arrays = pudge.MakeArrays(*binding.NewArrays())
 		case 0x09:
 			//Устройство закончило сбор статистики проверим если есть такая то обновим ее заголовок
 			//если нет то добавим новый заголовок в массив статистики

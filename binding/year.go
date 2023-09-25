@@ -5,17 +5,17 @@ import (
 	"reflect"
 )
 
-//MonthSets все месячные планы
+// MonthSets все месячные планы
 type MonthSets struct {
 	MonthSets []*OneMonth `json:"monthset"`
 }
 
-//Compare сравнивание истина если равны
+// Compare сравнивание истина если равны
 func (ms *MonthSets) Compare(mm *MonthSets) bool {
 	return reflect.DeepEqual(ms, mm)
 }
 
-//NewYearSets создает новый набор месячных карт
+// NewYearSets создает новый набор месячных карт
 func NewYearSets() *MonthSets {
 	r := new(MonthSets)
 	r.MonthSets = make([]*OneMonth, 12)
@@ -25,7 +25,7 @@ func NewYearSets() *MonthSets {
 	return r
 }
 
-//FromBuffer переводит из массива кодов в недельный массив
+// FromBuffer переводит из массива кодов в недельный массив
 func (ms *MonthSets) FromBuffer(buffer []int) error {
 	om, err := monthFromBuffer(buffer)
 	if err != nil {
@@ -35,7 +35,7 @@ func (ms *MonthSets) FromBuffer(buffer []int) error {
 	return nil
 }
 
-//OneMonth Одна строка недельных планов
+// OneMonth Одна строка недельных планов
 type OneMonth struct {
 	Number int   `json:"num"`
 	Days   []int `json:"days"`
@@ -51,7 +51,7 @@ func newOneMonth(number int) *OneMonth {
 	return r
 }
 
-//IsEmpty возвращает истину если данный недельный массив пустой
+// IsEmpty возвращает истину если данный недельный массив пустой
 func (om *OneMonth) IsEmpty() bool {
 	// for _, d := range om.Days {
 	// 	if d != 1 {
@@ -61,7 +61,7 @@ func (om *OneMonth) IsEmpty() bool {
 	return false
 }
 
-//ToBuffer переводит из недельного массива в буфер кодов
+// ToBuffer переводит из недельного массива в буфер кодов
 func (om *OneMonth) ToBuffer() []int {
 	r := make([]int, 36)
 	r[0] = om.Number + 84
@@ -75,7 +75,7 @@ func (om *OneMonth) ToBuffer() []int {
 	return r
 }
 
-//monthFromBuffer переводит из массива кодов в недельный массив
+// monthFromBuffer переводит из массива кодов в недельный массив
 func monthFromBuffer(buffer []int) (*OneMonth, error) {
 	if len(buffer) != 36 {
 		return nil, fmt.Errorf("неверная длина массива")

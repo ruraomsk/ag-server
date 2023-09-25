@@ -13,6 +13,7 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/ruraomsk/ag-server/binding"
 	"github.com/ruraomsk/ag-server/extcon"
 	"github.com/ruraomsk/ag-server/logger"
 	"github.com/ruraomsk/ag-server/pudge"
@@ -200,7 +201,7 @@ func workerCommand(soc net.Conn) {
 			//Принудительная отправка всех массивов
 			pudge.ChanLog <- pudge.LogRecord{ID: command.ID, Region: pudge.Region{Region: 0}, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus(command.User, -1, 0)}
 			ctrl, _ := pudge.GetController(command.ID)
-			ctrl.Arrays = make([]pudge.ArrayPriv, 0)
+			ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 			pudge.SetController(ctrl)
 			logger.Info.Printf("id %d массив привязок поставлен на перезагрузку", command.ID)
 		} else {

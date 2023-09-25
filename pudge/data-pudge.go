@@ -420,7 +420,8 @@ func SetDefault(c *Controller, key Region) {
 	m.VPBSR = 0
 	c.Traffic = Traffic{}
 	c.Model = m
-	c.Arrays = make([]ArrayPriv, 0)
+
+	c.Arrays = MakeArrays(*binding.NewArrays())
 	c.LogLines = make([]LogLine, 0)
 }
 
@@ -430,4 +431,74 @@ func NewCross() *Cross {
 	//r.Statistics = make([]Statistic, 0)
 	r.Arrays = *binding.NewArrays()
 	return r
+}
+func MakeArrays(ar binding.Arrays) []ArrayPriv {
+	r := make([]ArrayPriv, 0)
+	if !ar.StatDefine.IsEmpty() {
+		buffer := ar.StatDefine.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !ar.PointSet.IsEmpty() {
+		buffer := ar.PointSet.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !ar.UseInput.IsEmpty() {
+		buffer := ar.UseInput.ToBuffer() //
+		r = appBuffer(r, buffer)
+
+	}
+	if !ar.TimeDivice.IsEmpty() {
+		buffer := ar.TimeDivice.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !ar.SetupDK.IsEmpty() {
+		buffer := ar.SetupDK.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !ar.SetCtrl.IsEmpty() {
+		buffer := ar.SetCtrl.ToBuffer() //
+		r = appBuffer(r, buffer)
+	}
+	if !ar.SetTimeUse.IsEmpty() {
+		buffer := ar.SetTimeUse.ToBuffer(157) //
+		r = appBuffer(r, buffer)
+		buffer = ar.SetTimeUse.ToBuffer(148) //
+		r = appBuffer(r, buffer)
+	}
+	for i := 1; i < 13; i++ {
+		r = appBuffer(r, ar.SetDK.DK[i-1].ToBuffer())
+	}
+	for _, ns := range ar.WeekSets.WeekSets { //
+		if !ns.IsEmpty() {
+			buffer := ns.ToBuffer()
+			r = appBuffer(r, buffer)
+		}
+	}
+	for _, ss := range ar.DaySets.DaySets { //
+		if !ss.IsEmpty() {
+			buffer := ss.ToBuffer()
+			r = appBuffer(r, buffer)
+		}
+	}
+	for _, ys := range ar.MonthSets.MonthSets { //
+		if !ys.IsEmpty() {
+			buffer := ys.ToBuffer()
+			r = appBuffer(r, buffer)
+		}
+	}
+
+	return r
+}
+func appBuffer(res []ArrayPriv, buffer []int) []ArrayPriv {
+	return append(res, makePriv(buffer))
+}
+func makePriv(buffer []int) ArrayPriv {
+	r := new(ArrayPriv)
+	r.Array = make([]int, 0)
+	r.Number = buffer[2]
+	r.NElem = buffer[4]
+	for i := 3; i < len(buffer); i++ {
+		r.Array = append(r.Array, buffer[i])
+	}
+	return *r
 }

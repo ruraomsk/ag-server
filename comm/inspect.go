@@ -116,7 +116,7 @@ func oneCross(reg pudge.Region) {
 		}
 
 		//Построим массивы как надо для перекрестка
-		crossarrays := makeArrays(cr)
+		crossarrays := pudge.MakeArrays(cr.Arrays)
 		sending := make([]pudge.ArrayPriv, 0)
 		for _, ac := range crossarrays {
 			found := false
@@ -176,76 +176,6 @@ func oneCross(reg pudge.Region) {
 			needExit = 0
 		}
 	}
-}
-func makeArrays(cr pudge.Cross) []pudge.ArrayPriv {
-	r := make([]pudge.ArrayPriv, 0)
-	if !cr.Arrays.StatDefine.IsEmpty() {
-		buffer := cr.Arrays.StatDefine.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.PointSet.IsEmpty() {
-		buffer := cr.Arrays.PointSet.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.UseInput.IsEmpty() {
-		buffer := cr.Arrays.UseInput.ToBuffer() //
-		r = appBuffer(r, buffer)
-
-	}
-	if !cr.Arrays.TimeDivice.IsEmpty() {
-		buffer := cr.Arrays.TimeDivice.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.SetupDK.IsEmpty() {
-		buffer := cr.Arrays.SetupDK.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.SetCtrl.IsEmpty() {
-		buffer := cr.Arrays.SetCtrl.ToBuffer() //
-		r = appBuffer(r, buffer)
-	}
-	if !cr.Arrays.SetTimeUse.IsEmpty() {
-		buffer := cr.Arrays.SetTimeUse.ToBuffer(157) //
-		r = appBuffer(r, buffer)
-		buffer = cr.Arrays.SetTimeUse.ToBuffer(148) //
-		r = appBuffer(r, buffer)
-	}
-	for i := 1; i < 13; i++ {
-		r = appBuffer(r, cr.Arrays.SetDK.DK[i-1].ToBuffer())
-	}
-	for _, ns := range cr.Arrays.WeekSets.WeekSets { //
-		if !ns.IsEmpty() {
-			buffer := ns.ToBuffer()
-			r = appBuffer(r, buffer)
-		}
-	}
-	for _, ss := range cr.Arrays.DaySets.DaySets { //
-		if !ss.IsEmpty() {
-			buffer := ss.ToBuffer()
-			r = appBuffer(r, buffer)
-		}
-	}
-	for _, ys := range cr.Arrays.MonthSets.MonthSets { //
-		if !ys.IsEmpty() {
-			buffer := ys.ToBuffer()
-			r = appBuffer(r, buffer)
-		}
-	}
-
-	return r
-}
-func appBuffer(res []pudge.ArrayPriv, buffer []int) []pudge.ArrayPriv {
-	return append(res, makePriv(buffer))
-}
-func makePriv(buffer []int) pudge.ArrayPriv {
-	r := new(pudge.ArrayPriv)
-	r.Array = make([]int, 0)
-	r.Number = buffer[2]
-	r.NElem = buffer[4]
-	for i := 3; i < len(buffer); i++ {
-		r.Array = append(r.Array, buffer[i])
-	}
-	return *r
 }
 
 func sendLocalOn(dev *pudge.Controller) {

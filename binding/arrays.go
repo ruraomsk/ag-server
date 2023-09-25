@@ -6,7 +6,7 @@ import (
 	"github.com/ruraomsk/ag-server/logger"
 )
 
-//Arrays масиссивы привязок
+// Arrays масиссивы привязок
 type Arrays struct {
 	TypeDevice int `json:"type"` //Тип устройства 1 C12УСДК 2 УСДК 4 ДКА 8 ДТ СК
 	SetupDK    SetupDK
@@ -23,7 +23,7 @@ type Arrays struct {
 	MGRs       []MGR      `json:"mgrs"`      //Массив разрешенных МГР
 }
 
-//NewArrays создание нового
+// NewArrays создание нового
 func NewArrays() *Arrays {
 	r := new(Arrays)
 	r.TypeDevice = 2
@@ -38,10 +38,13 @@ func NewArrays() *Arrays {
 	r.SetCtrl = *NewSetCtrl()
 	r.SetTimeUse = *NewSetTimeUse()
 	r.MGRs = make([]MGR, 0)
+	r.DaySets.DaySets[0].Lines[0].PKNom = 1
+	r.WeekSets.WeekSets[0].Days = []int{1, 1, 1, 1, 1, 1, 1}
+
 	return r
 }
 
-//IsCorrect проверяет правильность массивов
+// IsCorrect проверяет правильность массивов
 func (ar *Arrays) IsCorrect() error {
 	if ar.SetupDK.IsEmpty() {
 		logger.Error.Printf("нет настроек ДК ")
@@ -92,7 +95,7 @@ func (ar *Arrays) IsCorrect() error {
 	return nil
 }
 
-//SetArray принимает массивы привязки на устройтсве
+// SetArray принимает массивы привязки на устройтсве
 func (ar *Arrays) SetArray(nom, nelem int, array []int) error {
 	buffer := make([]int, len(array)+3)
 	buffer[2] = nom
