@@ -140,7 +140,7 @@ func oneCross(reg pudge.Region) {
 			acc := make([]pudge.ArrayPriv, 0)
 			l := 0
 			for _, ac := range sending {
-				if l < 65 {
+				if l+len(ac.Array) < 65 {
 					acc = append(acc, ac)
 					l += len(ac.Array)
 					continue
