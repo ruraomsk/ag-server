@@ -268,7 +268,7 @@ func newConnect(soc net.Conn) {
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	replay := time.NewTicker(5 * time.Second)
+	replay := time.NewTicker(20 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
