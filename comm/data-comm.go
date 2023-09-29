@@ -34,12 +34,12 @@ type ChangeProtocol struct {
 }
 
 type Device struct {
-	Id int
-	//Идентификатор устройства
-	context        *extcon.ExtContext //Расширенный контекст для управления устройством
-	NumDev         uint8              //Номер сообщения для подтверждения
-	NumServ        uint8              //Номер сообщения от сервера
-	WaitNum        uint8              //Номер ожидаемого сообщения
+	Id             int                    //Идентификатор устройства
+	hDev           transport.HeaderDevice //Header последнего сообщения
+	context        *extcon.ExtContext     //Расширенный контекст для управления устройством
+	NumDev         uint8                  //Номер сообщения для подтверждения
+	NumServ        uint8                  //Номер сообщения от сервера
+	WaitNum        uint8                  //Номер ожидаемого сообщения
 	CommandARM     chan pudge.CommandARM
 	CommandArray   chan []pudge.ArrayPriv
 	ChangeProtocol chan ChangeProtocol

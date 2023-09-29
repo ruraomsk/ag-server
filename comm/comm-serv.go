@@ -291,6 +291,7 @@ func newConnect(soc net.Conn) {
 				logger.Error.Printf("id %d нет в базe", dd.Id)
 				continue
 			}
+			dd.hDev = hDev
 			dd.LastToDevice = time.Now()
 			ctrl.Traffic.FromDevice1Hour += uint64(hDev.Length)
 			lastBase := ctrl.Base
@@ -315,6 +316,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost++
 						hout <- dd.LastMessage
+						time.Sleep(time.Second)
 					} else {
 						dd.WaitNum = 0
 						dd.CountLost = 0
@@ -331,6 +333,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
+						time.Sleep(time.Second)
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
@@ -424,6 +427,7 @@ func newConnect(soc net.Conn) {
 				ctrl.LastMyOperation = time.Now()
 				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
+				time.Sleep(time.Second)
 				// dd.LastToDevice = time.Now()
 				dd.CountLost = 0
 			} else {
@@ -561,7 +565,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true
-	hs := transport.CreateHeaderServer(0, 1)
+	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	d, ok := getDevice(hDev.ID)
 	if !ok {
 		logger.Error.Printf("Устройство %d удалено и должно быть отключено", hDev.ID)
@@ -763,7 +767,7 @@ func makeChangeProtocol(dd *Device, protocol ChangeProtocol) (transport.HeaderSe
 }
 func makeAlive(dd *Device) (transport.HeaderServer, error) {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 1)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
 	ms.Set0x03Server()
@@ -774,7 +778,7 @@ func makeAlive(dd *Device) (transport.HeaderServer, error) {
 }
 func makeCommandToDevice(dd *Device, comARM pudge.CommandARM) (transport.HeaderServer, error) {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 1)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	var ms transport.SubMessage
 	switch comARM.Command {
@@ -826,7 +830,7 @@ func makeLocalOn(dd *Device) transport.HeaderServer {
 	dd.addNumber()
 	var ms transport.SubMessage
 	//Сообщение об отключении управления
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
@@ -842,7 +846,7 @@ func makeLocalOff(dd *Device) transport.HeaderServer {
 	dd.addNumber()
 	var ms transport.SubMessage
 	//Сообщение об отключении управления
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x02Server(true)
 	mss = append(mss, ms)
@@ -856,7 +860,7 @@ func makeLocalOff(dd *Device) transport.HeaderServer {
 }
 func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.HeaderServer {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(int(dd.NumServ), 0)
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	for _, arp := range comArrays {
 		ms := new(transport.SubMessage)
