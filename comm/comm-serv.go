@@ -306,6 +306,7 @@ func newConnect(soc net.Conn) {
 				ctrl.LastMyOperation = time.Now()
 				// dd.LastToDevice = time.Now()
 				hout <- hs
+				time.Sleep(time.Second)
 				dd.CountLost = 0
 			} else {
 				if dd.WaitNum != 0 {
@@ -439,6 +440,7 @@ func newConnect(soc net.Conn) {
 						ctrl.LastMyOperation = time.Now()
 						// dd.LastToDevice = time.Now()
 						hout <- dd.LastMessage
+						time.Sleep(time.Second)
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
 						dd.CountLost = 0
 					} else {
