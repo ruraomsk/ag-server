@@ -318,7 +318,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost++
 						hout <- dd.LastMessage
-						time.Sleep(3 * time.Second)
+						time.Sleep(time.Second)
 					} else {
 						dd.WaitNum = 0
 						dd.CountLost = 0
@@ -335,7 +335,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
-						time.Sleep(3 * time.Second)
+						time.Sleep(time.Second)
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
@@ -436,7 +436,7 @@ func newConnect(soc net.Conn) {
 			} else {
 				if dd.WaitNum != 0 && dd.Messages.Size() != 0 {
 					dd.CountLost++
-					if dd.CountLost < 3 {
+					if dd.CountLost < 5 {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
@@ -451,7 +451,7 @@ func newConnect(soc net.Conn) {
 						ctrl.LastMyOperation = time.Now()
 						pudge.SetController(ctrl)
 						// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
-						logger.Info.Printf("Устройство %d более 3 раз не отвечает удаляем текущее подключение", dd.Id)
+						logger.Info.Printf("Устройство %d более 5 раз не отвечает удаляем текущее подключение", dd.Id)
 						debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
 						killDevice(dd.Id)
 						time.Sleep(1 * time.Second)
@@ -864,7 +864,7 @@ func makeLocalOff(dd *Device) transport.HeaderServer {
 }
 func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.HeaderServer {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
+	hs := transport.CreateHeaderServer(0, int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	for _, arp := range comArrays {
 		ms := new(transport.SubMessage)
