@@ -238,7 +238,7 @@ func newConnect(soc net.Conn) {
 	hout <- hs
 	pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -4, 0)}
 	logger.Info.Printf("Подключено устройство: id %d ", ctrl.ID)
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
@@ -268,6 +268,7 @@ func newConnect(soc net.Conn) {
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
+	replay := time.NewTicker(5 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
@@ -306,7 +307,7 @@ func newConnect(soc net.Conn) {
 				ctrl.LastMyOperation = time.Now()
 				// dd.LastToDevice = time.Now()
 				hout <- hs
-				time.Sleep(time.Second)
+				time.Sleep(3 * time.Second)
 				dd.CountLost = 0
 			} else {
 				if dd.WaitNum != 0 {
@@ -317,7 +318,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost++
 						hout <- dd.LastMessage
-						time.Sleep(time.Second)
+						time.Sleep(3 * time.Second)
 					} else {
 						dd.WaitNum = 0
 						dd.CountLost = 0
@@ -334,7 +335,7 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
-						time.Sleep(time.Second)
+						time.Sleep(3 * time.Second)
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
@@ -420,6 +421,7 @@ func newConnect(soc net.Conn) {
 				time.Sleep(1 * time.Second)
 				return
 			}
+		case <-replay.C:
 			if dd.WaitNum == 0 && dd.Messages.Size() != 0 {
 				dd.LastMessage = dd.Messages.Pop()
 				dd.WaitNum = dd.LastMessage.Number
@@ -459,7 +461,7 @@ func newConnect(soc net.Conn) {
 					dd.CountLost = 0
 				}
 			}
-			pudge.SetController(ctrl)
+			// pudge.SetController(ctrl)
 			// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 		case <-dd.context.Done():
 			transport.Stoped = true
