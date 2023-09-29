@@ -49,13 +49,13 @@ type HeaderServer struct {
 }
 
 func (h *HeaderServer) Repeat() uint8 {
-	if h.Number == 0 {
-		return h.Number
-	}
-	h.Number++
-	if h.Number >= 250 {
-		h.Number = 1
-	}
+	// if h.Number == 0 {
+	// 	return h.Number
+	// }
+	// h.Number++
+	// if h.Number >= 250 {
+	// 	h.Number = 1
+	// }
 	return h.Number
 }
 
