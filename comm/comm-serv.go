@@ -238,7 +238,7 @@ func newConnect(soc net.Conn) {
 	hout <- hs
 	pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -4, 0)}
 	logger.Info.Printf("Подключено устройство: id %d ", ctrl.ID)
-	time.Sleep(3 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	//Проверим есть ли зарегистрированный слушатель нашего id и скажем ему что
 	//теперь есть новый и ему можно завершиться
@@ -268,7 +268,7 @@ func newConnect(soc net.Conn) {
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	replay := time.NewTicker(3 * time.Second)
+	replay := time.NewTicker(5 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
