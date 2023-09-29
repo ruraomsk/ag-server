@@ -306,8 +306,8 @@ func newConnect(soc net.Conn) {
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				ctrl.LastMyOperation = time.Now()
 				// dd.LastToDevice = time.Now()
+				hs.Number = 0
 				hout <- hs
-				time.Sleep(3 * time.Second)
 				dd.CountLost = 0
 			} else {
 				if dd.WaitNum != 0 {
@@ -319,7 +319,6 @@ func newConnect(soc net.Conn) {
 						dd.CountLost++
 						dd.WaitNum = dd.LastMessage.Repeat()
 						hout <- dd.LastMessage
-						time.Sleep(time.Second)
 					} else {
 						dd.WaitNum = 0
 						dd.CountLost = 0
@@ -336,7 +335,6 @@ func newConnect(soc net.Conn) {
 						// dd.LastToDevice = time.Now()
 						dd.CountLost = 0
 						hout <- dd.LastMessage
-						time.Sleep(time.Second)
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
@@ -435,7 +433,7 @@ func newConnect(soc net.Conn) {
 				// dd.LastToDevice = time.Now()
 				dd.CountLost = 0
 			} else {
-				if dd.WaitNum != 0 && dd.Messages.Size() != 0 {
+				if dd.WaitNum != 0 {
 					dd.CountLost++
 					if dd.CountLost < 5 {
 						l := 13 + len(dd.LastMessage.Message) + 4
@@ -446,7 +444,6 @@ func newConnect(soc net.Conn) {
 						hout <- dd.LastMessage
 						time.Sleep(time.Second)
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
-						dd.CountLost = 0
 					} else {
 						ctrl, _ = pudge.GetController(dd.Id)
 						ctrl.StatusConnection = false
