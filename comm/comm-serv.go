@@ -317,6 +317,7 @@ func newConnect(soc net.Conn) {
 						ctrl.LastMyOperation = time.Now()
 						// dd.LastToDevice = time.Now()
 						dd.CountLost++
+						dd.WaitNum = dd.LastMessage.Repeat()
 						hout <- dd.LastMessage
 						time.Sleep(time.Second)
 					} else {
@@ -441,6 +442,7 @@ func newConnect(soc net.Conn) {
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
 						// dd.LastToDevice = time.Now()
+						dd.WaitNum = dd.LastMessage.Repeat()
 						hout <- dd.LastMessage
 						time.Sleep(time.Second)
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
@@ -864,7 +866,7 @@ func makeLocalOff(dd *Device) transport.HeaderServer {
 }
 func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.HeaderServer {
 	dd.addNumber()
-	hs := transport.CreateHeaderServer(0, int(dd.hDev.Code))
+	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	for _, arp := range comArrays {
 		ms := new(transport.SubMessage)

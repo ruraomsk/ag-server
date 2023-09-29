@@ -48,6 +48,14 @@ type HeaderServer struct {
 	Message  []uint8   // Собственно сообщение без контрольной суммы
 }
 
+func (h *HeaderServer) Repeat() uint8 {
+	h.Number++
+	if h.Number >= 250 {
+		h.Number = 1
+	}
+	return h.Number
+}
+
 // CreateHeaderServer создает заголовок сервера
 func CreateHeaderServer(num, code int) HeaderServer {
 	var h HeaderServer
