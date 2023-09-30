@@ -389,10 +389,10 @@ func (s *SubMessage) Set0x35Server(interval int, ignor bool) {
 func (s *SubMessage) SetArray(num int, nelem int, array []int) {
 	s.Type = uint8(num)
 	if num == 133 {
-		s.Type = 5
+		s.Type = 0x85
 	}
 	if num == 137 {
-		s.Type = 9
+		s.Type = 0x89
 	}
 	s.Message = make([]uint8, len(array)-1)
 	s.Message[0] = uint8(nelem)

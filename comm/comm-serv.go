@@ -586,7 +586,10 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		case 0x00:
 			//Пустое сообщение ничего не делаем
 		case 0x01:
-			num, _, _, _, _ := mes.Get0x01Device()
+			num, _, _, mas, elem := mes.Get0x01Device()
+			if mas != 0 || elem != 0 {
+				logger.Error.Printf("Ошибка массива привязки %d элемент %x", mas, elem)
+			}
 			if num != 0 {
 				if int(d.WaitNum) == num {
 					d.WaitNum = 0
