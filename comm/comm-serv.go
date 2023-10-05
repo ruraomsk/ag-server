@@ -569,7 +569,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true
-	hs := transport.CreateHeaderServer(0, int(dd.NumDev))
+	hs := transport.CreateHeaderServer(0, int(hDev.Code))
 	d, ok := getDevice(hDev.ID)
 	if !ok {
 		logger.Error.Printf("Устройство %d удалено и должно быть отключено", hDev.ID)
@@ -726,7 +726,11 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		pudge.ChanLog <- pudge.LogRecord{ID: c.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(c.ID)}
 		pudge.ChanLog <- pudge.LogRecord{ID: c.ID, Region: dd.Region, Type: 0, Time: time.Now(), Journal: pudge.SetTechStatus(c.ID)}
 	}
-
+	if need && hs.Code == 0x7f {
+		hs = transport.CreateHeaderServer(0, 0)
+		mss := make([]transport.SubMessage, 0)
+		_ = hs.UpackMessages(mss)
+	}
 	return hs, need
 }
 func getController(id int) (*pudge.Controller, pudge.Region, error) {
