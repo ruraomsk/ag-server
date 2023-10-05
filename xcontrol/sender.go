@@ -25,6 +25,7 @@ func sender() {
 			continue
 		}
 		alive := time.NewTicker(1 * time.Minute)
+	loop:
 		for {
 			select {
 			case <-alive.C:
@@ -32,7 +33,7 @@ func sender() {
 				if err != nil {
 					logger.Error.Printf("Передача keep alive на сервер команд %s", err.Error())
 					soc.Close()
-					break
+					break loop
 				}
 			case cmd := <-commARM:
 				//logger.Debug.Printf("Команда %v",cmd)
@@ -46,7 +47,7 @@ func sender() {
 				if err != nil {
 					logger.Error.Printf("Передача %s на сервер команд %s", string(c), err.Error())
 					soc.Close()
-					break
+					break loop
 				}
 			}
 		}

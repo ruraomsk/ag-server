@@ -208,6 +208,7 @@ func newConnect(soc net.Conn) {
 	dd.LastToDevice = time.Now()
 	ctrl.IPHost = soc.RemoteAddr().String()
 	dd.Id = ctrl.ID
+	dd.NumDev = hDev.Code
 	dd.Region = reg
 	dd.CommandARM = make(chan pudge.CommandARM, 1024)
 	dd.CommandArray = make(chan []pudge.ArrayPriv)
@@ -568,7 +569,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	c.LastOperation = time.Now()
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true
-	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	hs := transport.CreateHeaderServer(0, int(dd.NumDev))
 	d, ok := getDevice(hDev.ID)
 	if !ok {
 		logger.Error.Printf("Устройство %d удалено и должно быть отключено", hDev.ID)

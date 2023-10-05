@@ -48,24 +48,26 @@ func NewSetTimeUse() *SetTimeUse {
 	}
 	return r
 }
-func (u *Use) isEmpty() bool {
-	if u.Type != 0 || u.Tvps != 0 || int(u.Long*10) != 0 || len(u.Fazes) != 0 {
-		return false
-	}
-	return false
-}
+
+// func (u *Use) isEmpty() bool {
+// 	if u.Type != 0 || u.Tvps != 0 || int(u.Long*10) != 0 || len(u.Fazes) != 0 {
+// 		return false
+// 	}
+// 	return false
+// }
 
 //IsEmpty вернет истину если весь набор пустой
 func (s *SetTimeUse) IsEmpty() bool {
-	if s.IntervalTE != 0 {
-		return false
-	}
-	for _, ss := range s.Uses {
-		if !ss.isEmpty() {
-			return false
-		}
-	}
-	return true
+	// if s.IntervalTE != 0 {
+	// 	return false
+	// }
+	// for _, ss := range s.Uses {
+	// 	if !ss.isEmpty() {
+	// 		return false
+	// 	}
+	// }
+	// return true
+	return false
 }
 
 //FromBuffer загружает из буфера
