@@ -205,6 +205,10 @@ func (s *SetTimeUse) ToBuffer(num int) []int {
 	return r
 }
 func makeElem(r []int, pos int, ss Use) []int {
+	r[pos] = 0
+	r[pos+1] = 0
+	r[pos+2] = 0
+
 	if ss.Dk == 1 {
 		r[pos] |= 8
 	}
