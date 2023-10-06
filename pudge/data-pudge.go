@@ -460,9 +460,12 @@ func MakeArrays(ar binding.Arrays) []ArrayPriv {
 		r = appBuffer(r, buffer)
 	}
 	if !ar.SetTimeUse.IsEmpty() {
+		logger.Debug.Println("Формируем 157 и 148 массивы")
 		buffer := ar.SetTimeUse.ToBuffer(157) //
+		logger.Debug.Printf("%v", buffer)
 		r = appBuffer(r, buffer)
 		buffer = ar.SetTimeUse.ToBuffer(148) //
+		logger.Debug.Printf("%v", buffer)
 		r = appBuffer(r, buffer)
 	}
 	for i := 1; i < 13; i++ {
