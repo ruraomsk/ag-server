@@ -124,18 +124,22 @@ func oneCross(reg pudge.Region) {
 				if d.Number == ac.Number && d.NElem == ac.NElem {
 					found = true
 					if !d.Compare(&ac) {
-						logger.Info.Printf("на устройстве %v %d не совпали\n%v\n%v\n", reg, dev.ID, d, ac)
+						// logger.Info.Printf("на устройстве %v %d не совпали\n%v\n%v\n", reg, dev.ID, d, ac)
 						sending = append(sending, ac)
 						dev.Arrays[i] = ac
 					}
 				}
 			}
 			if !found {
+				// logger.Info.Printf("на устройстве %v %d добавили массив %v\n", reg, dev.ID, ac)
 				sending = append(sending, ac)
 				dev.Arrays = append(dev.Arrays, ac)
 			}
 		}
 		if len(sending) != 0 {
+			for _, v := range sending {
+				logger.Info.Printf("на устройство %v %d будет отправлено %v", reg, dev.ID, v)
+			}
 			sendLocalOn(dev)
 			acc := make([]pudge.ArrayPriv, 0)
 			l := 0
@@ -156,7 +160,7 @@ func oneCross(reg pudge.Region) {
 			sendLocalOff(dev)
 			pudge.ChanLog <- pudge.LogRecord{ID: dev.ID, Region: reg, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -1, 0)}
 
-			logger.Info.Printf("массивы передали %d", dev.ID)
+			logger.Info.Printf("массивы поставлены на передачу %d", dev.ID)
 
 		}
 		//Все переслали все совпало можно и поспать

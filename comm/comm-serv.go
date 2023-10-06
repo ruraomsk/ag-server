@@ -877,7 +877,7 @@ func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.Header
 		ms := new(transport.SubMessage)
 		ms.SetArray(arp.Number, arp.NElem, arp.Array)
 		mss = append(mss, *ms)
-		logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
+		// logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
 	}
 	_ = hs.UpackMessages(mss)
 	//mutex.Lock()
