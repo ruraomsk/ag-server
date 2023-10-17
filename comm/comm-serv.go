@@ -121,6 +121,7 @@ func newConnect(soc net.Conn) {
 	dd.ErrorTCP = make(chan net.Conn)
 	dd.Socket = soc
 	dd.WaitNum = 0
+suka:
 	hDev, err := transport.GetOneMessage(soc)
 	if err != nil {
 		logger.Error.Print(err.Error())
@@ -138,8 +139,8 @@ func newConnect(soc net.Conn) {
 	ctrl, reg, err := getController(hDev.ID)
 	if err != nil {
 		logger.Error.Printf("Устройствo %s %s", soc.RemoteAddr().String(), err.Error())
-		time.Sleep(time.Second)
-		return
+		time.Sleep(time.Minute)
+		goto suka
 	}
 	dmess := hDev.ParseMessage()
 	flag := false
