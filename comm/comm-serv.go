@@ -319,7 +319,6 @@ func newConnect(soc net.Conn) {
 						ctrl.LastMyOperation = time.Now()
 						// dd.LastToDevice = time.Now()
 						dd.CountLost++
-						dd.WaitNum = dd.LastMessage.Repeat()
 						hout <- dd.LastMessage
 						dd.WaitNum = dd.LastMessage.Number
 						time.Sleep(time.Second)
@@ -447,7 +446,6 @@ func newConnect(soc net.Conn) {
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
 						ctrl.LastMyOperation = time.Now()
 						// dd.LastToDevice = time.Now()
-						dd.WaitNum = dd.LastMessage.Repeat()
 						hout <- dd.LastMessage
 						dd.WaitNum = dd.LastMessage.Number
 						time.Sleep(time.Second)
