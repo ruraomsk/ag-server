@@ -211,7 +211,7 @@ func newConnect(soc net.Conn) {
 	dd.NumDev = hDev.Code
 	dd.Region = reg
 	dd.CommandARM = make(chan pudge.CommandARM, 1024)
-	dd.CommandArray = make(chan []pudge.ArrayPriv)
+	dd.CommandArray = make(chan []pudge.ArrayPriv, 1024)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int, 10)
 	dd.WaitNum = 0
@@ -884,7 +884,7 @@ func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.Header
 		ms := new(transport.SubMessage)
 		ms.SetArray(arp.Number, arp.NElem, arp.Array)
 		mss = append(mss, *ms)
-		// logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
+		logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
 	}
 	_ = hs.UpackMessages(mss)
 	//mutex.Lock()
