@@ -369,6 +369,7 @@ suka:
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 			logger.Error.Print(w)
 			killDevice(dd.Id)
+			timer.Stop()
 			time.Sleep(time.Second)
 			return
 		case <-tickControlTobm.C:
@@ -403,6 +404,7 @@ suka:
 				pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 				logger.Error.Print(w)
 				killDevice(dd.Id)
+				timer.Stop()
 				time.Sleep(1 * time.Second)
 				return
 			}
@@ -427,6 +429,7 @@ suka:
 				// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 				logger.Error.Print(w)
 				killDevice(dd.Id)
+				timer.Stop()
 				time.Sleep(1 * time.Second)
 				return
 			}
@@ -480,6 +483,7 @@ suka:
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 0, Time: time.Now(), Journal: pudge.UserTechStatus(ctrl.ID, "Сервер", -2, 0)}
 			logger.Info.Printf("Устройство %d приказано умереть", dd.Id)
 			debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Приказано умереть")}
+			timer.Stop()
 			time.Sleep(1 * time.Second)
 			return
 		case <-dd.ExitCommand:
@@ -492,6 +496,7 @@ suka:
 			logger.Info.Printf("Устройство %d удаляем текущее подключение", dd.Id)
 			debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
 			killDevice(dd.Id)
+			timer.Stop()
 			time.Sleep(1 * time.Second)
 			return
 		case changeProtocol := <-dd.ChangeProtocol:
