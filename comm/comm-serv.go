@@ -467,6 +467,7 @@ suka:
 						logger.Info.Printf("Устройство %d более 5 раз не отвечает удаляем текущее подключение", dd.Id)
 						debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
 						killDevice(dd.Id)
+						timer.Stop()
 						time.Sleep(1 * time.Second)
 						return
 					}
@@ -509,6 +510,7 @@ suka:
 
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма
+			logger.Info.Printf("Для %d команда %v", dd.Id, comARM)
 			hs, err = makeCommandToDevice(dd, comARM)
 			if err != nil {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.Id, err.Error())
