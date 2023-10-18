@@ -48,7 +48,8 @@ type Device struct {
 	Messages       DequeServer
 	LastMessage    transport.HeaderServer
 	LastToDevice   time.Time
-	CountLost      int //Счетчик ожиданий ответа на номер
+	CountLost      int   //Счетчик ожиданий ответа на номер
+	LostNum        uint8 //Номер потеряного сообщения
 	Socket         net.Conn
 	Region         pudge.Region
 	StopStatistics bool

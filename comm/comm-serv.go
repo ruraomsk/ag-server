@@ -121,6 +121,7 @@ func newConnect(soc net.Conn) {
 	dd.ErrorTCP = make(chan net.Conn)
 	dd.Socket = soc
 	dd.WaitNum = 0
+	dd.LostNum = 0
 suka:
 	hDev, err := transport.GetOneMessage(soc)
 	if err != nil {
@@ -270,7 +271,7 @@ suka:
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	replay := time.NewTicker(20 * time.Second)
+	replay := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
@@ -311,9 +312,10 @@ suka:
 				hs.Number = 0
 				hout <- hs
 				dd.WaitNum = hs.Number
+				dd.LostNum = dd.WaitNum
 				dd.CountLost = 0
 			} else {
-				if dd.WaitNum != 0 {
+				if dd.WaitNum != 0 && dd.LostNum == dd.WaitNum {
 					if dd.CountLost < 5 {
 						l := 13 + len(dd.LastMessage.Message) + 4
 						ctrl.Traffic.ToDevice1Hour += uint64(l)
@@ -322,9 +324,9 @@ suka:
 						dd.CountLost++
 						hout <- dd.LastMessage
 						dd.WaitNum = dd.LastMessage.Number
-						time.Sleep(time.Second)
 					} else {
 						dd.WaitNum = 0
+						dd.LostNum = 0
 						dd.CountLost = 0
 					}
 					//logger.Debug.Printf("Повторная передача на %d %v", dd.id, dd.LastMessage.Message)
@@ -340,11 +342,13 @@ suka:
 						dd.CountLost = 0
 						hout <- dd.LastMessage
 						dd.WaitNum = dd.LastMessage.Number
-						time.Sleep(time.Second)
+						dd.LostNum = dd.WaitNum
 						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
 						dd.CountLost = 0
+						dd.WaitNum = 0
+						dd.LostNum = 0
 					}
 				}
 			}
@@ -436,11 +440,11 @@ suka:
 				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
 				dd.WaitNum = dd.LastMessage.Number
-				time.Sleep(time.Second)
+				dd.LostNum = dd.WaitNum
 				// dd.LastToDevice = time.Now()
 				dd.CountLost = 0
 			} else {
-				if dd.WaitNum != 0 {
+				if dd.WaitNum != 0 && dd.LostNum == dd.WaitNum {
 					dd.CountLost++
 					if dd.CountLost < 5 {
 						l := 13 + len(dd.LastMessage.Message) + 4
@@ -449,7 +453,7 @@ suka:
 						// dd.LastToDevice = time.Now()
 						hout <- dd.LastMessage
 						dd.WaitNum = dd.LastMessage.Number
-						time.Sleep(time.Second)
+						dd.LostNum = dd.WaitNum
 						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
 					} else {
 						ctrl, _ = pudge.GetController(dd.Id)
@@ -465,6 +469,7 @@ suka:
 					}
 				} else {
 					dd.CountLost = 0
+					dd.LostNum = 0
 				}
 			}
 			// pudge.SetController(ctrl)
