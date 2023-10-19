@@ -213,7 +213,6 @@ suka:
 	dd.Region = reg
 	dd.CommandARM = make(chan pudge.CommandARM, 1024)
 	dd.CommandArray = make(chan []pudge.ArrayPriv, 1024)
-	dd.NeedSend = make(chan int)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int, 10)
 	dd.WaitNum = 0
@@ -270,8 +269,8 @@ suka:
 	*/
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
-	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	replay := time.NewTicker(5 * time.Second)
+	timer := extcon.SetTimerClock(time.Second)
+	replay := time.NewTicker(20 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
@@ -315,9 +314,7 @@ suka:
 				dd.CountLost = 0
 			}
 			if dd.WaitNum == 0 {
-				if dd.Messages.size != 0 {
-					dd.NeedSend <- 1
-				}
+				sendForWait(dd, hout)
 			}
 			pudge.SetController(ctrl)
 		case errSocket := <-dd.ErrorTCP:
@@ -400,27 +397,10 @@ suka:
 				time.Sleep(1 * time.Second)
 				return
 			}
-		case <-dd.NeedSend:
-			if dd.Messages.Size() != 0 {
-				dd.LastMessage = dd.Messages.Pop()
-				dd.WaitNum = dd.LastMessage.Number
-				l := 13 + len(dd.LastMessage.Message) + 4
-				ctrl.Traffic.ToDevice1Hour += uint64(l)
-				ctrl.LastMyOperation = time.Now()
-				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
-				hout <- dd.LastMessage
-				dd.WaitNum = dd.LastMessage.Number
-				dd.CountLost = 0
-			}
 		case <-replay.C:
-			if dd.WaitNum != 0 && dd.LastMessage.Number == dd.WaitNum {
+			if dd.WaitNum != 0 {
 				dd.CountLost++
-				if dd.CountLost < 5 {
-					l := 13 + len(dd.LastMessage.Message) + 4
-					ctrl.Traffic.ToDevice1Hour += uint64(l)
-					ctrl.LastMyOperation = time.Now()
-					hout <- dd.LastMessage
-				} else {
+				if dd.CountLost > 5 {
 					ctrl, _ = pudge.GetController(dd.Id)
 					ctrl.StatusConnection = false
 					ctrl.LastMyOperation = time.Now()
@@ -433,11 +413,8 @@ suka:
 					return
 				}
 			} else {
-				dd.NeedSend <- 1
+				sendForWait(dd, hout)
 			}
-
-			// pudge.SetController(ctrl)
-			// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 		case <-dd.context.Done():
 			transport.Stoped = true
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -2, 0)}
@@ -515,6 +492,26 @@ suka:
 			hs := makeArrayToDevice(dd, comArray)
 			dd.Messages.Push(hs)
 		}
+	}
+
+}
+func sendForWait(dd *Device, hout chan transport.HeaderServer) {
+	if dd.Messages.Size() != 0 {
+		ctrl, _ := pudge.GetController(dd.Id)
+		if ctrl == nil {
+			logger.Error.Printf("id %d нет в базe", dd.Id)
+			return
+		}
+
+		dd.LastMessage = dd.Messages.Pop()
+		dd.WaitNum = dd.LastMessage.Number
+		l := 13 + len(dd.LastMessage.Message) + 4
+		ctrl.Traffic.ToDevice1Hour += uint64(l)
+		ctrl.LastMyOperation = time.Now()
+		logger.Debug.Printf("В простое передали на %d %v", dd.Id, dd.LastMessage.Message)
+		hout <- dd.LastMessage
+		dd.WaitNum = dd.LastMessage.Number
+		dd.CountLost = 0
 	}
 
 }

@@ -49,7 +49,6 @@ type Device struct {
 	LastMessage    transport.HeaderServer
 	LastToDevice   time.Time
 	CountLost      int //Счетчик ожиданий ответа на номер
-	NeedSend       chan int
 	Socket         net.Conn
 	Region         pudge.Region
 	StopStatistics bool
