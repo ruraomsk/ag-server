@@ -121,7 +121,6 @@ func newConnect(soc net.Conn) {
 	dd.ErrorTCP = make(chan net.Conn)
 	dd.Socket = soc
 	dd.WaitNum = 0
-	dd.LostNum = 0
 suka:
 	hDev, err := transport.GetOneMessage(soc)
 	if err != nil {
@@ -214,6 +213,7 @@ suka:
 	dd.Region = reg
 	dd.CommandARM = make(chan pudge.CommandARM, 1024)
 	dd.CommandArray = make(chan []pudge.ArrayPriv, 1024)
+	dd.NeedSend = make(chan int)
 	dd.ChangeProtocol = make(chan ChangeProtocol)
 	dd.ExitCommand = make(chan int, 10)
 	dd.WaitNum = 0
@@ -271,7 +271,7 @@ suka:
 	tick1hour := time.NewTicker(1 * time.Hour)
 	tickControlTobm := time.NewTicker(controlTout)
 	timer := extcon.SetTimerClock(time.Duration(1 * time.Second))
-	replay := time.NewTicker(10 * time.Second)
+	replay := time.NewTicker(5 * time.Second)
 	for {
 		select {
 		case <-tick1hour.C:
@@ -304,52 +304,19 @@ suka:
 				ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 			}
 			// pudge.SetController(ctrl)
-			if len(hs.Message) != 0 || need {
+			if need {
 				l := 13 + len(hs.Message) + 4
 				ctrl.Traffic.ToDevice1Hour += uint64(l)
 				ctrl.LastMyOperation = time.Now()
 				// dd.LastToDevice = time.Now()
-				hs.Number = 0
 				hout <- hs
+				dd.LastMessage = hs
 				dd.WaitNum = hs.Number
-				dd.LostNum = dd.WaitNum
 				dd.CountLost = 0
-			} else {
-				if dd.WaitNum != 0 && dd.LostNum == dd.WaitNum {
-					if dd.CountLost < 5 {
-						l := 13 + len(dd.LastMessage.Message) + 4
-						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastMyOperation = time.Now()
-						// dd.LastToDevice = time.Now()
-						dd.CountLost++
-						hout <- dd.LastMessage
-						dd.WaitNum = dd.LastMessage.Number
-					} else {
-						dd.WaitNum = 0
-						dd.LostNum = 0
-						dd.CountLost = 0
-					}
-					//logger.Debug.Printf("Повторная передача на %d %v", dd.id, dd.LastMessage.Message)
-
-				} else {
-					if dd.Messages.Size() != 0 {
-						dd.LastMessage = dd.Messages.Pop()
-						dd.WaitNum = dd.LastMessage.Number
-						l := 13 + len(dd.LastMessage.Message) + 4
-						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastMyOperation = time.Now()
-						// dd.LastToDevice = time.Now()
-						dd.CountLost = 0
-						hout <- dd.LastMessage
-						dd.WaitNum = dd.LastMessage.Number
-						dd.LostNum = dd.WaitNum
-						//logger.Debug.Printf("Передача на ответ устройства на %d %v", dd.id, dd.LastMessage.Message)
-					} else {
-						//logger.Debug.Printf("Нечего передавать на ответ устройства на %d", dd.id)
-						dd.CountLost = 0
-						dd.WaitNum = 0
-						dd.LostNum = 0
-					}
+			}
+			if dd.WaitNum == 0 {
+				if dd.Messages.size != 0 {
+					dd.NeedSend <- 1
 				}
 			}
 			pudge.SetController(ctrl)
@@ -433,8 +400,8 @@ suka:
 				time.Sleep(1 * time.Second)
 				return
 			}
-		case <-replay.C:
-			if dd.WaitNum == 0 && dd.Messages.Size() != 0 {
+		case <-dd.NeedSend:
+			if dd.Messages.Size() != 0 {
 				dd.LastMessage = dd.Messages.Pop()
 				dd.WaitNum = dd.LastMessage.Number
 				l := 13 + len(dd.LastMessage.Message) + 4
@@ -443,39 +410,32 @@ suka:
 				//logger.Debug.Printf("В простое передали на %d %v", dd.id, dd.LastMessage.Message)
 				hout <- dd.LastMessage
 				dd.WaitNum = dd.LastMessage.Number
-				dd.LostNum = dd.WaitNum
-				// dd.LastToDevice = time.Now()
 				dd.CountLost = 0
-			} else {
-				if dd.WaitNum != 0 && dd.LostNum == dd.WaitNum {
-					dd.CountLost++
-					if dd.CountLost < 5 {
-						l := 13 + len(dd.LastMessage.Message) + 4
-						ctrl.Traffic.ToDevice1Hour += uint64(l)
-						ctrl.LastMyOperation = time.Now()
-						// dd.LastToDevice = time.Now()
-						hout <- dd.LastMessage
-						dd.WaitNum = dd.LastMessage.Number
-						dd.LostNum = dd.WaitNum
-						//logger.Debug.Printf("Повторная передача после 10 попыток на %d %v", dd.id, dd.LastMessage.Message)
-					} else {
-						ctrl, _ = pudge.GetController(dd.Id)
-						ctrl.StatusConnection = false
-						ctrl.LastMyOperation = time.Now()
-						pudge.SetController(ctrl)
-						// pudge.ChanLog <- pudge.RecLogCtrl{ID: ctrl.ID, Type: 1, Time: time.Now(), LogString: "Новое подключение"}
-						logger.Info.Printf("Устройство %d более 5 раз не отвечает удаляем текущее подключение", dd.Id)
-						debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
-						killDevice(dd.Id)
-						timer.Stop()
-						time.Sleep(1 * time.Second)
-						return
-					}
-				} else {
-					dd.CountLost = 0
-					dd.LostNum = 0
-				}
 			}
+		case <-replay.C:
+			if dd.WaitNum != 0 && dd.LastMessage.Number == dd.WaitNum {
+				dd.CountLost++
+				if dd.CountLost < 5 {
+					l := 13 + len(dd.LastMessage.Message) + 4
+					ctrl.Traffic.ToDevice1Hour += uint64(l)
+					ctrl.LastMyOperation = time.Now()
+					hout <- dd.LastMessage
+				} else {
+					ctrl, _ = pudge.GetController(dd.Id)
+					ctrl.StatusConnection = false
+					ctrl.LastMyOperation = time.Now()
+					pudge.SetController(ctrl)
+					logger.Info.Printf("Устройство %d более 5 раз не отвечает удаляем текущее подключение", dd.Id)
+					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
+					killDevice(dd.Id)
+					timer.Stop()
+					time.Sleep(1 * time.Second)
+					return
+				}
+			} else {
+				dd.NeedSend <- 1
+			}
+
 			// pudge.SetController(ctrl)
 			// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 		case <-dd.context.Done():
@@ -599,6 +559,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		ms.Set0x01Server(int(hDev.Number))
 		mss = append(mss, ms)
 		_ = hs.UpackMessages(mss)
+		hs.Number = 0
+		need = true
 	}
 	for _, mes := range dmess {
 		switch mes.Type {
@@ -610,9 +572,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 				logger.Error.Printf("Ошибка массива привязки %d элемент %x", mas, elem)
 			}
 			if num != 0 {
-				if int(d.WaitNum) == num {
-					d.WaitNum = 0
-				}
+				d.WaitNum = 0
 			}
 		case 0x04:
 		// 	c.Base = false
