@@ -348,11 +348,11 @@ suka:
 			var is bool
 			_, is = getDevice(dd.Id)
 			if !is {
-				logger.Info.Printf("Добавляем %d", dd.Id)
+				// logger.Info.Printf("Добавляем %d", dd.Id)
 				Mutex.Lock()
 				Devs[dd.Id] = dd
 				Mutex.Unlock()
-				logger.Info.Printf("Добавили %d", dd.Id)
+				// logger.Info.Printf("Добавили %d", dd.Id)
 			}
 
 			ctrl, is = pudge.GetController(dd.Id)
@@ -449,7 +449,7 @@ suka:
 
 		case comARM := <-dd.CommandARM:
 			//Пришла команда арма
-			logger.Info.Printf("Для %d команда %v", dd.Id, comARM)
+			// logger.Info.Printf("Для %d команда %v", dd.Id, comARM)
 			hs, err = makeCommandToDevice(dd, comARM)
 			if err != nil {
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.Id, err.Error())
@@ -518,18 +518,18 @@ func sendForWait(dd *Device, hout chan transport.HeaderServer) {
 		l := 13 + len(dd.LastMessage.Message) + 4
 		ctrl.Traffic.ToDevice1Hour += uint64(l)
 		ctrl.LastMyOperation = time.Now()
-		logger.Debug.Printf("В простое передали на %d %v", dd.Id, dd.LastMessage.Message)
+		// logger.Debug.Printf("В простое передали на %d %v", dd.Id, dd.LastMessage.Message)
 		hout <- dd.LastMessage
 		dd.WaitNum = dd.LastMessage.Number
 		dd.CountLost = 0
 	}
 }
 func killDevice(id int) {
-	logger.Info.Printf("Удаляем контроллер %d", id)
+	// logger.Info.Printf("Удаляем контроллер %d", id)
 	Mutex.Lock()
 	delete(Devs, id)
 	Mutex.Unlock()
-	logger.Info.Printf("Удалили контроллер %d", id)
+	// logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
 	// logger.Info.Printf("Читаем контроллер %d", id)
@@ -861,7 +861,7 @@ func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.Header
 		ms := new(transport.SubMessage)
 		ms.SetArray(arp.Number, arp.NElem, arp.Array)
 		mss = append(mss, *ms)
-		logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
+		// logger.Info.Printf("Передали на устройство %d привязку %v", dd.Id, arp.Array)
 	}
 	_ = hs.UpackMessages(mss)
 	//mutex.Lock()
