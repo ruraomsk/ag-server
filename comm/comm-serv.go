@@ -443,6 +443,7 @@ suka:
 				logger.Error.Printf("При создании команды измения протокола для %d %s", dd.Id, err.Error())
 			} else {
 				dd.Messages.Push(hs)
+				sendForWait(dd, hout)
 			}
 
 		case comARM := <-dd.CommandARM:
@@ -453,6 +454,7 @@ suka:
 				logger.Error.Printf("При создании команды от АРМ %d %s", dd.Id, err.Error())
 			} else {
 				dd.Messages.Push(hs)
+				sendForWait(dd, hout)
 			}
 
 		case comArray := <-dd.CommandArray:
@@ -462,6 +464,7 @@ suka:
 				//Команда перейти в локальный режим
 				hs := makeLocalOn(dd)
 				dd.Messages.Push(hs)
+				sendForWait(dd, hout)
 				break
 			}
 			if comArray[0].Number == -1 {
@@ -469,6 +472,7 @@ suka:
 
 				hs := makeLocalOff(dd)
 				dd.Messages.Push(hs)
+				sendForWait(dd, hout)
 				break
 			}
 			for _, arp := range comArray {
@@ -491,6 +495,8 @@ suka:
 			pudge.SetController(ctrl)
 			hs := makeArrayToDevice(dd, comArray)
 			dd.Messages.Push(hs)
+			sendForWait(dd, hout)
+
 		}
 	}
 
@@ -513,7 +519,6 @@ func sendForWait(dd *Device, hout chan transport.HeaderServer) {
 		dd.WaitNum = dd.LastMessage.Number
 		dd.CountLost = 0
 	}
-
 }
 func killDevice(id int) {
 	logger.Info.Printf("Удаляем контроллер %d", id)

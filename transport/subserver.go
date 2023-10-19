@@ -240,7 +240,7 @@ func (s *SubMessage) Set0x04Server(dk1, dk2 bool) {
 	s.Type = 0
 	s.Message = make([]uint8, 2)
 	s.Message[0] = 0x04
-	set := 1
+	set := 0
 	if dk1 {
 		set = set | 1
 	}

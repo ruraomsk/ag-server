@@ -166,36 +166,25 @@ func SendMessagesToDevice(socket net.Conn, hout chan HeaderServer, tout *time.Du
 	defer socket.Close()
 	// timer := extcon.SetTimerClock(time.Duration(10 * time.Second))
 	for {
-		select {
-		// case <-timer.C:
-		// 	if Stoped {
-		// 		return
-		// 	}
-		case hs := <-hout:
-			// time.Sleep(2 * time.Second)
-			// logger.Debug.Printf("Отправляем на %s %v", socket.RemoteAddr().String(), hs)
-			socket.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			buffer := hs.MakeBuffer()
-			n, err := socket.Write(buffer)
-			if Stoped {
-				return
-			}
-			if err != nil {
-				message := fmt.Sprintf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
-				debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(message)}
-				logger.Error.Printf(message)
-				errTcp <- socket
-				return
-			}
-			if n != len(buffer) {
-				message := fmt.Sprintf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
-				debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(message)}
-				logger.Error.Printf(message)
-				errTcp <- socket
-				return
-			}
-			debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: true, Buffer: buffer}
+		hs := <-hout
+		socket.SetWriteDeadline(time.Now().Add(3 * time.Second))
+		buffer := hs.MakeBuffer()
+		n, err := socket.Write(buffer)
+		if err != nil {
+			message := fmt.Sprintf("при передаче от устройства %s %s", socket.RemoteAddr().String(), err.Error())
+			debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(message)}
+			logger.Error.Printf(message)
+			errTcp <- socket
+			return
 		}
+		if n != len(buffer) {
+			message := fmt.Sprintf("при передаче от устройства %s неверно передано байт %d %d", socket.RemoteAddr().String(), len(buffer), n)
+			debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(message)}
+			logger.Error.Printf(message)
+			errTcp <- socket
+			return
+		}
+		debug.DebugChan <- debug.DebugMessage{ID: id, Time: time.Now(), FromTo: true, Buffer: buffer}
 	}
 }
 

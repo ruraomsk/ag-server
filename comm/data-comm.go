@@ -87,5 +87,5 @@ func (d *DequeServer) Size() int {
 	if d.size == 0 {
 		d.array = make([]transport.HeaderServer, 0)
 	}
-	return d.size
+	return len(d.array)
 }
