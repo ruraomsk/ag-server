@@ -341,6 +341,7 @@ suka:
 				//logger.Debug.Printf("keepAlive %d", dd.id)
 				hs, _ = makeAlive(dd)
 				dd.Messages.Push(hs)
+				sendForWait(dd, hout)
 			}
 		case <-timer.C:
 			//Если я в Devs
@@ -502,6 +503,9 @@ suka:
 
 }
 func sendForWait(dd *Device, hout chan transport.HeaderServer) {
+	if dd.WaitNum != 0 {
+		return
+	}
 	if dd.Messages.Size() != 0 {
 		ctrl, _ := pudge.GetController(dd.Id)
 		if ctrl == nil {
