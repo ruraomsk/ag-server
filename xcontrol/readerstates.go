@@ -128,7 +128,7 @@ func (e *ExtState) calculate() {
 		if r.Time == e.State.Time {
 			e.State.PKCalc = r.Value[1]
 			if e.State.Yellow.Make {
-				if e.State.Yellow.StartMinute < e.State.Yellow.StartMinute {
+				if e.State.Yellow.StartMinute < e.State.Yellow.StopMinute {
 					if e.State.LastTime >= e.State.Yellow.StartMinute && e.State.LastTime <= e.State.Yellow.StopMinute {
 						e.State.PKCalc = 0
 					}
