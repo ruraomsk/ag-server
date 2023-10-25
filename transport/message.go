@@ -6,13 +6,13 @@ import (
 	"strconv"
 )
 
-//SubMessage структура для хранения сообщений
+// SubMessage структура для хранения сообщений
 type SubMessage struct {
 	Type    uint8
 	Message []uint8
 }
 
-//ToString вывод в строку
+// ToString вывод в строку
 func (s *SubMessage) ToString() string {
 	res := fmt.Sprintf("Type %d [", s.Type)
 	for _, code := range s.Message {
@@ -22,12 +22,12 @@ func (s *SubMessage) ToString() string {
 	return res
 }
 
-//Compare сравнение сообщений
+// Compare сравнение сообщений
 func (s *SubMessage) Compare(ss *SubMessage) bool {
 	return reflect.DeepEqual(s, ss)
 }
 
-//ParseMessage разбор буфера сообщений от сервера
+// ParseMessage разбор буфера сообщений от сервера
 func (s *HeaderServer) ParseMessage() []SubMessage {
 	var sb SubMessage
 	sub := make([]SubMessage, 0)
@@ -46,9 +46,10 @@ func (s *HeaderServer) ParseMessage() []SubMessage {
 	return sub
 }
 
-//UpackMessages записывает сообщения сервера для передачи
+// UpackMessages записывает сообщения сервера для передачи
 func (s *HeaderServer) UpackMessages(subs []SubMessage) error {
 	//Считаем общую длину буфера
+	s.SubMessages = subs
 	l := 0
 	for _, sb := range subs {
 		l += len(sb.Message) + 2
@@ -73,7 +74,7 @@ func (s *HeaderServer) UpackMessages(subs []SubMessage) error {
 	return nil
 }
 
-//codeParse разбор ответов от устройства
+// codeParse разбор ответов от устройства
 func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	var sb SubMessage
 	sb.Type = d.Message[pos]
@@ -131,7 +132,7 @@ func (d *HeaderDevice) codeParse(pos int) (SubMessage, int) {
 	return sb, pos
 }
 
-//ParseMessage разбор буфера сообщений от устройства
+// ParseMessage разбор буфера сообщений от устройства
 func (d *HeaderDevice) ParseMessage() []SubMessage {
 	var sb SubMessage
 	// logger.Debug.Printf("hdev %v", d)
@@ -147,7 +148,7 @@ func (d *HeaderDevice) ParseMessage() []SubMessage {
 	return sub
 }
 
-//UpackMessages записывает сообщения устройства для передачи
+// UpackMessages записывает сообщения устройства для передачи
 func (d *HeaderDevice) UpackMessages(subs []SubMessage) error {
 	//Считаем общую длину буфера
 	l := 0

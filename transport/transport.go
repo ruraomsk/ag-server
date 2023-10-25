@@ -41,11 +41,12 @@ func (d *HeaderDevice) Compare(dd *HeaderDevice) bool {
 
 // HeaderServer Сообщение от сервера
 type HeaderServer struct {
-	IDServer int       //ID Сервера 0xa7 0x8D
-	Time     time.Time // Время сообщения
-	Number   uint8     // Номер сообщения
-	Code     uint8     // Код отправителя
-	Message  []uint8   // Собственно сообщение без контрольной суммы
+	IDServer    int          //ID Сервера 0xa7 0x8D
+	Time        time.Time    // Время сообщения
+	Number      uint8        // Номер сообщения
+	Code        uint8        // Код отправителя
+	Message     []uint8      // Собственно сообщение без контрольной суммы
+	SubMessages []SubMessage //Просто сообщения
 }
 
 // CreateHeaderServer создает заголовок сервера
@@ -56,12 +57,7 @@ func CreateHeaderServer(num, code int) HeaderServer {
 	h.Number = uint8(num)
 	h.Code = uint8(code)
 	h.Message = make([]uint8, 0)
-	// var ms SubMessage
-	// mss := make([]SubMessage, 0)
-	// ms.Set0x03Server()
-	// mss = append(mss, ms)
-	// h.UpackMessages(mss)
-
+	h.SubMessages = make([]SubMessage, 0)
 	return h
 }
 

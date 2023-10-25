@@ -304,14 +304,37 @@ suka:
 			}
 			// pudge.SetController(ctrl)
 			if need {
-				l := 13 + len(hs.Message) + 4
-				ctrl.Traffic.ToDevice1Hour += uint64(l)
-				ctrl.LastMyOperation = time.Now()
-				// dd.LastToDevice = time.Now()
-				hout <- hs
-				dd.LastMessage = hs
-				dd.WaitNum = hs.Number
-				dd.CountLost = 0
+				if hs.Code == 0x7f {
+					l := 13 + len(hs.Message) + 4
+					ctrl.Traffic.ToDevice1Hour += uint64(l)
+					ctrl.LastMyOperation = time.Now()
+					// dd.LastToDevice = time.Now()
+					hout <- hs
+					dd.LastMessage = hs
+					dd.WaitNum = hs.Number
+					dd.CountLost = 0
+				} else {
+					if hs.Number == 0 {
+						//Это только ответ для Жени
+						if dd.Messages.Size() != 0 {
+							l := dd.Messages.Pop()
+							hs.Number = l.Number
+							mss := hs.SubMessages
+							for _, v := range l.SubMessages {
+								mss = append(mss, v)
+							}
+							hs.UpackMessages(mss)
+						}
+					}
+					l := 13 + len(hs.Message) + 4
+					ctrl.Traffic.ToDevice1Hour += uint64(l)
+					ctrl.LastMyOperation = time.Now()
+					// dd.LastToDevice = time.Now()
+					hout <- hs
+					dd.LastMessage = hs
+					dd.WaitNum = hs.Number
+					dd.CountLost = 0
+				}
 			}
 			if dd.WaitNum == 0 {
 				sendForWait(dd, hout)
@@ -554,13 +577,13 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	c.TimeDevice = hDev.Time
 	c.StatusConnection = true
 	hs := transport.CreateHeaderServer(0, int(hDev.Code))
+	mss := make([]transport.SubMessage, 0)
 	d, ok := getDevice(hDev.ID)
 	if !ok {
 		logger.Error.Printf("Устройство %d удалено и должно быть отключено", hDev.ID)
 		return hs, false
 	}
 	if hDev.Number != 0 {
-		mss := make([]transport.SubMessage, 0)
 		var ms transport.SubMessage
 		ms.Set0x01Server(int(hDev.Number))
 		mss = append(mss, ms)
@@ -712,7 +735,8 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 	}
 	if need && hs.Code == 0x7f {
 		hs = transport.CreateHeaderServer(0, 0)
-		mss := make([]transport.SubMessage, 0)
+		mss = make([]transport.SubMessage, 0)
+		need = true
 		_ = hs.UpackMessages(mss)
 	}
 	return hs, need
