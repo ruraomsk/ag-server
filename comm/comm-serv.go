@@ -828,6 +828,7 @@ func makeLocalOn(dd *Device) transport.HeaderServer {
 	hs := transport.CreateHeaderServer(int(dd.NumServ), int(dd.hDev.Code))
 	mss := make([]transport.SubMessage, 0)
 	ms.Set0x04Server(false, false)
+	mss = append(mss, ms)
 	ms.Set0x02Server(false)
 	mss = append(mss, ms)
 	_ = hs.UpackMessages(mss)
