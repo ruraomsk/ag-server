@@ -220,7 +220,7 @@ func takeDate(buffer []byte, pos int) time.Time {
 }
 func putDate(t time.Time, buffer []byte, pos int) {
 	if t.Nanosecond() > 500000000 {
-		t.Add(time.Second)
+		t = t.Add(time.Second)
 	}
 	year, month, day := t.Date()
 	hour := t.Hour()

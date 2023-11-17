@@ -52,7 +52,11 @@ func (s *HeaderServer) UpackMessages(subs []SubMessage) error {
 	s.SubMessages = subs
 	l := 0
 	for _, sb := range subs {
-		l += len(sb.Message) + 2
+		if s.Code != 0x7f {
+			l += len(sb.Message) + 2
+		} else {
+			l += len(sb.Message)
+		}
 	}
 	if l > 255 {
 		return fmt.Errorf("общая длина сообщения больше 255")
