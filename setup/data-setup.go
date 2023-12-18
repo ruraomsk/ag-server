@@ -68,6 +68,7 @@ type CommServer struct {
 	TimeOutRead  int64 `toml:"read_timeout"`  //Таймаут на чтение если данные должны быть получены
 	TimeOutWrite int64 `toml:"write_timeout"` //Таймаут на запись если данные должны быть переданы
 	ID           int   `toml:"id"`
+	MaxCon       int   `toml:"maxcon"`
 }
 
 // DataBase настройки базы данных postresql

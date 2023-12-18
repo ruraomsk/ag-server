@@ -1,114 +1,150 @@
-home="d:/asud"					#Корневой каталог сервера
-location= "Asia/Omsk"   		#Временной пояс сервера
-steppudge=1						#Шаг сохранения в pudge
-secret=false                    #Шифруем каналы передачи данных
-version=1                       #Версия программы
+home = "."             #Корневой каталог сервера
+location = "Asia/Omsk" #Временной пояс сервера
+steppudge = 1          #Шаг сохранения в pudge
+secret = false         #Шифруем каналы передачи данных
+version = 1            #Версия программы
 #Описание параметров доступа к БД
 [dataBase]
-	host= "192.168.115.115"
-	port= 5432
-	user= "postgres"
-	password= "162747"
-	dbname= "agserv"
+host = "192.168.115.115"
+port = 5432
+user = "postgres"
+password = "162747"
+dbname = "agserv"
 #Прием внешних данных
 [loader]
-    make=true
-    port=2005					#Основной порт связи
-    svgPort=2006                #Порт приема рисунков
-    pathSVG="d:/ag-server/resources/static/cross"
-    filesSVG=[  ["cross.svg","0"],
-                ["map.png","1"],
-                ["template.tmpl","2"]
-
-    ]
+make = true
+port = 2005                                                               #Основной порт связи
+svgPort = 2006                                                            #Порт приема рисунков
+pathSVG = "d:/ag-server/resources/static/cross"
+filesSVG = [["cross.svg", "0"], ["map.png", "1"], ["template.tmpl", "2"]]
 #Описание параметров сохранения статистики
 [statistic]
-    make=true       #Включить создание dump
-    regions=[   ["1","03:02","-1" ],   #Регион Москва запускаем сбор статистики в 3:02 Омского и дата вчерашняя
-#                ["5","03:02","-1" ],   #Регион Воронеж запускаем сбор статистики в 3:02 Омского и дата вчерашняя
-                ["6","21:56","0"],     #Регион Иркутск запускаем сбор статистики в 22:02 Омского и дата сегодняшняя
-#                ["2","20:02","0"],     #Регион Хабаровск запускаем сбор статистики в 20:02 Омского и дата сегодняшняя
-#                ["3","03:02","-1"]     #Регион Тула запускаем сбор статистики в 3:02 Омского и дата вчерашняя
-    ]
+make = true #Включить создание dump
+regions = [
+    [
+        "1",
+        "03:02",
+        "-1",
+    ], #Регион Москва запускаем сбор статистики в 3:02 Омского и дата вчерашняя
+    #                ["5","03:02","-1" ],   #Регион Воронеж запускаем сбор статистики в 3:02 Омского и дата вчерашняя
+    [
+        "6",
+        "21:56",
+        "0",
+    ], #Регион Иркутск запускаем сбор статистики в 22:02 Омского и дата сегодняшняя
+    #                ["2","20:02","0"],     #Регион Хабаровск запускаем сбор статистики в 20:02 Омского и дата сегодняшняя
+    #                ["3","03:02","-1"]     #Регион Тула запускаем сбор статистики в 3:02 Омского и дата вчерашняя
+]
 #Описание сохранения старых логов устройств
 [logsystem]
-    make=true
-    period=7
-    start="0:15"
+make = true
+period = 7
+start = "0:15"
 #Настройки сервера контроллеров
 [commServer]
-	port= 1093					#Основной порт связи
-	portc= 2001					#Порт приема команд от сервера АРМ
-	porta= 2002					#Порт приема массивов привязки от сервера АРМ
-	portp= 2003					#Порт приема изменения протокола от сервера АРМ
-    portd= 2004                 #Порт передачи фазы и времени серверу АРМ
-	read_timeout= 240			#Таймаут на ожидание сообщения от устройства  в секундах
-	write_timeout= 40			#Таймаут на передачу команды в устройства
-	id= 167						#ID сервера
+port = 1093        #Основной порт связи
+portc = 2001       #Порт приема команд от сервера АРМ
+porta = 2002       #Порт приема массивов привязки от сервера АРМ
+portp = 2003       #Порт приема изменения протокола от сервера АРМ
+portd = 2004       #Порт передачи фазы и времени серверу АРМ
+read_timeout = 240 #Таймаут на ожидание сообщения от устройства  в секундах
+write_timeout = 40 #Таймаут на передачу команды в устройства
+id = 167           #ID сервера
+maxcon = 1000      #max connection
 #Настройки системы управления по характерным точкам
 [xctrl]
-    switch=true         #Включить модуль управления по характерным точкам
-    port=2050			#Порт ожидания команд от системы
-    stepdev=5			#Шаг опроса устройств в минутах
-    stepcalc=15			#Шаг расчета
-    shdev="50s"			#Смещение от шага опроса устройств секунды
-    shctrl="55s"		#Смещение для запуска управления секунды
-    nameuser="XCTRL"	#Имя от которого отдаются команды
-    fullhost="localhost:2001"
-    regions=[   [1,-3 ],    #Регион Москва сдвиг на три часа
-#        [5,-3 ],                #Регион Воронеж сдвиг на три часа
-        [6,2],                  #Регион Иркутск сдвиг на два часа в плюс
-#        [2,4],                  #Регион Хабаровск сдвиг на четыре  часа в плюс
-#        [3,-3]                  #Регион Тула запускаем сдвиг на три часа
-    ]
+switch = true #Включить модуль управления по характерным точкам
+port = 2050 #Порт ожидания команд от системы
+stepdev = 5 #Шаг опроса устройств в минутах
+stepcalc = 15 #Шаг расчета
+shdev = "50s" #Смещение от шага опроса устройств секунды
+shctrl = "55s" #Смещение для запуска управления секунды
+nameuser = "XCTRL" #Имя от которого отдаются команды
+fullhost = "localhost:2001"
+regions = [
+    [
+        1,
+        -3,
+    ], #Регион Москва сдвиг на три часа
+    #        [5,-3 ],                #Регион Воронеж сдвиг на три часа
+    [
+        6,
+        2,
+    ], #Регион Иркутск сдвиг на два часа в плюс
+    #        [2,4],                  #Регион Хабаровск сдвиг на четыре  часа в плюс
+    #        [3,-3]                  #Регион Тула запускаем сдвиг на три часа
+]
 [dumper]
-    make=true       #Включить создание dump
-    path="h:\\dump"     #Путь для хранения дампов
-    time="04:00"    #Время в которое делается дамп
-    pathSVG="d:/ag-server/resources/static/cross"
+make = true                                     #Включить создание dump
+path = "h:\\dump"                               #Путь для хранения дампов
+time = "04:00"                                  #Время в которое делается дамп
+pathSVG = "d:/ag-server/resources/static/cross"
 [saver]
-    make=false
-    remote="192.168.1.1:2005"
-    svg="192.168.1.1:2006"
-    file="result.sql"
-    regions=[1,2,3,5,6]
-    presql=[
-        "delete from public.cross where region=1;",
-        "delete from public.cross where region=2;",
-        "delete from public.cross where region=3;",
-        "delete from public.cross where region=5;",
-        "delete from public.cross where region=6;",
-        "delete from public.xctrl where region=1;",
-        "delete from public.xctrl where region=2;",
-        "delete from public.xctrl where region=3;",
-        "delete from public.xctrl where region=5;",
-        "delete from public.xctrl where region=6;",
-        "delete from public.routes where region=1;",
-        "delete from public.routes where region=2;",
-        "delete from public.routes where region=3;",
-        "delete from public.routes where region=5;",
-        "delete from public.routes where region=6;",
-        "delete from public.statistics where region=1;",
-        "delete from public.statistics where region=2;",
-        "delete from public.statistics where region=3;",
-        "delete from public.statistics where region=5;",
-        "delete from public.statistics where region=6;"
-    ]
-    step=60         #Шаг проверки изменения в БД
-    keys=[["cross","region","area","id"],
-          ["devices","id"],
-          ["xctrl","region","area","subarea"],
-          ["routes","region","description"],
-          ["logdevice","tm"],
-          ["statistics","region","area","id","date"]
-         ]
-    stepSVG=60         #Шаг проверки изменения SVG
-    pathSVG="d:/ag-server/resources/static/cross"
-    filesSVG=[ ["cross.svg","0"],
-            ["map.png","1"],
-            ["template.tmpl","2"]
-
-    ]
+make = false
+remote = "192.168.1.1:2005"
+svg = "192.168.1.1:2006"
+file = "result.sql"
+regions = [1, 2, 3, 5, 6]
+presql = [
+    "delete from public.cross where region=1;",
+    "delete from public.cross where region=2;",
+    "delete from public.cross where region=3;",
+    "delete from public.cross where region=5;",
+    "delete from public.cross where region=6;",
+    "delete from public.xctrl where region=1;",
+    "delete from public.xctrl where region=2;",
+    "delete from public.xctrl where region=3;",
+    "delete from public.xctrl where region=5;",
+    "delete from public.xctrl where region=6;",
+    "delete from public.routes where region=1;",
+    "delete from public.routes where region=2;",
+    "delete from public.routes where region=3;",
+    "delete from public.routes where region=5;",
+    "delete from public.routes where region=6;",
+    "delete from public.statistics where region=1;",
+    "delete from public.statistics where region=2;",
+    "delete from public.statistics where region=3;",
+    "delete from public.statistics where region=5;",
+    "delete from public.statistics where region=6;",
+]
+step = 60 #Шаг проверки изменения в БД
+keys = [
+    [
+        "cross",
+        "region",
+        "area",
+        "id",
+    ],
+    [
+        "devices",
+        "id",
+    ],
+    [
+        "xctrl",
+        "region",
+        "area",
+        "subarea",
+    ],
+    [
+        "routes",
+        "region",
+        "description",
+    ],
+    [
+        "logdevice",
+        "tm",
+    ],
+    [
+        "statistics",
+        "region",
+        "area",
+        "id",
+        "date",
+    ],
+]
+stepSVG = 60 #Шаг проверки изменения SVG
+pathSVG = "d:/ag-server/resources/static/cross"
+filesSVG = [["cross.svg", "0"], ["map.png", "1"], ["template.tmpl", "2"]]
 [camera]
-    make=false       #Включить прием данных от камеры
-    path="d:/asud/cmd/cameras.json"         #Путь для описания камер
+make = false                      #Включить прием данных от камеры
+path = "d:/asud/cmd/cameras.json" #Путь для описания камер

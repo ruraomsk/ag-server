@@ -67,6 +67,9 @@ func StartListen() {
 		panic("Скорее всего запущен еще один сервер")
 	}
 	defer ln.Close()
+	if setup.Set.CommServer.MaxCon == 0 {
+		setup.Set.CommServer.MaxCon = 10000
+	}
 	for {
 		sock, err := ln.Accept()
 		if err != nil {
@@ -77,6 +80,9 @@ func StartListen() {
 			return
 		}
 		count++
+		if count > setup.Set.CommServer.MaxCon {
+			os.Exit(100)
+		}
 		if count%5 == 0 {
 			logger.Info.Println("Входящих соединений", count)
 		}
@@ -320,9 +326,7 @@ suka:
 							l := dd.Messages.Pop()
 							hs.Number = l.Number
 							mss := hs.SubMessages
-							for _, v := range l.SubMessages {
-								mss = append(mss, v)
-							}
+							mss = append(mss, l.SubMessages...)
 							hs.UpackMessages(mss)
 						}
 					}
