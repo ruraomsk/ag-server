@@ -69,7 +69,6 @@ func Start(stop chan interface{}) {
 	}
 }
 func oneCross(reg pudge.Region) {
-	needExit := 0
 	// if reg.Area == 1 && (reg.ID == 11 || reg.ID == 7) {
 	// 	logger.Info.Printf("запустили инспектора %v", reg)
 	// }
@@ -164,21 +163,6 @@ func oneCross(reg pudge.Region) {
 
 		}
 		//Все переслали все совпало можно и поспать
-		if dev.CalcStatus() == 60 { //24
-			needExit++
-			if needExit > 20 {
-				d, ok := getDevice(dev.ID)
-				if ok {
-					//Остановим текущее
-					d.ExitCommand <- 1
-					killDevice(dev.ID)
-					needExit = 0
-
-				}
-			}
-		} else {
-			needExit = 0
-		}
 	}
 }
 

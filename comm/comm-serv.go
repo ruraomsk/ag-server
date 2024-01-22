@@ -556,6 +556,7 @@ func killDevice(id int) {
 	Mutex.Lock()
 	delete(Devs, id)
 	Mutex.Unlock()
+	time.Sleep(2 * time.Second)
 	// logger.Info.Printf("Удалили контроллер %d", id)
 }
 func getDevice(id int) (dev *Device, ok bool) {
