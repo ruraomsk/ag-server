@@ -60,7 +60,7 @@ func sqlCopy(pathSrc string, pathDest string, ext string) error {
 	return nil
 }
 
-//SaveAll сохраняет всю БД для правки в символьном виде
+// SaveAll сохраняет всю БД для правки в символьном виде
 func SaveAll(path string, sreg string) error {
 	if strings.Contains(sreg, "all") {
 		iregion = 0
