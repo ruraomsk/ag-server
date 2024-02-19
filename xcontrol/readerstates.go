@@ -127,7 +127,7 @@ func (e *ExtState) calculate() {
 	for _, r := range result {
 		if r.Time == e.State.Time {
 			e.State.PKCalc = r.Value[1]
-			logger.Info.Printf("Расчитали план %d", e.State.PKCalc)
+			logger.Info.Printf("Расчитали план %d %v", e.State.PKCalc, r.Good)
 			if e.State.Yellow.Make {
 				if e.State.Yellow.StartMinute < e.State.Yellow.StopMinute {
 					if e.State.LastTime >= e.State.Yellow.StartMinute && e.State.LastTime <= e.State.Yellow.StopMinute {
