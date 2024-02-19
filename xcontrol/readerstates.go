@@ -127,6 +127,7 @@ func (e *ExtState) calculate() {
 	for _, r := range result {
 		if r.Time == e.State.Time {
 			e.State.PKCalc = r.Value[1]
+			logger.Info.Printf("Расчитали план %d", e.State.PKCalc)
 			if e.State.Yellow.Make {
 				if e.State.Yellow.StartMinute < e.State.Yellow.StopMinute {
 					if e.State.LastTime >= e.State.Yellow.StartMinute && e.State.LastTime <= e.State.Yellow.StopMinute {
@@ -139,12 +140,14 @@ func (e *ExtState) calculate() {
 				}
 			}
 			if e.State.Release {
+				logger.Info.Printf("Исполняем план %d", e.State.PKCalc)
 				//Выслать всем устройствам новый ПК
 				for _, dev := range e.State.Devices {
 					commARM <- pudge.CommandARM{ID: dev, User: UserName, Command: 5, Params: e.State.PKCalc}
 				}
 				e.State.PKNow = e.State.PKCalc
 			} else {
+				logger.Info.Printf("Нет разрешения для плана %d", e.State.PKCalc)
 				if e.State.PKNow != 0 {
 					//Выслать всем устройствам команду 0
 					for _, dev := range e.State.Devices {
@@ -153,7 +156,6 @@ func (e *ExtState) calculate() {
 					e.State.PKNow = 0
 				}
 			}
-			//return
 		}
 	}
 	js, _ := json.Marshal(e.State)
