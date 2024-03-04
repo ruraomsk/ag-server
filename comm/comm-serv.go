@@ -154,7 +154,9 @@ suka:
 	for _, m := range dmess {
 		if m.Type == 0x1D {
 			flag = true
-			_ = m.Get0x1DDevice(ctrl)
+			if defaultEthernet(hDev, ctrl) {
+				_ = m.Get0x1DDevice(ctrl)
+			}
 			// logger.Info.Printf("Заголовок команда 0x1D id %d ", ctrl.ID)
 
 		}
@@ -172,7 +174,10 @@ suka:
 		if m.Type == 0x1B {
 			flag = true
 			//hren = true
-			_ = m.Get0x1BDevice(ctrl)
+			if defaultEthernet(hDev, ctrl) {
+				_ = m.Get0x1BDevice(ctrl)
+			}
+
 			//logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
 
 		}
@@ -680,8 +685,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 			err = mes.Get0x11Device(c)
 			if err != nil {
 				logger.Error.Printf("При разборе команды 0x11 id %d %s", hDev.ID, err.Error())
-			}
-			// logger.Debug.Printf("dev %d %v", hDev.ID, c.Error)
+			} // logger.Debug.Printf("dev %d %v", hDev.ID, c.Error)
 		case 0x12:
 			//Состояние ДК v3
 			err = mes.Get0x12Device(c)
@@ -714,15 +718,19 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		case 0x1D:
 			//Состояние подключения
 			need = true
-			err := mes.Get0x1DDevice(c)
-			if err != nil {
-				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
+			if defaultEthernet(*hDev, c) {
+				err := mes.Get0x1DDevice(c)
+				if err != nil {
+					logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
+				}
 			}
 		case 0x1B:
 			need = true
-			err := mes.Get0x1BDevice(c)
-			if err != nil {
-				logger.Error.Printf("При разборе команды 0x1B id %d %s", hDev.ID, err.Error())
+			if defaultEthernet(*hDev, c) {
+				err := mes.Get0x1BDevice(c)
+				if err != nil {
+					logger.Error.Printf("При разборе команды 0x1B id %d %s", hDev.ID, err.Error())
+				}
 			}
 		case 0x1C:
 			//Состояние подтверждения перелается с адресом отправителя 0x7F
@@ -899,4 +907,23 @@ func makeArrayToDevice(dd *Device, comArrays []pudge.ArrayPriv) transport.Header
 	////dd.Messages[int(dd.NumServ)]=hs
 	//mutex.Unlock()
 	return hs
+}
+func defaultEthernet(hDev transport.HeaderDevice, ctrl *pudge.Controller) bool {
+	switch hDev.TypeDevice {
+	case 0:
+		ctrl.Status.Ethernet = false
+		return false
+	case 10:
+		ctrl.Status.Ethernet = true
+		return false
+	case 20:
+		ctrl.Status.Ethernet = false
+		return false
+	case 21:
+		return true
+	case 30:
+		ctrl.Status.Ethernet = true
+		return false
+	}
+	return true
 }
