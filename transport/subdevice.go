@@ -709,7 +709,7 @@ func (s *SubMessage) Get0x1DDevice(c *pudge.Controller) error {
 	c.Status.StatusServer = int(s.Message[3])
 	c.Status.StatusPSPD = int(s.Message[4])
 	c.Status.ErrorLastConn = int(s.Message[5])
-	c.Status.Ethernet = s.Message[6]&4 != 0
+	c.Status.Ethernet = s.Message[6]&8 != 0
 	c.Status.TObmen = int(s.Message[7])
 	c.Status.LevelGSMNow = int(s.Message[8])
 	c.Status.LevelGSMLast = int(s.Message[9])
@@ -730,7 +730,7 @@ func (s *SubMessage) Set0x1DDevice(c *pudge.Controller) {
 	s.Message[5] = uint8(c.Status.ErrorLastConn)
 	s.Message[6] = 0
 	if c.Status.Ethernet {
-		s.Message[6] = 4
+		s.Message[6] = 8
 	}
 	s.Message[7] = uint8(c.Status.TObmen)
 	s.Message[8] = uint8(c.Status.LevelGSMNow)
@@ -748,7 +748,7 @@ func (s *SubMessage) Get0x1BDevice(c *pudge.Controller) error {
 	c.Status.StatusServer = int(s.Message[3])
 	c.Status.StatusPSPD = int(s.Message[4])
 	c.Status.ErrorLastConn = int(s.Message[5])
-	c.Status.Ethernet = s.Message[6]&4 != 0
+	c.Status.Ethernet = s.Message[6]&8 != 0
 	c.Status.TObmen = int(s.Message[7])
 	c.Status.LevelGSMNow = int(s.Message[8])
 	//logger.Debug.Printf("1B %v",s.Message)
@@ -767,7 +767,7 @@ func (s *SubMessage) Set0x1BDevice(c *pudge.Controller) {
 	s.Message[5] = uint8(c.Status.ErrorLastConn)
 	s.Message[6] = 0
 	if c.Status.Ethernet {
-		s.Message[6] = 4
+		s.Message[6] = 8
 	}
 	s.Message[7] = uint8(c.Status.TObmen)
 	s.Message[8] = uint8(c.Status.LevelGSMNow)
