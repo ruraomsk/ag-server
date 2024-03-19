@@ -313,6 +313,9 @@ suka:
 			if ctrl.Base && !lastBase {
 				ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 			}
+			if dd.Id == setup.Set.CommServer.IdDebug {
+				continue
+			}
 			// pudge.SetController(ctrl)
 			if need {
 				if hs.Code == 0x7f {
@@ -386,7 +389,9 @@ suka:
 				Mutex.Unlock()
 				// logger.Info.Printf("Добавили %d", dd.Id)
 			}
-
+			if dd.Id == setup.Set.CommServer.IdDebug {
+				continue
+			}
 			ctrl, is = pudge.GetController(dd.Id)
 			if !is {
 				break

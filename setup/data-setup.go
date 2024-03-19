@@ -69,6 +69,7 @@ type CommServer struct {
 	TimeOutWrite int64 `toml:"write_timeout"` //Таймаут на запись если данные должны быть переданы
 	ID           int   `toml:"id"`
 	MaxCon       int   `toml:"maxcon"`
+	IdDebug      int   `toml:"id_debug"` //id device которое нужно гнобить
 }
 
 // DataBase настройки базы данных postresql
