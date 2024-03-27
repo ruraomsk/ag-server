@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ruraomsk/ag-server/binding"
 	"github.com/ruraomsk/ag-server/setup"
 
 	"github.com/ruraomsk/ag-server/extcon"
@@ -72,9 +73,10 @@ func oneCross(reg pudge.Region) {
 	// if reg.Area == 1 && (reg.ID == 11 || reg.ID == 7) {
 	// 	logger.Info.Printf("запустили инспектора %v", reg)
 	// }
+	c, _ := pudge.GetCross(reg)
+	oldIDevice := c.IDevice
 	for {
 		time.Sleep(time.Duration(1 * time.Second))
-
 		cr, is := pudge.GetCross(reg)
 		if !is {
 			//Перекресток удалили
@@ -91,6 +93,11 @@ func oneCross(reg pudge.Region) {
 			// }
 
 			continue
+		}
+		if oldIDevice != cr.IDevice {
+			dev.Arrays = pudge.MakeArrays(*binding.NewArrays())
+			oldIDevice = cr.IDevice
+			pudge.SetController(dev)
 		}
 		if !dev.IsConnected() {
 			//Контроллер не на связи
