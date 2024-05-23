@@ -154,9 +154,9 @@ suka:
 	for _, m := range dmess {
 		if m.Type == 0x1D {
 			flag = true
-			if defaultEthernet(hDev, ctrl) {
-				_ = m.Get0x1DDevice(ctrl)
-			}
+			_ = m.Get0x1DDevice(ctrl)
+			defaultEthernet(hDev, ctrl)
+
 			// logger.Info.Printf("Заголовок команда 0x1D id %d ", ctrl.ID)
 
 		}
@@ -174,9 +174,8 @@ suka:
 		if m.Type == 0x1B {
 			flag = true
 			//hren = true
-			if defaultEthernet(hDev, ctrl) {
-				_ = m.Get0x1BDevice(ctrl)
-			}
+			_ = m.Get0x1BDevice(ctrl)
+			defaultEthernet(hDev, ctrl)
 
 			//logger.Info.Printf("Заголовок команда 0x1B id %d ", ctrl.ID)
 
@@ -731,20 +730,19 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 		case 0x1D:
 			//Состояние подключения
 			need = true
-			if defaultEthernet(*hDev, c) {
-				err := mes.Get0x1DDevice(c)
-				if err != nil {
-					logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
-				}
+			defaultEthernet(*hDev, c)
+			err := mes.Get0x1DDevice(c)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
 			}
+			defaultEthernet(*hDev, c)
 		case 0x1B:
 			need = true
-			if defaultEthernet(*hDev, c) {
-				err := mes.Get0x1BDevice(c)
-				if err != nil {
-					logger.Error.Printf("При разборе команды 0x1B id %d %s", hDev.ID, err.Error())
-				}
+			err := mes.Get0x1BDevice(c)
+			if err != nil {
+				logger.Error.Printf("При разборе команды 0x1B id %d %s", hDev.ID, err.Error())
 			}
+			defaultEthernet(*hDev, c)
 		case 0x1C:
 			//Состояние подтверждения перелается с адресом отправителя 0x7F
 			//Ничего пока не делаем
