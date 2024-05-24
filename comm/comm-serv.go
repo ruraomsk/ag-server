@@ -312,6 +312,31 @@ suka:
 			if ctrl.Base && !lastBase {
 				ctrl.Arrays = pudge.MakeArrays(*binding.NewArrays())
 			}
+			if ctrl.Status.StatusV220 != 0 {
+				ctrl.StatusConnection = false
+				ctrl.LastMyOperation = time.Now()
+				w := ""
+				ctrl.DK.EDK = 11
+				if ctrl.Status.StatusV220 == 25 {
+					w = fmt.Sprintf("Устройство %d авария 220В ", dd.Id)
+					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
+
+					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -5, 0)}
+					ctrl.DK.DDK = 3
+				} else {
+					w = fmt.Sprintf("Устройство %d выключено ", dd.Id)
+					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
+					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
+					ctrl.DK.DDK = 5
+				}
+				pudge.SetController(ctrl)
+				// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
+				logger.Error.Print(w)
+				killDevice(dd.Id)
+				timer.Stop()
+				time.Sleep(1 * time.Second)
+				return
+			}
 			if dd.Id == setup.Set.CommServer.IdDebug {
 				continue
 			}
@@ -405,31 +430,6 @@ suka:
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.Id, readTout.Seconds())
 				pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(),
 					Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
-				logger.Error.Print(w)
-				killDevice(dd.Id)
-				timer.Stop()
-				time.Sleep(1 * time.Second)
-				return
-			}
-			if ctrl.Status.StatusV220 != 0 {
-				ctrl.StatusConnection = false
-				ctrl.LastMyOperation = time.Now()
-				w := ""
-				ctrl.DK.EDK = 11
-				if ctrl.Status.StatusV220 == 25 {
-					w = fmt.Sprintf("Устройство %d авария 220В ", dd.Id)
-					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
-
-					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -5, 0)}
-					ctrl.DK.DDK = 3
-				} else {
-					w = fmt.Sprintf("Устройство %d выключено ", dd.Id)
-					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
-					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
-					ctrl.DK.DDK = 5
-				}
-				pudge.SetController(ctrl)
-				// pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.SetDeviceStatus(ctrl.ID)}
 				logger.Error.Print(w)
 				killDevice(dd.Id)
 				timer.Stop()
