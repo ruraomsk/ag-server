@@ -209,7 +209,7 @@ func writeLogDB(ch LogRecord, tup int) {
 	result, _ := json.Marshal(ch.Journal)
 	w := fmt.Sprintf("insert into public.logdevice (region,id,tm,crossinfo,txt,journal) values(%d,%d,'%s','%s','%s','%s');",
 		reg.Region, ch.ID, string(pq.FormatTimestamp(ch.Time)), string(cit), "", string(result))
-	logger.Debug.Println(w)
+	// logger.Debug.Println(w)
 	_, err = conLog.Exec(w)
 	if err != nil {
 		logger.Error.Printf("Ошибка записи в БД логирования %s \n%s", err.Error(), w)

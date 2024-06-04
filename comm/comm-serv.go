@@ -248,7 +248,7 @@ suka:
 	mss := make([]transport.SubMessage, 0)
 	_ = hs.UpackMessages(mss)
 	hout <- hs
-	pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -4, 0)}
+	pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now().Add(-time.Second), Journal: pudge.UserDeviceStatus("Сервер", -4, 0)}
 	logger.Info.Printf("Подключено устройство: id %d ", ctrl.ID)
 	time.Sleep(1 * time.Second)
 
