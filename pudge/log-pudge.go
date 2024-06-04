@@ -186,7 +186,7 @@ type crossInfo struct {
 
 func writeLogDB(ch LogRecord, tup int) {
 	if ch.Time == lastWrite {
-		ch.Time.Add(1 * time.Microsecond)
+		ch.Time = ch.Time.Add(1 * time.Microsecond)
 	}
 	lastWrite = ch.Time
 	reg := ch.Region
