@@ -153,7 +153,7 @@ func writeLog() {
 				mapLogs[cr.ToKey()].txt = ch.LogString
 			}
 		case 3:
-			workDeviceJournal(ch, cr)
+			writeLogDB(ch, 1)
 		}
 	}
 }
