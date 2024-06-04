@@ -168,13 +168,15 @@ func UserDeviceStatus(arm string, command int, param int) (j Journal) {
 		j.Rezim = "Останов сервера"
 	case -3:
 		j.Rezim = "Отключение устройства"
-		j.Arm = arm
+		j.Device = arm
+		j.Arm = ""
 	case -4:
 		j.Rezim = "Подключено устройство"
 		j.Arm = arm
 	case -5:
 		j.Rezim = "Авария 220V"
-		j.Arm = arm
+		j.Device = arm
+		j.Arm = ""
 	case 9:
 		j.Device = "ЭВМ"
 		j.Arm = arm
