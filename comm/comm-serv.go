@@ -319,14 +319,17 @@ suka:
 				ctrl.DK.EDK = 11
 				if ctrl.Status.StatusV220 == 25 {
 					w = fmt.Sprintf("Устройство %d авария 220В ", dd.Id)
-					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
-
-					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -5, 0)}
+					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true,
+						Buffer: []byte(w)}
+					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 3, Time: time.Now(),
+						Journal: pudge.UserDeviceStatus("Сервер", -5, 0)}
 					ctrl.DK.DDK = 3
 				} else {
 					w = fmt.Sprintf("Устройство %d выключено ", dd.Id)
-					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte(w)}
-					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(), Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
+					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true,
+						Buffer: []byte(w)}
+					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 3, Time: time.Now(),
+						Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
 					ctrl.DK.DDK = 5
 				}
 				pudge.SetController(ctrl)
