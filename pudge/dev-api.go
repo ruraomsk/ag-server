@@ -152,18 +152,18 @@ func (cc *Controller) GetSource() string {
 	case 2:
 		return "ВПУ "
 	case 3:
-		return cc.getDeviceName()
+		return cc.GetDeviceName()
 	case 4:
-		return cc.getDeviceName()
+		return cc.GetDeviceName()
 	case 5:
 		return "ИП ДКА "
 	}
 	if cc.DK.DDK >= 6 && cc.DK.DDK <= 9 {
-		return cc.getDeviceName()
+		return cc.GetDeviceName()
 	}
 	return fmt.Sprintf("Источник %d", cc.DK.DDK)
 }
-func (cc *Controller) getDeviceName() string {
+func (cc *Controller) GetDeviceName() string {
 	if cc.Model.C12 {
 		return "C12 "
 	}
