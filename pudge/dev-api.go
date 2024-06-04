@@ -135,7 +135,7 @@ func (d *DK) Make(buffer []byte, pos int) {
 // var ldev int
 // var llamp int
 // var ldoor int
-func (cc *Controller) getSource() string {
+func (cc *Controller) GetSource() string {
 	//	1 - ДК
 	//	2 - ВПУ
 	//	3 - инженерный пульт (ИП УСДК)

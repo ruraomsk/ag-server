@@ -322,14 +322,14 @@ suka:
 					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true,
 						Buffer: []byte(w)}
 					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 3, Time: time.Now(),
-						Journal: pudge.UserDeviceStatus("Сервер", -5, 0)}
+						Journal: pudge.UserDeviceStatus(ctrl.GetSource(), -5, 0)}
 					ctrl.DK.DDK = 3
 				} else {
 					w = fmt.Sprintf("Устройство %d выключено ", dd.Id)
 					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true,
 						Buffer: []byte(w)}
 					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 3, Time: time.Now(),
-						Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
+						Journal: pudge.UserDeviceStatus(ctrl.GetSource(), -3, 0)}
 					ctrl.DK.DDK = 5
 				}
 				pudge.SetController(ctrl)

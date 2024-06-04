@@ -131,7 +131,7 @@ func (cc *Controller) getTechRezim() string {
 }
 func SetDeviceStatus(id int) (j Journal) {
 	cc, _ := GetController(id)
-	j.Device = cc.getSource()
+	j.Device = cc.GetSource()
 	j.Rezim = cc.getRezim()
 	j.Phase = cc.getPhaseDU()
 	if j.Rezim == "КУ" {
