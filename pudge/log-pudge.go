@@ -152,6 +152,8 @@ func writeLog() {
 				writeLogDB(ch, 2)
 				mapLogs[cr.ToKey()].txt = ch.LogString
 			}
+		case 3:
+			workDeviceJournal(ch, cr)
 		}
 	}
 }
