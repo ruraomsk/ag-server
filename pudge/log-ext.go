@@ -178,7 +178,7 @@ func UserDeviceStatus(arm string, command int, param int) (j Journal) {
 		j.Device = arm
 		j.Arm = ""
 	case -6:
-		j.Rezim = "Потеряна связь с устройством"
+		j.Rezim = "Нет связи с устройством"
 		j.Arm = arm
 	case 9:
 		j.Device = "ЭВМ"
