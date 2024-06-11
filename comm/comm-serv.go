@@ -393,7 +393,7 @@ suka:
 			pudge.SetController(ctrl)
 			w := fmt.Sprintf("Контроллер %d ошибки обмена", dd.Id)
 			pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(),
-				Journal: pudge.UserDeviceStatus("Сервер", -3, 0)}
+				Journal: pudge.UserDeviceStatus("Сервер", -6, 0)}
 			logger.Error.Print(w)
 			killDevice(dd.Id)
 			timer.Stop()
@@ -432,7 +432,7 @@ suka:
 				pudge.SetController(ctrl)
 				w := fmt.Sprintf("Устройство %d более %f не выходит на связь ", dd.Id, readTout.Seconds())
 				pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(),
-					Journal: pudge.UserDeviceStatus("Сервер", -6, 0)}
+					Journal: pudge.UserDeviceStatus("Сервер", -7, 0)}
 				logger.Error.Print(w)
 				killDevice(dd.Id)
 				timer.Stop()
@@ -450,7 +450,7 @@ suka:
 					logger.Info.Printf("Устройство %d более 5 раз не отвечает удаляем текущее подключение", dd.Id)
 					debug.DebugChan <- debug.DebugMessage{ID: dd.Id, Time: time.Now(), FromTo: false, Info: true, Buffer: []byte("Удалено текущее подключения")}
 					pudge.ChanLog <- pudge.LogRecord{ID: ctrl.ID, Region: dd.Region, Type: 1, Time: time.Now(),
-						Journal: pudge.UserDeviceStatus("Сервер", -6, 0)}
+						Journal: pudge.UserDeviceStatus("Сервер", -7, 0)}
 					killDevice(dd.Id)
 					timer.Stop()
 					time.Sleep(1 * time.Second)
