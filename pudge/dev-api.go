@@ -318,10 +318,16 @@ func (cc *Controller) CalcStatus() int {
 		//Обрыв ЛС КЗЦ 20
 		return 20
 	}
+
 	if err == 4 && dev == 8 { //Спросить как узнать ошибки ПБС УСДК
 		//Превышение трафика
 		return 21
 	}
+	if cc.Status.StatusPSPD == 2 || cc.Status.StatusPSPD == 3 {
+		//Превышение трафика
+		return 21
+	}
+
 	if (rezim == 5 || rezim == 6) && err == 4 && (dev == 0 || dev == 1) {
 		//Базовая привязка 22
 		return 22
