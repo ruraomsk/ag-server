@@ -68,6 +68,14 @@ func (cc *Controller) getRezim() string {
 	return fmt.Sprintf("Режим %d ", cc.DK.RDK)
 }
 func (cc *Controller) getBroken() string {
+	switch cc.Status.StatusPSPD {
+	case 1:
+		return "Нет связи с ПСПД"
+	case 2:
+		return "Превышение трафика ПСПД"
+	case 3:
+		return "Превышение трафика ПСПД"
+	}
 	switch cc.DK.EDK {
 	case 0:
 		return "НОРМ"
@@ -98,6 +106,7 @@ func (cc *Controller) getBroken() string {
 	case 13:
 		return "Нет информации"
 	}
+
 	return fmt.Sprintf("Неисправность %d ", cc.DK.EDK)
 }
 func (cc *Controller) getTechRezim() string {
