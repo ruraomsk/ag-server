@@ -310,6 +310,10 @@ func (cc *Controller) CalcStatus() int {
 		//Нет связи с ПСПД 19
 		return 19
 	}
+	if cc.Status.StatusPSPD == 1 {
+		//Нет связи с ПСПД 19
+		return 19
+	}
 	if err == 11 {
 		//Обрыв ЛС КЗЦ 20
 		return 20
