@@ -147,6 +147,9 @@ func SetDeviceStatus(id int) (j Journal) {
 		if !(j.Phase == "ЛР" || j.Phase == "ЖМ" || j.Phase == "ОС" || j.Phase == "КК") {
 			j.Phase = ""
 		}
+		if cc.Status.StatusPSPD != 0 {
+			j.Phase = ""
+		}
 	}
 	if j.Rezim == "РУ" {
 		j.Phase = cc.getPhaseRU()
