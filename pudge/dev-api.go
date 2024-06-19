@@ -310,7 +310,7 @@ func (cc *Controller) CalcStatus() int {
 		//Нет связи с ПСПД 19
 		return 19
 	}
-	if cc.Status.StatusPSPD == 1 {
+	if cc.Status.StatusPSPD != 0 {
 		//Нет связи с ПСПД 19
 		return 19
 	}
@@ -320,10 +320,6 @@ func (cc *Controller) CalcStatus() int {
 	}
 
 	if err == 4 && dev == 8 { //Спросить как узнать ошибки ПБС УСДК
-		//Превышение трафика
-		return 21
-	}
-	if cc.Status.StatusPSPD == 2 || cc.Status.StatusPSPD == 3 {
 		//Превышение трафика
 		return 21
 	}

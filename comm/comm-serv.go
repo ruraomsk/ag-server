@@ -739,6 +739,7 @@ func updateController(c *pudge.Controller, hDev *transport.HeaderDevice, dd *Dev
 				logger.Error.Printf("При разборе команды 0x1D id %d %s", hDev.ID, err.Error())
 			}
 			defaultEthernet(*hDev, c)
+			changeStatus = true
 		case 0x1B:
 			need = true
 			err := mes.Get0x1BDevice(c)
