@@ -225,6 +225,10 @@ func (cc *Controller) CalcStatus() int {
 	if cc.Base {
 		return 22
 	}
+	if cc.Status.StatusPSPD != 0 {
+		//Нет связи с ПСПД 19
+		return 19
+	}
 	if (rezim == 8 || rezim == 9) && (err == 0 || err == 1) && (faza >= 1 && faza <= 9) && lamp == 0 && door == 0 {
 		//Координированное управление 1
 		return 1
@@ -307,10 +311,6 @@ func (cc *Controller) CalcStatus() int {
 		return 18
 	}
 	if err == 11 && dev == 8 { //Спросить как узнать ошибки ПБС УСДК
-		//Нет связи с ПСПД 19
-		return 19
-	}
-	if cc.Status.StatusPSPD != 0 {
 		//Нет связи с ПСПД 19
 		return 19
 	}
