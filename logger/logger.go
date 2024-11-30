@@ -9,7 +9,9 @@ import (
 	"time"
 )
 
-//LogFile информация о лог файле
+var Days = 30
+
+// LogFile информация о лог файле
 type LogFile struct {
 	flog  *os.File //дескриптор открытого файла
 	mutex sync.Mutex
@@ -17,7 +19,7 @@ type LogFile struct {
 	date  string //текущая дата
 }
 
-//logfile текущий лог файл
+// logfile текущий лог файл
 var logfile *LogFile
 var (
 	//Debug send debug message
@@ -32,7 +34,7 @@ var (
 	Error *log.Logger
 )
 
-//Init запуск системы логирования
+// Init запуск системы логирования
 func Init(path string) (err error) {
 	logfile, err = logOpen(path)
 	if err != nil {
@@ -60,7 +62,7 @@ func Init(path string) (err error) {
 	return nil
 }
 
-//LogOpen открытие/создание файла хранящего лог информацию
+// LogOpen открытие/создание файла хранящего лог информацию
 func logOpen(path string) (log *LogFile, err error) {
 	go logClean(path)
 	log = new(LogFile)
@@ -71,7 +73,7 @@ func logOpen(path string) (log *LogFile, err error) {
 	return
 }
 
-//logClean проверка и удаление старых лог файлов
+// logClean проверка и удаление старых лог файлов
 func logClean(path string) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -79,7 +81,7 @@ func logClean(path string) {
 	}
 	for {
 		for _, file := range files {
-			if file.ModTime().Add(time.Hour * 24 * 30).Before(time.Now()) {
+			if file.ModTime().Before(time.Now().AddDate(0, 0, -Days)) {
 				_ = os.Remove(path + "/" + file.Name())
 			}
 		}
@@ -87,13 +89,13 @@ func logClean(path string) {
 	}
 }
 
-//Read чтение лог файла
+// Read чтение лог файла
 func (l *LogFile) Read(p []byte) (n int, err error) {
 	n, err = l.flog.Read(p)
 	return
 }
 
-//Write записать лог файла
+// Write записать лог файла
 func (l *LogFile) Write(p []byte) (n int, err error) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
@@ -112,7 +114,7 @@ func (l *LogFile) Write(p []byte) (n int, err error) {
 	return
 }
 
-//Close закрытие лог файла
+// Close закрытие лог файла
 func (l *LogFile) Close() error {
 	err := l.flog.Close()
 	return err
